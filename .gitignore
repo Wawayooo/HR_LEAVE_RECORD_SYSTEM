@@ -1,0 +1,54 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django migrations (optional, if you don’t want to track them)
+*/migrations/*.py
+*/migrations/*.pyc
+
+# Environment files
+.env
+*.env
+
+# SQLite database (if used locally)
+db.sqlite3
+
+# Media uploads
+/media/
+staticfiles/
+
+# Logs
+*.log
+
+# Virtual environment
+venv/
+ENV/
+env/
+.venv/
+
+# IDE/editor settings
+.vscode/
+.idea/
+*.swp
+
+# Coverage/testing
+.coverage
+htmlcov/
+.tox/
+nosetests.xml
+coverage.xml
+
+# Node modules (if using frontend assets)
+node_modules/
+
+# Compiled translations
+*.mo
+
+# Backup files
+*.bak
+*.tmp
+
+# Mac/Linux/Windows system files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,69 @@
+@font-face {
+  font-family: 'Poppins-Black';
+  src: url(../fonts/Poppins/Poppins-Black.ttf);
+}
+@font-face {
+  font-family: 'Poppins-Bold';
+  src: url(../fonts/Poppins/Poppins-Bold.ttf);
+}
+@font-face {
+  font-family: 'Poppins-ExtraBold';
+  src: url(../fonts/Poppins/Poppins-ExtraBold.ttf);
+}
+@font-face {
+  font-family: 'Poppins-ExtraLight';
+  src: url(../fonts/Poppins/Poppins-ExtraLight.ttf);
+}
+@font-face {
+  font-family: 'Poppins-Regular';
+  src: url(../fonts/Poppins/Poppins-Regular.ttf);
+}
+@font-face {
+  font-family: 'Montserrat';
+  src: url(../fonts/Montserrat/Montserrat-VariableFont_wght.ttf);
+}
+@font-face {
+  font-family: 'DancingScript-Regular';
+  src: url(../fonts/DancingScript/static/DancingScript-Regular.ttf);
+}
+
+@keyframes shake {
+  0%   { transform: rotate(0deg); }
+  25%  { transform: rotate(10deg); }
+  50%  { transform: rotate(-10deg); }
+  75%  { transform: rotate(10deg); }
+  100% { transform: rotate(0deg); }
+}
+
+:root {
+  /* FONTS */
+  --Poppins-Black: 'Poppins-Black';
+  --Poppins-Bold: 'Poppins-Bold';
+  --Poppins-ExtraBold: 'Poppins-ExtraBold';
+  --Poppins-ExtraLight: 'Poppins-ExtraLight';
+  --Poppins-Regular: 'Poppins-Regular'; 
+  --Montserrat: 'Montserrat';
+  --DancingScript-Regular: 'DancingScript-Regular';
+
+  /* COLORS */
+  --color-primary: #690f0f;
+  --color-light-primary: rgba(105, 15, 15, 0.5);
+  --color-dark-primary: #551010;
+  --color-white-shadow: #7E7E7D;
+  --color-invisible-shadow: rgba(0, 0, 0, 0.2);
+  --color-input-text: #545454;
+  --color-coffee: #E0C9A6;
+  --color-bg-white: #EDEDED;
+  --color-light: #FAFAFA;
+  --color-white: #FFFFFF;
+  --color-black: #000;
+  --color-grass: #28c76f;
+  --color-gradient-jet: linear-gradient(
+    to bottom right, 
+    hsla(240, 1%, 18%, 0.251) 0%, 
+    hsla(240, 2%, 11%, 0) 100%
+  ), hsl(240, 2%, 13%);
+
+  /* ANIMATIONS */
+  --animation-shake: shake;
+}

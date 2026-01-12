@@ -1,0 +1,461 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Osmeña Colleges HRIS</title>
+  <link rel="stylesheet" href="{% static 'assets/styles/dashboard_interface.css' %}">
+  <link rel="stylesheet" href="{% static 'assets/styles/dashboard_interface_2.css' %}">
+  <link rel="stylesheet" href="{% static 'assets/styles/general_style/other_designs.css' %}">
+</head>
+
+<body>
+  <div class="header">
+    <div class="logo-section">
+      <div class="logo">OC</div>
+      <div class="header-title">Osmeña Colleges HRIS</div>
+    </div>
+    <div class="header-actions">
+      <div class="admin-profile" id="adminProfile">
+        <!-- Avatar -->
+        <div class="admin-avatar">
+          <img id="hrAvatar" src="{% static 'assets/media/examplePIC.jpg' %}" alt="HR Avatar" onerror="this.src='{% static 'assets/media/examplePIC.jpg' %}'" />
+        </div>
+        <span>Admin ▾</span>
+
+        <!-- Dropdown Menu -->
+        <div class="admin-dropdown hidden" id="adminDropdown">
+          <div class="dropdown-item" onclick="openDepartmentModal()">
+            ➕ Add Department
+          </div>
+          <div class="dropdown-item" onclick="openPositionModal()">
+            ➕ Add Position
+          </div>
+          <div class="dropdown-item" onclick="toggleHRModal()">
+            👤 View Profile
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div id="hrModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>HR Profile</h2>
+        <span class="close-btn" onclick="toggleHRModal()">&times;</span>
+      </div>
+      
+      <div class="modal-body">
+        <div class="profile-section">
+          <img id="hrProfilePic" src="" alt="HR Profile Picture" onerror="this.src='{% static 'assets/media/examplePIC.jpg' %}'" />
+          <p><strong>Professional ID:</strong> <span id="hrProfessionalId">Loading...</span></p>
+        </div>
+
+        <form id="hrForm">
+          <div class="form-group">
+            <label for="hrUsername">Username</label>
+            <input type="text" id="hrUsername" readonly style="background: #f5f5f5; cursor: not-allowed;" />
+          </div>
+
+          <div class="form-group">
+            <label for="hrPassword">New Password (leave blank to keep current)</label>
+            <input type="password" id="hrPassword" placeholder="Enter new password (optional)" />
+          </div>
+
+          <div class="form-group">
+            <label for="hrFullName">Full Name</label>
+            <input type="text" id="hrFullName" required />
+          </div>
+
+          <div class="form-group">
+            <label for="hrGender">Gender</label>
+            <select id="hrGender" required>
+              <option value="">Select Gender</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="hrHeight">Height (cm)</label>
+              <input type="number" id="hrHeight" min="100" max="250" step="0.1" required />
+            </div>
+
+            <div class="form-group">
+              <label for="hrWeight">Weight (kg)</label>
+              <input type="number" id="hrWeight" min="30" max="300" step="0.1" required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="hrAge">Age</label>
+            <input type="number" id="hrAge" min="18" max="100" required />
+          </div>
+
+          <div class="form-group">
+            <label for="hrPhoto">Upload New Photo</label>
+            <input type="file" id="hrPhoto" accept="image/*" />
+            <small style="color: #666; font-size: 12px;">Max file size: 5MB. Accepted formats: JPG, PNG, GIF</small>
+          </div>
+
+          <div class="form-footer">
+            <button type="button" class="btn-cancel-form" onclick="toggleHRModal()">Cancel</button>
+            <button type="submit" class="btn-register">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Department Modal -->
+  <div id="departmentModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="departmentModalTitle">Add Department</h2>
+        <span class="close-btn" onclick="closeDepartmentModal()">&times;</span>
+      </div>
+      <div class="modal-body">
+        <form id="departmentForm">
+          <div class="form-row">
+            <div class="form-group-full">
+              <label>Department Code</label>
+              <input type="text" id="departmentCode" required placeholder="Enter department code">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group-full">
+              <label>Department Name</label>
+              <input type="text" id="departmentName" required placeholder="Enter department name">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group-full">
+              <label>Description</label>
+              <textarea id="departmentDescription" rows="3" placeholder="Enter description"></textarea>
+            </div>
+          </div>
+          <div class="form-footer">
+            <button type="button" class="btn-cancel-form" onclick="closeDepartmentModal()">Cancel</button>
+            <button type="submit" class="btn-register">Save Department</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Position Modal -->
+  <div id="positionModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="positionModalTitle">Add Position</h2>
+        <span class="close-btn" onclick="closePositionModal()">&times;</span>
+      </div>
+      <div class="modal-body">
+        <form id="positionForm">
+          <div class="form-row">
+            <div class="form-group-full">
+              <label>Position Code</label>
+              <input type="text" id="positionCode" required placeholder="Enter position code">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group-full">
+              <label>Position Title</label>
+              <input type="text" id="positionTitle" required placeholder="Enter position title">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group-full">
+              <label>Description</label>
+              <textarea id="positionDescription" rows="3" placeholder="Enter description"></textarea>
+            </div>
+          </div>
+          <div class="form-footer">
+            <button type="button" class="btn-cancel-form" onclick="closePositionModal()">Cancel</button>
+            <button type="submit" class="btn-register">Save Position</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="sidebar">
+      <div class="menu-item active" data-section="dashboard">
+        <span class="menu-icon">🏠</span>
+        <span>Dashboard</span>
+      </div>
+      <div class="menu-item" data-section="facultySection">
+        <span class="menu-icon">👥</span>
+        <span>Faculty & Staff</span>
+      </div>
+      <div class="menu-item" data-section="LeaveRequestsSection">
+        <span class="menu-icon">📋</span>
+        <span>Leave Requests</span>
+      </div>
+      <div class="menu-item" data-section="leaveReportsSection">
+        <span class="menu-icon">📊</span>
+        <span>Reports</span>
+      </div>
+      <div class="menu-item" onclick="navigate('Logout')" style="position: absolute; bottom: 20px; width: 100%;">
+        <span class="menu-icon">🚪</span>
+        <span>Logout</span>
+      </div>
+    </div>
+
+    <div id="logoutModal" class="modal-overlay">
+      <div class="modal-content">
+        <div class="spinner"></div>
+        <p>Redirecting to Starting Page...</p>
+      </div>
+    </div>
+
+
+    <div class="main-content">
+      <div class="breadcrumb">
+        📁 Dashboard / Board of Trustees
+      </div>
+
+      <div class="action-bar">
+        <button class="btn-primary">+ Add Employee</button>
+        <button class="btn-secondary">Update Employee</button>
+        <button class="more-btn" onclick="showAlert('More Options')">⋮</button>
+      </div>
+
+      <h1 class="page-title">Board of Trustees</h1>
+
+      <div class="org-chart" id="orgChartContainer">
+        <div class="org-level">
+          <div class="org-card">
+            <div class="org-card-header" id="oc_hr_name"></div>
+            <div class="org-avatar"></div>
+            <div class="org-subtitle">OC-Human Resource</div>
+          </div>
+        </div>
+
+        <div class="org-level-two">
+          <div class="org-card">
+            <div class="org-avatar"></div>
+            <div class="org-title">Legal Counsel</div>
+            <div class="org-subtitle">Department Dean</div>
+          </div>
+          <div class="org-card">
+            <div class="org-avatar"></div>
+            <div class="org-title">Administrative Council</div>
+            <div class="org-subtitle">Department Dean</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div id="facultySection" class="faculty-section" style="display: none;">
+      <div class="faculty-breadcrumb">👨🏻‍💼 Dashboard/Faculty & Staff</div>
+      <h1 class="faculty-title">Faculty & Staff</h1>
+
+      <div class="faculty-chart" id="facultyChartContainer">
+      </div>
+    </div>
+
+    <div id="LeaveRequestsSection" class="leave-requests-section" style="display: none; width: 100%; height: 100%; overflow: auto; padding: 20px; margin-bottom: 20px;">
+      <div class="breadcrumb">📁 Dashboard / Leave Requests</div>
+      <h1 class="section-title">Pending Leave Requests</h1>
+
+      <div class="leave-requests-container">
+        <p style="text-align: center; padding: 40px; color: #666;">Loading leave requests...</p>
+      </div>
+    </div>
+
+    <div id="leaveReportsSection" class="section hidden-section" style="display: none; width: 100%; height: 100%; overflow: auto; padding: 20px; margin-bottom: 20px;">
+      <div class="breadcrumb">📁 Dashboard / Leave Reports</div>
+      <h1 class="page-title">Leave Reports</h1>
+
+      <div class="leave-reports-cards-container">
+        <p style="text-align: center; padding: 40px; color: #666;">Loading leave reports...</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="employeeModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modalTitle">Add Employee</h2>
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+      </div>
+      <div class="modal-body">
+        <div class="form-header">
+          <h2>Add Employee</h2>
+          <div class="auto-generated-badge">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <circle cx="8" cy="8" r="8" fill="#4CAF50" />
+              <path d="M5 8L7 10L11 6" stroke="white" stroke-width="2" stroke-linecap="round" />
+            </svg>
+            <span>Auto-Generated</span>
+          </div>
+        </div>
+
+        <form id="employeeForm" class="employee-form">
+          <div class="form-content">
+            <div class="photo-section">
+              <div class="photo-upload-area">
+                <div class="avatar-large" id="avatarPreview">
+                  <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+                    <circle cx="30" cy="30" r="30" fill="#e0e0e0" />
+                    <path d="M30 28C33.866 28 37 24.866 37 21C37 17.134 33.866 14 30 14C26.134 14 23 17.134 23 21C23 24.866 26.134 28 30 28Z" fill="#999" />
+                    <path d="M42 46C42 38.268 36.627 32 30 32C23.373 32 18 38.268 18 46" fill="#999" />
+                  </svg>
+                </div>
+                <button type="button" class="upload-btn" onclick="document.getElementById('photoInput').click()">
+                  <span>📷</span> Upload Photo
+                </button>
+                <input type="file" id="photoInput" accept="image/*" style="display: none;" onchange="handlePhotoUpload(event)">
+                <div class="file-chooser">
+                  <select class="file-select">
+                    <option>Choose file</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-fields">
+              <div class="form-row">
+                <div class="form-group-inline">
+                  <label>Employee ID</label>
+                  <input type="text" id="employeeId" readonly value="OC-20260001">
+                  <div class="error-message"></div>
+                </div>
+                <div class="form-group-inline">
+                  <label>Gender</label>
+                  <select id="employeeGender" required>
+                    <option value="">Select Gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                  </select>
+                  <div class="error-message"></div>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group-inline full-width">
+                  <label>Name</label>
+                  <input type="text" id="employeeName" required placeholder="Enter full name">
+                  <div class="error-message"></div>
+                </div>
+                <div class="form-group-inline">
+                  <label>Weight</label>
+                  <input type="number" id="employeeWeight" placeholder="kg" min="30" max="300" step="0.1" required>
+                  <div class="error-message"></div>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group-inline">
+                  <label>Age</label>
+                  <input type="number" id="employeeAge" placeholder="Age" min="18" max="100" required>
+                  <div class="error-message"></div>
+                </div>
+                <div class="form-group-inline">
+                  <label>Height</label>
+                  <input type="number" id="employeeHeight" placeholder="cm" min="100" max="250" step="0.1" required>
+                  <div class="error-message"></div>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group-inline">
+                  <label>Position Applied</label>
+                  <select id="employeePosition" required>
+                    <option value="">Select Position</option>
+                  </select>
+                  <div class="error-message"></div>
+                </div>
+                <div class="form-group-inline">
+                  <label>Department</label>
+                  <select id="employeeDepartment" required>
+                    <option value="">Select Department</option>
+                  </select>
+                  <div class="error-message"></div>
+                </div>
+              </div>
+
+              <div class="form-group-full">
+                <label>Motto in Life</label>
+                <textarea id="employeeMotto" rows="4" placeholder="Enter motto in life..."></textarea>
+                <div class="error-message"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-footer">
+            <button type="button" class="btn-cancel-form" onclick="closeModal()">Cancel</button>
+            <button type="submit" class="btn-register">Register Employee</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div id="updateModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Update Employee</h2>
+        <span class="close-btn" onclick="closeUpdateModal()">&times;</span>
+      </div>
+      <div class="modal-body">
+        <div class="employee-list" id="employeeList">
+          <p style="text-align: center; padding: 20px;">Loading employees...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global Loading Modal -->
+  <div id="globalLoadingModal" style="
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+  ">
+    <div style="
+      background: #fff;
+      padding: 30px 40px;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    ">
+      <div class="spinner" style="
+        border: 6px solid #f3f3f3;
+        border-top: 6px solid #3498db;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+        margin-bottom: 15px;
+      "></div>
+      <div>Loading, please wait...</div>
+    </div>
+  </div>
+
+  <style>
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  </style>
+
+
+  <script src="{% static 'assets/scripts/dashboard_interface.js' %}"></script>
+
+</body>
+</html>

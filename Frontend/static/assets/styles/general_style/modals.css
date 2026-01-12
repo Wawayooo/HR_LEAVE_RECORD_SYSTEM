@@ -1,0 +1,72 @@
+.modal {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--color-invisible-shadow);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal.active {
+  display: flex;
+}
+
+/* DELETE ITEM MODAL */
+.modal .delete-modal {
+  background: var(--color-gradient-jet);
+  padding: 1.5rem;
+  width: 400px;
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.modal .delete-modal p span {
+  font-family: var(--Poppins-Bold);
+}
+
+.modal .delete-modal .button-cont {
+  display: flex;
+  gap: 0.8rem;
+  justify-content: center;
+}
+
+.modal .delete-modal .warning {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  color: var(--color-coffee);
+  font-family: var(--Montserrat);
+}
+
+.modal .delete-modal .warning p {
+  font-size: 1rem;
+  letter-spacing: 1px;
+}
+
+.modal .delete-modal .warning i {
+  padding: 0.8rem;
+  border-radius: 50%;
+  background: var(--color-coffee);
+  color: var(--color-primary);
+  box-shadow: 0 0 0.5rem var(--color-coffee);
+}
+
+.modal .delete-modal button {
+  font-family: var(--Poppins-Regular);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.3rem 1rem;
+  letter-spacing: 1px;
+  color: var(--color-white);
+}
+
+.modal .delete-modal button:hover {
+  opacity: 0.5;
+}

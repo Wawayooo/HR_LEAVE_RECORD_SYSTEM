@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Osmeña Colleges HRIS - Leave Application</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+            color: white;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .page-header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .page-header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .form-header {
+            background: linear-gradient(180deg, #8B0000 0%, #5a0000 100%);
+            color: white;
+            padding: 20px 30px;
+            text-align: center;
+        }
+
+        .form-header h2 {
+            font-size: 22px;
+            margin-bottom: 8px;
+        }
+
+        .form-header p {
+            font-size: 13px;
+            opacity: 0.95;
+        }
+
+        .section-title {
+            background: linear-gradient(180deg, #8B0000 0%, #5a0000 100%);
+            color: white;
+            padding: 12px 30px;
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin: 0;
+        }
+
+        .form-content {
+            padding: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .form-row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        label.required::before {
+            content: '*';
+            color: #8B0000;
+            margin-right: 3px;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="date"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d0d0d0;
+            border-radius: 4px;
+            background-color: white;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #8B0000;
+            box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.1);
+        }
+
+        input.error,
+        select.error {
+            border-color: #d32f2f;
+            background-color: #ffebee;
+        }
+
+        .error-message {
+            color: #d32f2f;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 35px;
+        }
+
+        .subtitle {
+            font-size: 12px;
+            font-style: italic;
+            color: #666;
+            margin-top: -5px;
+            margin-bottom: 8px;
+        }
+
+        .details-section {
+            border-top: 2px solid #e0e0e0;
+            padding-top: 20px;
+            margin-top: 10px;
+        }
+
+        .details-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .calendar-container {
+            background-color: #f9f5f7;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .calendar-header-left {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .calendar-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .calendar-controls select {
+            padding: 6px 10px;
+            font-size: 12px;
+            border: 1px solid #d0d0d0;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            margin-top: 15px;
+        }
+
+        .calendar-day-header {
+            font-size: 11px;
+            font-weight: 600;
+            color: #666;
+            text-align: center;
+            padding: 8px 0;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            cursor: pointer;
+            border-radius: 4px;
+            background-color: white;
+            border: 1px solid #e0e0e0;
+            transition: all 0.2s;
+        }
+
+        .calendar-day:hover:not(.inactive) {
+            background-color: #f0f0f0;
+            border-color: #8B0000;
+        }
+
+        .calendar-day.selected {
+            background-color: #8B0000;
+            color: white;
+            border-color: #8B0000;
+            font-weight: 600;
+        }
+
+        .calendar-day.inactive {
+            color: #ccc;
+            background-color: #fafafa;
+            cursor: not-allowed;
+        }
+
+        .time-slots {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .time-slot {
+            padding: 10px;
+            background-color: white;
+            border: 1px solid #d0d0d0;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .time-slot:hover {
+            background-color: #f5f5f5;
+            border-color: #8B0000;
+        }
+
+        .time-slot.selected {
+            background-color: #8B0000;
+            color: white;
+            border-color: #8B0000;
+            font-weight: 600;
+        }
+
+        .submit-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .submit-button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(180deg, #8B0000 0%, #5a0000 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            letter-spacing: 0.5px;
+        }
+
+        .submit-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(139, 0, 0, 0.3);
+        }
+
+        .submit-button:disabled {
+            background: linear-gradient(180deg, #999 0%, #777 100%);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .success-message {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px 20px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+            font-size: 14px;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 0.8s linear infinite;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .required-note {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #fff3cd;
+            border-left: 3px solid #8B0000;
+            border-radius: 4px;
+        }
+
+        .required-note::before {
+            content: '* ';
+            color: #8B0000;
+            font-weight: bold;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background-color: white;
+            color: #1a237e;
+            border: 2px solid #1a237e;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+
+        .back-button:hover {
+            background-color: #1a237e;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .details-columns {
+                grid-template-columns: 1fr;
+            }
+
+            .form-row-3 {
+                grid-template-columns: 1fr;
+            }
+
+            .time-slots {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-header">
+        <h1>🏛️ Osmeña Colleges HRIS</h1>
+        <p>Human Resource Information System - Leave Application Portal</p>
+    </div>
+
+    <button class="back-button" onclick="window.location.href='dashboard.html'">
+        ← Back to Dashboard
+    </button>
+
+    <div class="container">
+        <div class="form-header">
+            <h2>Leave Application Form</h2>
+            <p>Please fill out all required information to submit your leave request</p>
+        </div>
+
+        <div class="success-message" id="successMessage">
+            ✓ Leave application submitted successfully! Redirecting to dashboard...
+        </div>
+
+        <div class="section-title">EMPLOYEE INFORMATION</div>
+
+        <div class="form-content">
+            <div class="required-note">
+                Required fields must be filled before submission
+            </div>
+
+            <form id="leaveApplicationForm">
+                <!-- Employee Information -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="required">Office/Agency</label>
+                        <input type="text" id="office" name="office_agency" required 
+                               placeholder="e.g., Osmeña Colleges">
+                        <div class="error-message">Office/Agency is required</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="required">Email Address</label>
+                        <input type="email" id="email" name="email" required 
+                               placeholder="employee@osmena.edu.ph">
+                        <div class="error-message">Valid email is required</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="required">Full Name</label>
+                </div>
+                <div class="form-row-3">
+                    <div class="form-group">
+                        <input type="text" placeholder="Last Name" id="lastName" 
+                               name="last_name" required>
+                        <div class="error-message">Last name is required</div>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" placeholder="First Name" id="firstName" 
+                               name="first_name" required>
+                        <div class="error-message">First name is required</div>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" placeholder="Middle Name (Optional)" 
+                               id="middleName" name="middle_name">
+                    </div>
+                </div>
+
+                <div class="form-row-3">
+                    <div class="form-group">
+                        <label class="required">Department</label>
+                        <select id="department" name="department" required>
+                            <option value="">Select Department</option>
+                            <option value="board">Board of Trustees</option>
+                            <option value="legal">Legal Counsel</option>
+                            <option value="admin-council">Administrative Council</option>
+                            <option value="basic-ed">Basic Education</option>
+                            <option value="grad-school">Graduate School</option>
+                            <option value="cite">CITE</option>
+                            <option value="caba">CABA</option>
+                            <option value="chm">CHM & Library</option>
+                            <option value="hr">HR Department</option>
+                            <option value="finance">Finance</option>
+                            <option value="admissions">Admissions</option>
+                            <option value="it">IT Department</option>
+                            <option value="support">Tech Support</option>
+                        </select>
+                        <div class="error-message">Department is required</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="required">Position</label>
+                        <select id="position" name="position" required>
+                            <option value="">Select Position</option>
+                            <option value="chairman">Chairman of the Board</option>
+                            <option value="legal-counsel">Legal Counsel</option>
+                            <option value="dean">Dean</option>
+                            <option value="professor">Professor</option>
+                            <option value="instructor">Instructor</option>
+                            <option value="staff">Administrative Staff</option>
+                            <option value="hr-manager">HR Manager</option>
+                            <option value="finance-officer">Finance Officer</option>
+                            <option value="it-director">IT Director</option>
+                            <option value="tech-support">Tech Support</option>
+                        </select>
+                        <div class="error-message">Position is required</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="required">Date of Filing</label>
+                        <input type="date" id="dateOfFiling" name="date_of_filing" required>
+                        <div class="error-message">Date of filing is required</div>
+                    </div>
+                </div>
+
+                <div class="section-title">LEAVE DETAILS</div>
+
+                <div class="details-section">
+                    <div class="details-columns">
+                        <!-- Left Column -->
+                        <div>
+                            <div class="form-group">
+                                <label class="required">Type of Leave</label>
+                                <div class="subtitle">Select the appropriate leave type</div>
+                                <select id="leaveType" name="leave_type" required>
+                                    <option value="">Select Leave Type</option>
+                                    <option value="vacation">Vacation Leave</option>
+                                    <option value="sick">Sick Leave</option>
+                                    <option value="maternity">Maternity Leave</option>
+                                    <option value="paternity">Paternity Leave</option>
+                                    <option value="emergency">Emergency Leave</option>
+                                </select>
+                                <div class="error-message">Leave type is required</div>
+                            </div>
+
+                            <div class="calendar-container">
+                                <div class="form-group">
+                                    <label class="required">Appointment Date & Time</label>
+                                    <div class="subtitle">Select your preferred appointment date and time</div>
+                                </div>
+                                
+                                <div class="calendar-header">
+                                    <div class="calendar-header-left" id="selectedDateDisplay">
+                                        Select a date
+                                    </div>
+                                    <div class="calendar-controls">
+                                        <select id="monthSelect">
+                                            <option value="0">January</option>
+                                            <option value="1">February</option>
+                                            <option value="2">March</option>
+                                            <option value="3">April</option>
+                                            <option value="4">May</option>
+                                            <option value="5">June</option>
+                                            <option value="6">July</option>
+                                            <option value="7">August</option>
+                                            <option value="8">September</option>
+                                            <option value="9">October</option>
+                                            <option value="10">November</option>
+                                            <option value="11">December</option>
+                                        </select>
+                                        <select id="yearSelect"></select>
+                                    </div>
+                                </div>
+
+                                <div class="calendar-grid" id="calendarGrid">
+                                    <div class="calendar-day-header">Sun</div>
+                                    <div class="calendar-day-header">Mon</div>
+                                    <div class="calendar-day-header">Tue</div>
+                                    <div class="calendar-day-header">Wed</div>
+                                    <div class="calendar-day-header">Thu</div>
+                                    <div class="calendar-day-header">Fri</div>
+                                    <div class="calendar-day-header">Sat</div>
+                                </div>
+
+                                <div class="time-slots" id="timeSlots">
+                                    <div class="time-slot" data-time="09:00:00">9:00 AM</div>
+                                    <div class="time-slot" data-time="10:00:00">10:00 AM</div>
+                                    <div class="time-slot" data-time="11:00:00">11:00 AM</div>
+                                    <div class="time-slot" data-time="13:00:00">1:00 PM</div>
+                                    <div class="time-slot" data-time="14:00:00">2:00 PM</div>
+                                    <div class="time-slot" data-time="15:00:00">3:00 PM</div>
+                                </div>
+
+                                <input type="hidden" id="appointmentDate" name="appointment_date" required>
+                                <input type="hidden" id="appointmentTime" name="appointment_time" required>
+                                <div class="error-message" id="appointmentError">
+                                    Please select both date and time
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column -->
+                        <div>
+                            <div class="form-group" id="vacationLocationGroup" style="display: none;">
+                                <label class="required">Where Leave Will Be Spent</label>
+                                <div class="subtitle">Required for vacation leave</div>
+                                <select id="vacationLocation" name="vacation_location">
+                                    <option value="">Select Location</option>
+                                    <option value="philippines">Within the Philippines</option>
+                                    <option value="abroad">Abroad</option>
+                                </select>
+                                <div class="error-message">Vacation location is required</div>
+                            </div>
+
+                            <div class="form-group" id="sickLocationGroup" style="display: none;">
+                                <label class="required">Where Leave Will Be Spent</label>
+                                <div class="subtitle">Required for sick leave</div>
+                                <select id="sickLocation" name="sick_location">
+                                    <option value="">Select Location</option>
+                                    <option value="hospital">In Hospital</option>
+                                    <option value="home">At Home</option>
+                                </select>
+                                <div class="error-message">Sick location is required</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="required">Number of Days</label>
+                                <div class="subtitle">Total number of leave days requested</div>
+                                <input type="number" id="numberOfDays" name="number_of_days" 
+                                       value="1" min="1" max="30" required>
+                                <div class="error-message">Number of days must be at least 1</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Additional Notes (Optional)</label>
+                                <textarea id="notes" name="notes" rows="4" 
+                                          placeholder="Any additional information..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="submit-section">
+                    <button type="submit" class="submit-button" id="submitButton">
+                        SUBMIT LEAVE APPLICATION
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_BASE_URL = '/api';
+        const CSRF_TOKEN = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+
+        // State
+        let selectedDate = null;
+        let selectedTime = null;
+        let currentMonth = new Date().getMonth();
+        let currentYear = new Date().getFullYear();
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeYearSelector();
+            setCurrentMonthYear();
+            generateCalendar();
+            setupEventListeners();
+            setDefaultFilingDate();
+        });
+
+        // Year Selector
+        function initializeYearSelector() {
+            const yearSelect = document.getElementById('yearSelect');
+            const currentYear = new Date().getFullYear();
+            for (let year = currentYear; year <= currentYear + 2; year++) {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                yearSelect.appendChild(option);
+            }
+        }
+
+        function setCurrentMonthYear() {
+            document.getElementById('monthSelect').value = currentMonth;
+            document.getElementById('yearSelect').value = currentYear;
+        }
+
+        // Calendar Generation
+        function generateCalendar() {
+            const grid = document.getElementById('calendarGrid');
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            
+            // Clear existing days
+            const existingDays = grid.querySelectorAll('.calendar-day');
+            existingDays.forEach(day => day.remove());
+            
+            // Empty cells before month starts
+            for (let i = 0; i < firstDay; i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.className = 'calendar-day inactive';
+                grid.appendChild(emptyDay);
+            }
+            
+            // Days of month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day';
+                dayElement.textContent = day;
+                
+                const dayDate = new Date(currentYear, currentMonth, day);
+                dayDate.setHours(0, 0, 0, 0);
+                const dateString = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                dayElement.dataset.date = dateString;
+                
+                if (dayDate < today) {
+                    dayElement.classList.add('inactive');
+                } else {
+                    dayElement.addEventListener('click', selectDate);
+                }
+                
+                grid.appendChild(dayElement);
+            }
+        }
+
+        function selectDate(e) {
+            document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('selected'));
+            e.target.classList.add('selected');
+            selectedDate = e.target.dataset.date;
+            document.getElementById('appointmentDate').value = selectedDate;
+            
+            const date = new Date(selectedDate);
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('selectedDateDisplay').textContent = date.toLocaleDateString('en-US', options);
+            
+            validateAppointment();
+        }
+
+        // Time Slot Selection
+        function setupEventListeners() {
+            const timeSlots = document.querySelectorAll('.time-slot');
+            timeSlots.forEach(slot => {
+                slot.addEventListener('click', function() {
+                    timeSlots.forEach(s => s.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedTime = this.dataset.time;
+                    document.getElementById('appointmentTime').value = selectedTime;
+                    validateAppointment();
+                });
+            });
+
+            // Month/Year Change
+            document.getElementById('monthSelect').addEventListener('change', function() {
+                currentMonth = parseInt(this.value);
+                generateCalendar();
+            });
+
+            document.getElementById('yearSelect').addEventListener('change', function() {
+                currentYear = parseInt(this.value);
+                generateCalendar();
+            });
+
+            // Leave Type Change
+            document.getElementById('leaveType').addEventListener('change', handleLeaveTypeChange);
+
+            // Form Field Validation
+            const formFields = document.querySelectorAll('input[required], select[required]');
+            formFields.forEach(field => {
+                field.addEventListener('blur', () => validateField(field));
+                field.addEventListener('input', () => {
+                    if (field.classList.contains('error')) {
+                        validateField(field);
+                    }
+                });
+            });
+        }
+
+        function handleLeaveTypeChange() {
+            const leaveType = this.value;
+            const vacationGroup = document.getElementById('vacationLocationGroup');
+            const sickGroup = document.getElementById('sickLocationGroup');
+            const vacationSelect = document.getElementById('vacationLocation');
+            const sickSelect = document.getElementById('sickLocation');
+            
+            vacationGroup.style.display = 'none';
+            sickGroup.style.display = 'none';
+            vacationSelect.value = '';
+            sickSelect.value = '';
+            vacationSelect.removeAttribute('required');
+            sickSelect.removeAttribute('required');
+            
+            if (leaveType === 'vacation') {
+                vacationGroup.style.display = 'block';
+                vacationSelect.setAttribute('required', 'required');
+            } else if (leaveType === 'sick') {
+                sickGroup.style.display = 'block';
+                sickSelect.setAttribute('required', 'required');
+            }
+        }
+
+        // Validation
+        function validateField(field) {
+            const errorMessage = field.parentElement.querySelector('.error-message');
+            
+            if (field.hasAttribute('required') && !field.value) {
+                field.classList.add('error');
+                if (errorMessage) errorMessage.classList.add('show');
+                return false;
+            } else if (field.type === 'email' && field.value && !isValidEmail(field.value)) {
+                field.classList.add('error');
+                if (errorMessage) {
+                    errorMessage.textContent = 'Please enter a valid email address';
+                    errorMessage.classList.add('show');
+                }
+                return false;
+            } else if (field.type === 'number' && field.value < 1) {
+                field.classList.add('error');
+                if (errorMessage) errorMessage.classList.add('show');
+                return false;
+            } else {
+                field.classList.remove('error');
+                if (errorMessage) errorMessage.classList.remove('show');
+                return true;
+            }
+        }
+
+        function isValidEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        function validateAppointment() {
+            const errorElement = document.getElementById('appointmentError');
+            if (selectedDate && selectedTime) {
+                errorElement.classList.remove('show');
+                return true;
+            }
+            return false;
+        }
+
+        function setDefaultFilingDate() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('dateOfFiling').value = today;
+        }
+
+        // Form Submission
+        document.getElementById('leaveApplicationForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Validate all fields
+            let isValid = true;
+            const formFields = document.querySelectorAll('input[required], select[required]');
+            formFields.forEach(field => {
+                if (!validateField(field)) {
+                    isValid = false;
+                }
+            });
+            
+            if (!validateAppointment()) {
+                document.getElementById('appointmentError').classList.add('show');
+                isValid = false;
+            }
+            
+            if (!isValid) {
+                alert('Please fill in all required fields correctly.');
+                return;
+            }
+            
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData.entries());
+            
+            const submitButton = document.getElementById('submitButton');
+            submitButton.disabled = true;
+            submitButton.innerHTML = 'SUBMITTING<span class="loading-spinner"></span>';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/leave-requests/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Token ${localStorage.getItem('authToken') || ''}`,
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('successMessage').classList.add('show');
+                    
+                    this.reset();
+                    selectedDate = null;
+                    selectedTime = null;
+                    document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('selected'));
+                    document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+                    document.getElementById('selectedDateDisplay').textContent = 'Select a date';
+                    document.getElementById('vacationLocationGroup').style.display = 'none';
+                    document.getElementById('sickLocationGroup').style.display = 'none';
+                    setDefaultFilingDate();
+                    
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 2000);
+                } else {
+                    alert('Error: ' + (result.message || result.detail || 'Failed to submit application'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while submitting the form. Please try again.');
+            } finally {
+                submitButton.disabled = false;
+                submitButton.innerHTML = 'SUBMIT LEAVE APPLICATION';
+            }
+        });
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+</body>
+</html>
