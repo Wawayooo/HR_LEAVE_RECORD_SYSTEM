@@ -1,3 +1,88 @@
+.create-dean-div {
+  max-width: 400px;
+  margin: 20px auto;
+  padding: 25px;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  background-color: #fff;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  z-index: 1000;
+  position: absolute;
+  right: 102px;
+}
+
+.create-dean-div .close-btn {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #333;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.create-dean-div .close-btn:hover {
+  color: #007bff;
+}
+
+.create-dean-div h3 {
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+  text-align: center;
+  color: #333;
+}
+
+.create-dean-div .form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+}
+
+.create-dean-div label {
+  margin-bottom: 5px;
+  font-weight: 500;
+  color: #555;
+}
+
+.create-dean-div input,
+.create-dean-div select {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.create-dean-div input:focus,
+.create-dean-div select:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+.create-dean-div .btn-submit {
+  width: 100%;
+  padding: 12px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.create-dean-div .btn-submit:hover {
+  background-color: #0056b3;
+}
+
+#create-dean-message {
+  margin-top: 10px;
+  font-size: 0.95rem;
+}
+
 .leave-reports-cards-container {
   display: flex;
   flex-wrap: wrap;

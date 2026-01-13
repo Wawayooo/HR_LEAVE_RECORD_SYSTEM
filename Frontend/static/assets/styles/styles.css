@@ -21,7 +21,6 @@ body {
   background-attachment: fixed;
 }
 
-/* ==================== ADMIN DROPDOWN ==================== */
 .admin-dropdown-container {
   position: fixed;
   top: 20px;
@@ -128,7 +127,6 @@ body {
   transform: scale(1.15);
 }
 
-/* ==================== LOADING MODAL ==================== */
 .modal-overlay {
   display: none;
   position: fixed;
@@ -180,7 +178,6 @@ body {
   }
 }
 
-/* ==================== LOGIN MODALS ==================== */
 .login-modal {
   display: none;
   position: fixed;
@@ -313,7 +310,6 @@ body {
   }
 }
 
-/* ==================== LOGO CONTAINER ==================== */
 .Logo_Container {
   display: flex;
   flex-direction: column;
@@ -447,7 +443,6 @@ body {
   box-shadow: 0 0 20px rgba(128, 0, 0, 0.8);
 }
 
-/* ==================== TEXT CONTAINER ==================== */
 .text-container {
   display: flex;
   flex-direction: column;
@@ -542,7 +537,6 @@ body {
   }
 }
 
-/* ==================== GET STARTED BUTTON ==================== */
 .box {
   position: relative;
   text-align: center;
@@ -602,7 +596,6 @@ body {
   z-index: 1;
 }
 
-/* ==================== RESPONSIVE DESIGN ==================== */
 @media screen and (max-width: 1200px) {
   .logo-content-wrapper {
     gap: 50px;

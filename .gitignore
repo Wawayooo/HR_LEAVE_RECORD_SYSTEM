@@ -52,3 +52,8 @@ node_modules/
 # Mac/Linux/Windows system files
 .DS_Store
 Thumbs.db
+
+hr_photos
+employee_photos
+
+migrations

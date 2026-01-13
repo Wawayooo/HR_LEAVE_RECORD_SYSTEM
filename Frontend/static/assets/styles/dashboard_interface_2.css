@@ -10,7 +10,6 @@ body {
   min-height: 100vh;
 }
 
-/* Additional styles for HR Modal */
 #hrModal .modal-content {
   max-width: 600px;
 }
@@ -68,7 +67,6 @@ body {
   margin-top: 5px;
 }
 
-/* Make sure avatar is clickable and visible */
 .admin-avatar {
   width: 40px;
   height: 40px;
@@ -92,7 +90,6 @@ body {
   display: block;
 }
 
-/* Ensure dropdown works properly */
 .admin-dropdown {
   position: absolute;
   top: calc(100% + 10px);
@@ -143,7 +140,6 @@ body {
   }
 }
 
-/* ==================== HEADER ==================== */
 .header {
   background: linear-gradient(135deg, #8B1538 0%, #A91D3A 100%);
   color: white;
@@ -275,7 +271,6 @@ body {
   display: none !important;
 }
 
-/* ==================== CONTAINER & SIDEBAR ==================== */
 .container {
   display: flex;
   height: calc(100vh - 80px);
@@ -339,7 +334,6 @@ body {
   text-align: center;
 }
 
-/* ==================== MAIN CONTENT ==================== */
 .main-content {
   flex: 1;
   padding: 30px;
@@ -410,8 +404,6 @@ body {
 }
 
 
-
-/* ==================== FACULTY SECTION ==================== */
 .faculty-section {
   padding: 30px;
   background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
@@ -529,7 +521,6 @@ body {
   font-family: monospace;
 }
 
-/* ==================== LEAVE REQUESTS & REPORTS ==================== */
 .leave-requests-section,
 .leave-reports-section {
   width: 100%;
@@ -704,7 +695,6 @@ body {
   border: 2px solid #8B1538;
 }
 
-/* ==================== MODALS ==================== */
 .modal {
   display: none;
   position: fixed;
@@ -782,7 +772,6 @@ body {
   padding: 30px;
 }
 
-/* ==================== FORMS ==================== */
 .form-header {
   display: flex;
   justify-content: space-between;
@@ -1033,7 +1022,6 @@ body {
   box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
 }
 
-/* ==================== EMPLOYEE LIST ==================== */
 .employee-list {
   max-height: 60vh;
   overflow-y: auto;
@@ -1081,7 +1069,6 @@ body {
   flex-wrap: wrap;
 }
 
-/* ==================== LOGOUT MODAL ==================== */
 .modal-overlay {
   display: none;
   position: fixed;
@@ -1116,7 +1103,6 @@ body {
   }
 }
 
-/* ==================== HR PROFILE MODAL ==================== */
 .profile-section {
   text-align: center;
   margin-bottom: 25px;
@@ -1145,7 +1131,6 @@ body {
   font-weight: 600;
 }
 
-/* ==================== SCROLLBAR ==================== */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -1165,7 +1150,6 @@ body {
   background: linear-gradient(135deg, #6B1028 0%, #8B1538 100%);
 }
 
-/* ==================== RESPONSIVE DESIGN ==================== */
 @media (max-width: 1200px) {
   .form-content {
     grid-template-columns: 1fr;
@@ -1245,7 +1229,6 @@ body {
   }
 }
 
-/* ==================== UTILITY CLASSES ==================== */
 .text-center {
   text-align: center;
 }
@@ -1266,7 +1249,6 @@ body {
   color: #666;
 }
 
-/* ==================== ANIMATIONS ==================== */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -1283,7 +1265,6 @@ body {
   animation: fadeIn 0.5s ease;
 }
 
-/* ==================== PRINT STYLES ==================== */
 @media print {
 
   .sidebar,

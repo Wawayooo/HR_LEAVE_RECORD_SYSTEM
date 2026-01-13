@@ -1,581 +1,135 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leave Reports - Osmeña Colleges HRIS</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f5f5;
-            padding: 20px;
-        }
-
-        .page-header {
-            background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
-            color: white;
-            padding: 20px 30px;
-            margin-bottom: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .page-header h1 {
-            font-size: 24px;
-            margin-bottom: 5px;
-        }
-
-        .page-header p {
-            font-size: 14px;
-            opacity: 0.9;
-        }
-
-        .back-button {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 20px;
-            background-color: white;
-            color: #1a237e;
-            border: 2px solid #1a237e;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-bottom: 20px;
-            text-decoration: none;
-        }
-
-        .back-button:hover {
-            background-color: #1a237e;
-            color: white;
-        }
-
-        .reports-container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        .report-card {
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            margin-bottom: 30px;
-        }
-
-        .form-header {
-            background: linear-gradient(180deg, #8B0000 0%, #5a0000 100%);
-            color: white;
-            padding: 20px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .form-header h2 {
-            font-size: 18px;
-        }
-
-        .status-badge {
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-
-        .status-badge.approved {
-            background-color: #4CAF50;
-            color: white;
-        }
-
-        .status-badge.denied {
-            background-color: #f44336;
-            color: white;
-        }
-
-        .section-title {
-            background: linear-gradient(180deg, #8B0000 0%, #5a0000 100%);
-            color: white;
-            padding: 12px 30px;
-            font-size: 14px;
-            font-weight: bold;
-            letter-spacing: 1px;
-        }
-
-        .form-content {
-            padding: 30px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .form-row-3 {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 6px;
-            font-size: 13px;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .readonly-field {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #d0d0d0;
-            border-radius: 4px;
-            background-color: #f9f9f9;
-            font-size: 14px;
-            color: #555;
-            cursor: not-allowed;
-        }
-
-        .details-section {
-            border-top: 2px solid #e0e0e0;
-            padding-top: 20px;
-            margin-top: 10px;
-        }
-
-        .details-columns {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-        }
-
-        .calendar-container {
-            background-color: #f9f5f7;
-            padding: 20px;
-            border-radius: 8px;
-            border: 1px solid #e0e0e0;
-        }
-
-        .calendar-display {
-            background: white;
-            padding: 15px;
-            border-radius: 6px;
-            text-align: center;
-        }
-
-        .appointment-date {
-            font-size: 18px;
-            font-weight: bold;
-            color: #8B0000;
-            margin-bottom: 8px;
-        }
-
-        .appointment-time {
-            font-size: 16px;
-            color: #666;
-            background: #f0f0f0;
-            padding: 8px 16px;
-            border-radius: 20px;
-            display: inline-block;
-            margin-top: 10px;
-        }
-
-        .info-label {
-            font-size: 12px;
-            color: #888;
-            margin-bottom: 4px;
-        }
-
-        .reviewer-info {
-            background-color: #e8f5e9;
-            padding: 15px;
-            border-radius: 6px;
-            margin-top: 15px;
-            border-left: 4px solid #4CAF50;
-        }
-
-        .reviewer-info.denied {
-            background-color: #ffebee;
-            border-left-color: #f44336;
-        }
-
-        .reviewer-info h4 {
-            font-size: 13px;
-            color: #333;
-            margin-bottom: 8px;
-        }
-
-        .reviewer-info p {
-            font-size: 14px;
-            color: #555;
-            margin: 4px 0;
-        }
-
-        .comments-box {
-            background-color: #fff9c4;
-            padding: 12px;
-            border-radius: 6px;
-            margin-top: 10px;
-            border-left: 4px solid #fbc02d;
-        }
-
-        .comments-box p {
-            font-size: 13px;
-            color: #666;
-            font-style: italic;
-        }
-
-        .no-reports {
-            text-align: center;
-            padding: 60px 20px;
-            color: #999;
-        }
-
-        .no-reports svg {
-            width: 80px;
-            height: 80px;
-            margin-bottom: 20px;
-            opacity: 0.3;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #666;
-        }
-
-        .spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #8B0000;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        @media (max-width: 768px) {
-            .details-columns {
-                grid-template-columns: 1fr;
-            }
-
-            .form-row-3 {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Osmeña Colleges - Dean Dashboard</title>
+  <link rel="stylesheet" href="{% static 'assets/styles/dean_dash.css' %}">
 </head>
 <body>
-    <div class="page-header">
-        <h1>📊 Leave Reports</h1>
-        <p>Approved and Denied Leave Applications</p>
-    </div>
-
-    <button class="back-button" onclick="window.location.href='dashboard.html'">
-        ← Back to Dashboard
-    </button>
-
-    <div class="reports-container" id="reportsContainer">
-        <div class="loading">
-            <div class="spinner"></div>
-            <p>Loading leave reports...</p>
+    <!-- Header -->
+    <div class="header">
+        <div class="logo-section">
+        <div class="logo">OC</div>
+        <div class="header-title">Osmeña Colleges HRIS - Dean Dashboard</div>
+        </div>
+        <div class="header-actions">
+        <div class="admin-profile" id="deanProfile">
+            <div class="admin-avatar">
+            <img id="deanAvatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect fill='%23800020' width='100' height='100'/%3E%3Ctext fill='%23fff' font-size='40' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3ED%3C/text%3E%3C/svg%3E" alt="Dean Avatar" />
+            </div>
+            <span id="deanName">Dean Name ▾</span>
+        </div>
         </div>
     </div>
 
-    <script>
-        // Configuration
-        const API_BASE_URL = '/api';
+    <!-- Container -->
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+        <div class="menu-item active" data-section="dashboardSection">
+            <span>🏠 Dashboard</span>
+        </div>
+        <div class="menu-item" data-section="leaveRequestsSection">
+            <span>📋 Leave Requests</span>
+        </div>
+        <div class="menu-item" data-section="leaveReportsSection">
+            <span>📊 Reports</span>
+        </div>
+        <div class="menu-item" id="logoutBtn" style="position: absolute; bottom: 20px; width: 100%;">
+            <span>🚪 Logout</span>
+        </div>
+        </div>
 
-        // Utility Functions
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
+        <!-- Main Content -->
+        <div class="main-content">
+        <div class="breadcrumb" id="breadcrumb">📁 Dashboard / Dean</div>
 
-        async function apiFetch(url, options = {}) {
-            const headers = {
-                ...options.headers,
-                'X-CSRFToken': getCookie('csrftoken'),
-            };
+        <!-- Dashboard Section -->
+        <div id="dashboardSection" class="section">
+            <h1 class="page-title">Welcome, <span id="dashboardDeanName">Dean</span></h1>
 
-            const authToken = localStorage.getItem('authToken');
-            if (authToken) {
-                headers['Authorization'] = `Token ${authToken}`;
-            }
-
-            const response = await fetch(url, {
-                ...options,
-                headers,
-                credentials: 'same-origin'
-            });
-
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({ message: 'Request failed' }));
-                throw new Error(error.message || error.detail || 'Request failed');
-            }
-
-            return response.json();
-        }
-
-        function formatDate(dateString) {
-            if (!dateString) return 'N/A';
-            const options = { year: 'numeric', month: 'long', day: 'numeric' };
-            return new Date(dateString).toLocaleDateString('en-US', options);
-        }
-
-        function formatTime(timeString) {
-            if (!timeString) return 'N/A';
-            const [hours, minutes] = timeString.split(':');
-            const hour = parseInt(hours);
-            const ampm = hour >= 12 ? 'PM' : 'AM';
-            const displayHour = hour % 12 || 12;
-            return `${displayHour}:${minutes} ${ampm}`;
-        }
-
-        function getLeaveTypeLabel(type) {
-            const types = {
-                'vacation': 'Vacation Leave',
-                'sick': 'Sick Leave',
-                'maternity': 'Maternity Leave',
-                'paternity': 'Paternity Leave',
-                'emergency': 'Emergency Leave'
-            };
-            return types[type] || type;
-        }
-
-        function getLocationLabel(location) {
-            const locations = {
-                'philippines': 'Within the Philippines',
-                'abroad': 'Abroad',
-                'hospital': 'In Hospital',
-                'home': 'At Home'
-            };
-            return locations[location] || location;
-        }
-
-        function getDepartmentLabel(code) {
-            const departments = {
-                'board': 'Board of Trustees',
-                'legal': 'Legal Counsel',
-                'admin-council': 'Administrative Council',
-                'basic-ed': 'Basic Education',
-                'grad-school': 'Graduate School',
-                'cite': 'CITE',
-                'caba': 'CABA',
-                'chm': 'CHM & Library',
-                'hr': 'HR Department',
-                'finance': 'Finance',
-                'admissions': 'Admissions',
-                'it': 'IT Department',
-                'support': 'Tech Support'
-            };
-            return departments[code] || code;
-        }
-
-        function getPositionLabel(code) {
-            const positions = {
-                'chairman': 'Chairman of the Board',
-                'legal-counsel': 'Legal Counsel',
-                'admin-council': 'Administrative Council',
-                'dean': 'Dean',
-                'professor': 'Professor',
-                'instructor': 'Instructor',
-                'staff': 'Administrative Staff',
-                'hr-manager': 'HR Manager',
-                'finance-officer': 'Finance Officer',
-                'it-director': 'IT Director',
-                'tech-support': 'Tech Support'
-            };
-            return positions[code] || code;
-        }
-
-        function createReportCard(report) {
-            const status = report.status || 'approved';
-            const statusClass = status.toLowerCase();
-            const statusLabel = status === 'approved' ? 'APPROVED' : 'DENIED';
-
-            return `
-                <div class="report-card">
-                    <div class="form-header">
-                        <h2>Leave Application Report #${report.id}</h2>
-                        <span class="status-badge ${statusClass}">${statusLabel}</span>
-                    </div>
-
-                    <div class="section-title">EMPLOYEE INFORMATION</div>
-
-                    <div class="form-content">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Employee ID</label>
-                                <div class="readonly-field">${report.employee_id || 'N/A'}</div>
-                            </div>
-                            <div class="form-group">
-                                <label>Employee Name</label>
-                                <div class="readonly-field">${report.employee_name || 'N/A'}</div>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Office/Agency</label>
-                                <div class="readonly-field">${report.office_agency || 'Osmeña Colleges'}</div>
-                            </div>
-                            <div class="form-group">
-                                <label>Email Address</label>
-                                <div class="readonly-field">${report.email || 'N/A'}</div>
-                            </div>
-                        </div>
-
-                        <div class="form-row-3">
-                            <div class="form-group">
-                                <label>Department</label>
-                                <div class="readonly-field">${report.department_name || 'N/A'}</div>
-                            </div>
-                            <div class="form-group">
-                                <label>Position</label>
-                                <div class="readonly-field">${report.position_title || 'N/A'}</div>
-                            </div>
-                            <div class="form-group">
-                                <label>Date of Filing</label>
-                                <div class="readonly-field">${formatDate(report.date_filed)}</div>
-                            </div>
-                        </div>
-
-                        <div class="section-title">LEAVE DETAILS</div>
-
-                        <div class="details-section">
-                            <div class="details-columns">
-                                <div>
-                                    <div class="form-group">
-                                        <label>Type of Leave</label>
-                                        <div class="readonly-field">${getLeaveTypeLabel(report.leave_type)}</div>
-                                    </div>
-
-                                    <div class="calendar-container">
-                                        <div class="form-group">
-                                            <label>Appointment Date & Time</label>
-                                        </div>
-                                        
-                                        <div class="calendar-display">
-                                            <div class="info-label">Selected Date</div>
-                                            <div class="appointment-date">${formatDate(report.start_date)}</div>
-                                            ${report.end_date && report.end_date !== report.start_date ? 
-                                                `<div class="info-label" style="margin-top: 10px;">End Date</div>
-                                                 <div class="appointment-date">${formatDate(report.end_date)}</div>` 
-                                                : ''}
-                                            <div class="appointment-time">⏰ ${formatTime(report.appointment_time)}</div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    ${report.location ? `
-                                    <div class="form-group">
-                                        <label>Where Leave Will Be Spent</label>
-                                        <div class="readonly-field">${getLocationLabel(report.location)}</div>
-                                    </div>
-                                    ` : ''}
-
-                                    <div class="form-group">
-                                        <label>Number of Days</label>
-                                        <div class="readonly-field">${report.number_of_days || 1} day(s)</div>
-                                    </div>
-
-                                    ${report.notes ? `
-                                    <div class="form-group">
-                                        <label>Additional Notes</label>
-                                        <div class="readonly-field" style="min-height: 80px; white-space: pre-wrap;">${report.notes}</div>
-                                    </div>
-                                    ` : ''}
-
-                                    <div class="reviewer-info ${statusClass}">
-                                        <h4>${status === 'approved' ? '✓ Approved By' : '✗ Denied By'}</h4>
-                                        <p><strong>Reviewer:</strong> ${report.approved_by_name || report.reviewer_name || 'Admin'}</p>
-                                        <p><strong>Date:</strong> ${formatDate(report.approved_at || report.reviewed_at)}</p>
-                                        ${report.review_comments ? `
-                                        <div class="comments-box">
-                                            <strong>Comments:</strong>
-                                            <p>${report.review_comments}</p>
-                                        </div>
-                                        ` : ''}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+            <div class="org-chart">
+            <div class="org-card">
+                <div class="org-avatar">
+                <img id="deanPhoto" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Crect fill='%23800020' width='120' height='120'/%3E%3Ctext fill='%23fff' font-size='60' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3ED%3C/text%3E%3C/svg%3E" alt="Dean Photo">
                 </div>
-            `;
-        }
+                <div class="org-title" id="deanFullName">Dean Full Name</div>
+                <div class="org-subtitle" id="deanDepartment">Department Name</div>
+                <div class="org-details">
+                <p><strong>Gender:</strong> <span id="deanGender">Male</span></p>
+                <p><strong>Age:</strong> <span id="deanAge">45</span></p>
+                <p><strong>Height:</strong> <span id="deanHeight">175</span> cm</p>
+                <p><strong>Weight:</strong> <span id="deanWeight">70</span> kg</p>
+                </div>
+            </div>
+            </div>
 
-        async function loadLeaveReports() {
-            const container = document.getElementById('reportsContainer');
+            <h2 class="section-subtitle">Faculty & Staff</h2>
+            <div id="facultyChartContainer">
+            <p class="loading-text">Loading faculty & staff...</p>
+            </div>
+        </div>
 
-            try {
-                const reports = await apiFetch(`${API_BASE_URL}/leave-reports/`);
+        <!-- Leave Requests Section -->
+        <div id="leaveRequestsSection" class="section hidden-section">
+            <h1 class="page-title">Pending Leave Requests</h1>
+            <div class="leave-requests-container">
+            <p class="loading-text">Loading pending leave requests...</p>
+            </div>
+        </div>
 
-                if (!reports || reports.length === 0) {
-                    container.innerHTML = `
-                        <div class="no-reports">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                            <h3>No Leave Reports Found</h3>
-                            <p>There are no approved or denied leave applications to display.</p>
-                        </div>
-                    `;
-                    return;
-                }
+        <!-- Leave Reports Section -->
+        <div id="leaveReportsSection" class="section hidden-section">
+            <h1 class="page-title">Leave Reports</h1>
+            <div class="leave-reports-cards-container">
+            <p class="loading-text">Loading leave reports...</p>
+            </div>
+        </div>
+        </div>
+    </div>
 
-                // Create report cards
-                container.innerHTML = reports.map(report => createReportCard(report)).join('');
+    <div id="globalLoadingModal" style="
+        display: none;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+    ">
+        <div style="
+        background: #fff;
+        padding: 30px 40px;
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        ">
+        <div class="spinner" style="
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        "></div>
+        <div>Loading, please wait...</div>
+        </div>
+    </div>
 
-            } catch (error) {
-                console.error('Error loading leave reports:', error);
-                container.innerHTML = `
-                    <div class="no-reports">
-                        <h3 style="color: #f44336;">Error Loading Reports</h3>
-                        <p>${error.message}</p>
-                        <button class="back-button" onclick="loadLeaveReports()" style="margin-top: 20px;">
-                            Retry
-                        </button>
-                    </div>
-                `;
-            }
-        }
+    <!-- Logout Modal -->
+    <div id="logoutModal" class="modal-overlay hidden">
+        <div class="modal-content">
+        <div class="spinner"></div>
+        <p>Logging out, please wait...</p>
+        </div>
+    </div>
 
-        // Load reports on page load
-        document.addEventListener('DOMContentLoaded', loadLeaveReports);
-    </script>
+  <script src="{% static 'assets/scripts/dean_dash.js' %}"></script>
 </body>
 </html>
+

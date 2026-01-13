@@ -1,10 +1,8 @@
-// API Configuration
 const CONFIG = {
   // Development URL - replace with production URL when deploying
   DEV_URL: "https://kt2980zx-8000.asse.devtunnels.ms",
-  PROD_URL: "", // Set this to your production URL
+  PROD_URL: "",
   
-  // Automatically use dev or prod based on environment
   get API_BASE() {
     return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
       ? this.DEV_URL 
@@ -14,14 +12,12 @@ const CONFIG = {
 
 const API_BASE = CONFIG.API_BASE;
 
-// Global state
 let allEmployees = [];
 let allDepartments = [];
 let allPositions = [];
 let currentPhotoFile = null;
 let currentHRUser = null;
 
-// CSRF Token helper
 function getCookie(name) {
   let cookieValue = null;
   if (document.cookie && document.cookie !== '') {
@@ -39,13 +35,11 @@ function getCookie(name) {
 
 const csrftoken = getCookie('csrftoken');
 
-// Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
   initializeDashboard();
   setupEventListeners();
 });
 
-// Initialize dashboard
 async function initializeDashboard() {
   try {
     showLoader();
@@ -66,7 +60,6 @@ async function initializeDashboard() {
 
 // Setup event listeners
 function setupEventListeners() {
-  // Menu navigation
   document.querySelectorAll('.menu-item').forEach(item => {
     item.addEventListener('click', function() {
       const section = this.getAttribute('data-section');
@@ -76,7 +69,6 @@ function setupEventListeners() {
     });
   });
 
-  // Employee actions
   const addEmployeeBtn = document.querySelector('.btn-primary');
   const updateEmployeeBtn = document.querySelector('.btn-secondary');
   const employeeForm = document.getElementById('employeeForm');
@@ -85,7 +77,6 @@ function setupEventListeners() {
   if (updateEmployeeBtn) updateEmployeeBtn.addEventListener('click', openUpdateModal);
   if (employeeForm) employeeForm.addEventListener('submit', handleEmployeeSubmit);
   
-  // Admin dropdown
   const adminProfile = document.getElementById('adminProfile');
   if (adminProfile) {
     adminProfile.addEventListener('click', function(e) {
@@ -95,7 +86,6 @@ function setupEventListeners() {
     });
   }
 
-  // Close dropdown on outside click
   document.addEventListener('click', function() {
     const dropdown = document.getElementById('adminDropdown');
     if (dropdown && !dropdown.classList.contains('hidden')) {
@@ -103,7 +93,6 @@ function setupEventListeners() {
     }
   });
   
-  // Department and Position forms
   const deptForm = document.getElementById('departmentForm');
   const posForm = document.getElementById('positionForm');
   const hrForm = document.getElementById('hrForm');
@@ -113,7 +102,6 @@ function setupEventListeners() {
   if (hrForm) hrForm.addEventListener('submit', handleHRProfileSubmit);
 }
 
-// ==================== UTILITY FUNCTIONS ====================
 function showLoader() {
   const loader = document.getElementById('globalLoadingModal');
   if (loader) loader.style.display = 'flex';
@@ -125,18 +113,15 @@ function hideLoader() {
 }
 
 function showError(message) {
-  // You can implement a better error notification system here
   console.error(message);
   alert(message);
 }
 
 function showSuccess(message) {
-  // You can implement a better success notification system here
   console.log(message);
   alert(message);
 }
 
-// ==================== HR PROFILE FUNCTIONS ====================
 async function loadHRProfile() {
   try {
     const hrUsername = sessionStorage.getItem('hrUsername') || "@OsmeñaVerified_HR";
@@ -174,7 +159,7 @@ function updateHRProfileUI(hrData) {
     'hrHeight': hrData.height || '',
     'hrWeight': hrData.weight || '',
     'hrAge': hrData.age || '',
-    'hrProfessionalId': hrData.id || 'N/A'
+    'hrProfessionalId': "OC-HR-2026237" + hrData.id || 'N/A'
   };
 
   for (const [fieldId, value] of Object.entries(fields)) {
@@ -270,7 +255,6 @@ async function handleHRProfileSubmit(e) {
   }
 }
 
-// ==================== DATA LOADING FUNCTIONS ====================
 async function loadDepartments() {
   try {
     const response = await fetch(`${API_BASE}/api/departments/`);
@@ -315,7 +299,6 @@ async function loadLeaveRequests() {
     
     const allRequests = await response.json();
     
-    // Filter only pending requests
     const pendingRequests = allRequests.filter(req => 
       req.status === 'pending' || req.status === 'Pending'
     );
@@ -334,7 +317,6 @@ async function loadLeaveReports() {
     
     const allRequests = await response.json();
     
-    // Filter out pending requests (only approved/rejected)
     const nonPendingRequests = allRequests.filter(req => 
       req.status !== 'pending' && req.status !== 'Pending'
     );
@@ -346,7 +328,6 @@ async function loadLeaveReports() {
   }
 }
 
-// ==================== POPULATE DROPDOWNS ====================
 function populateDepartmentSelect() {
   const select = document.getElementById('employeeDepartment');
   if (!select) return;
@@ -358,16 +339,21 @@ function populateDepartmentSelect() {
 }
 
 function populatePositionSelect() {
-  const select = document.getElementById('employeePosition');
-  if (!select) return;
-  
-  select.innerHTML = '<option value="">Select Position</option>';
-  allPositions.forEach(pos => {
-    select.innerHTML += `<option value="${pos.id}">${pos.title}</option>`;
-  });
+    const select = document.getElementById('employeePosition');
+    if (!select) return;
+
+    select.innerHTML = '<option value="">Select Position</option>';
+
+    allPositions
+        .filter(pos => pos.title.toLowerCase() !== 'dean')
+        .forEach(pos => {
+            const option = document.createElement('option');
+            option.value = pos.id;
+            option.textContent = pos.title;
+            select.appendChild(option);
+        });
 }
 
-// ==================== POPULATE ORG CHART ====================
 function populateOrgChart() {
   const academicSection = document.getElementById('academic-section');
   const adminSection = document.getElementById('admin-section');
@@ -415,7 +401,6 @@ function filterEmployeesByDepartment(deptId) {
   switchSection('facultySection');
 }
 
-// ==================== POPULATE FACULTY CHART ====================
 function populateFacultyChart() {
   const container = document.getElementById('facultyChartContainer');
   if (!container) return;
@@ -464,109 +449,240 @@ function populateFacultyChart() {
   container.innerHTML = html;
 }
 
-// ==================== LEAVE REQUESTS & REPORTS ====================
-function displayLeaveRequests(requests) {
+function displayLeaveRequests(reports) {
   const container = document.querySelector('.leave-requests-container');
-  if (!container) return;
-  
-  if (!requests || requests.length === 0) {
-    container.innerHTML = '<p style="text-align: center; padding: 40px; color: #666;">No pending leave requests</p>';
-    return;
-  }
-
-  container.innerHTML = requests.map(req => {
-    const app = req.application || {};
-    const employeeName = app.employee_name || 'N/A';
-    const employeeId = app.employee_id_display || 'N/A';
-    const leaveType = app.leave_type || 'N/A';
-    const numDays = app.number_of_days || 0;
-    const reason = app.reason || 'N/A';
-    const status = req.status || 'pending';
-    
-    return `
-      <div class="leave-request-card">
-        <div class="request-header">
-          <div>
-            <h3>${employeeName}</h3>
-            <p class="request-id">${employeeId}</p>
-          </div>
-          <span class="status-badge status-${status.toLowerCase()}">
-            ${status.toUpperCase()}
-          </span>
-        </div>
-        <div class="request-details">
-          <div class="detail-row">
-            <span class="label">Leave Type:</span>
-            <span>${leaveType}</span>
-          </div>
-          <div class="detail-row">
-            <span class="label">Duration:</span>
-            <span>${numDays} day(s)</span>
-          </div>
-          <div class="detail-row">
-            <span class="label">Reason:</span>
-            <span>${reason}</span>
-          </div>
-        </div>
-        <div class="request-actions">
-          <button class="btn-approve" onclick="approveLeaveRequest(${req.id})">Approve</button>
-          <button class="btn-reject" onclick="rejectLeaveRequest(${req.id})">Reject</button>
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-function displayLeaveReports(reports) {
-  const container = document.querySelector('.leave-reports-cards-container');
   if (!container) return;
 
   if (!reports || reports.length === 0) {
-    container.innerHTML = '<p style="text-align: center; padding: 40px; color: #666;">No leave reports found</p>';
+    container.innerHTML =
+      '<p style="text-align: center; padding: 40px; color: #666;">No pending leave requests found</p>';
     return;
   }
 
   container.innerHTML = reports.map(req => {
-    const app = req.application || req;
-    const employee = app.employee || {};
+    const app = req.application || {};
 
-    const employeeName = app.employee_name || req.employee_name || 'N/A';
-    const employeeId = app.employee_id_display || app.employee_id || req.employee_id || 'N/A';
-
+    const employeeName = app.employee_name || 'N/A';
+    const employeeId = app.employee_id_display || 'N/A';
     const departmentName = app.department_name || 'N/A';
     const positionTitle = app.position_title || 'N/A';
 
+    const leaveType = app.leave_type || 'N/A';
+    const numDays = app.number_of_days || 0;
+    const dateFiled = app.date_filed || 'N/A';
+    const location = app.vacation_location || app.sick_location || 'N/A';
+    const reason = app.reason || '';
 
-    const officeAgency = app.office_agency || req.office_agency || 'Osmeña Colleges';
-    const email = app.email || req.email || 'N/A';
-    const photoUrl = app.employee_photo_url || employee.photo_url || '';
-    const leaveType = app.leave_type || req.leave_type || 'N/A';
-    const numDays = app.number_of_days || req.number_of_days || 0;
-    const startDate = app.start_date || req.start_date || 'N/A';
-    const endDate = app.end_date || req.end_date || startDate;
-    const dateFiled = app.date_filed || req.date_filed || 'N/A';
-    const location = app.location || req.location || '';
-    const notes = app.notes || req.notes || '';
-    const reviewerName = req.reviewer_name || req.approved_by_name || 'Admin';
-    const reviewedAt = req.reviewed_at || req.approved_at || '';
-    const reviewComments = req.review_comments || '';
-    const status = req.status || 'approved';
+    const deanReviewerName = req.dean_reviewer_name || 'Dean';
+    const deanReviewedAt = req.dean_reviewed_at || '';
+    const deanComments = req.dean_comments || '';
 
+    const formatDate = (dateStr) => {
+      if (!dateStr) return 'N/A';
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    };
+
+    const leaveTypeLabel = {
+      vacation: 'Vacation Leave',
+      sick: 'Sick Leave',
+      maternity: 'Maternity Leave',
+      paternity: 'Paternity Leave',
+      emergency: 'Emergency Leave'
+    }[leaveType] || leaveType;
+
+    const locationLabel = {
+      philippines: 'Within the Philippines',
+      abroad: 'Abroad',
+      hospital: 'In Hospital',
+      home: 'At Home'
+    }[location] || location;
+
+    return `
+      <div class="leave-report-card">
+
+        <!-- Header -->
+        <div style="
+          background: linear-gradient(180deg, #8B0000 0%, #5a0000 100%);
+          color: white;
+          padding: 20px 30px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        ">
+          <h2 style="margin: 0; font-size: 18px;">
+            Leave Request #${req.id}
+          </h2>
+          <span style="
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            background-color: #FFC107;
+            color: #000;
+          ">
+            Pending HR Approval
+          </span>
+        </div>
+
+        <!-- Body -->
+        <div style="padding: 30px;">
+
+          <!-- Employee Info -->
+          <div style="
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+          ">
+            <div>
+              <label>Employee ID</label>
+              <div>${employeeId}</div>
+            </div>
+            <div>
+              <label>Employee Name</label>
+              <div>${employeeName}</div>
+            </div>
+          </div>
+
+          <div style="
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+          ">
+            <div>
+              <label>Department</label>
+              <div>${departmentName}</div>
+            </div>
+            <div>
+              <label>Position</label>
+              <div>${positionTitle}</div>
+            </div>
+            <div>
+              <label>Date Filed</label>
+              <div>${formatDate(dateFiled)}</div>
+            </div>
+          </div>
+
+          <!-- Leave Details -->
+          <div style="
+            background-color: #f5f5f5;
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+          ">
+            <h3>Leave Details</h3>
+            <p><strong>Type:</strong> ${leaveTypeLabel}</p>
+            <p><strong>Location:</strong> ${locationLabel}</p>
+            <p><strong>Number of Days:</strong> ${numDays}</p>
+            ${reason ? `<p><strong>Reason:</strong> ${reason}</p>` : ''}
+          </div>
+
+          <!-- Dean Approval -->
+          <div style="
+            background-color: #e8f5e9;
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+          ">
+            <h3 style="color: #2e7d32;">Dean Approval</h3>
+            <p><strong>Reviewed By:</strong> ${deanReviewerName}</p>
+            <p><strong>Reviewed At:</strong> ${formatDate(deanReviewedAt)}</p>
+            ${deanComments ? `<p><strong>Comments:</strong> ${deanComments}</p>` : ''}
+          </div>
+
+          <!-- Actions -->
+          <div style="display: flex; gap: 10px;">
+            <button class="approve-btn" data-id="${req.id}">
+              ✓ Approve
+            </button>
+            <button class="reject-btn" data-id="${req.id}">
+              ✕ Reject
+            </button>
+          </div>
+
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  container.querySelectorAll('.approve-btn').forEach(btn => {
+    btn.addEventListener('click', () =>
+      approveLeaveRequest(btn.dataset.id)
+    );
+  });
+
+  container.querySelectorAll('.reject-btn').forEach(btn => {
+    btn.addEventListener('click', () =>
+      rejectLeaveRequest(btn.dataset.id)
+    );
+  });
+}
+
+
+function displayLeaveReports(reports) {
+  const container = document.querySelector('.leave-reports-cards-container');
+  
+  if (!container) return;
+
+  const filteredReports = (reports || []).filter(r => 
+    r.dean_status === 'dean_approved' && 
+    (r.hr_status === 'hr_approved' || r.hr_status === 'hr_denied')
+  );
+
+  if (!filteredReports.length) {
+    container.innerHTML = '<p style="text-align: center; padding: 40px; color: #666;">No leave reports found</p>';
+    return;
+  }
+
+  container.innerHTML = filteredReports.map(req => {
+    const employeeName = req.employee_name || 'N/A';
+    const employeeId = req.employee_id || 'N/A';
+    const departmentName = req.department_name || 'N/A';
+    const positionTitle = req.position_title || 'N/A';
+    const photoUrl = req.employee_photo_url || '';
+
+    const leaveType = req.leave_type || 'N/A';
+    const numDays = req.number_of_days || 0;
+    const dateFiled = req.date_filed || 'N/A';
+    const location = req.location || 'N/A';
+    const notes = req.reason || '';
+
+    const deanReviewer = req.dean_reviewer_name || null;
+    const hrReviewer = req.hr_reviewer_name || null;
+    const deanDecision = req.dean_status_display || null;
+    const hrDecision = req.hr_status_display || null;
+    const reviewedAt = req.dean_reviewed_at || req.hr_reviewed_at || '';
+    const reviewComments = req.dean_comments || req.hr_comments || '';
+
+    let statusText = '';
+    if (deanDecision) statusText += deanDecision;
+    if (hrDecision) statusText += (statusText ? ' → ' : '') + hrDecision;
+
+    const statusColorMap = {
+      'approved': '#4CAF50',
+      'dean_approved': '#2196F3',
+      'dean_denied': '#f44336',
+      'hr_approved': '#4CAF50',
+      'hr_denied': '#f44336',
+      'pending': '#FFC107'
+    };
+
+    const status = statusText || 'N/A';
+    const statusColor = statusColorMap[req.dean_status || req.hr_status] || '#999';
+    const statusBg = status.toLowerCase().includes('approved') ? '#e8f5e9' : '#ffebee';
+    const statusBorder = status.toLowerCase().includes('approved') ? '#4CAF50' : '#f44336';
 
     // Helper functions
     const formatDate = (dateStr) => {
       if (!dateStr || dateStr === 'N/A') return 'N/A';
       const date = new Date(dateStr);
       return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-    };
-
-    const formatTime = (timeStr) => {
-      if (!timeStr) return 'N/A';
-      const [hours, minutes] = timeStr.split(':');
-      const hour = parseInt(hours);
-      const ampm = hour >= 12 ? 'PM' : 'AM';
-      const displayHour = hour % 12 || 12;
-      return `${displayHour}:${minutes} ${ampm}`;
     };
 
     const getLeaveTypeLabel = (type) => {
@@ -590,10 +706,6 @@ function displayLeaveReports(reports) {
       return locations[loc] || loc;
     };
 
-    const statusColor = status === 'approved' ? '#4CAF50' : '#f44336';
-    const statusBg = status === 'approved' ? '#e8f5e9' : '#ffebee';
-    const statusBorder = status === 'approved' ? '#4CAF50' : '#f44336';
-
     return `
       <div class="leave-report-card">
         <!-- Form Header -->
@@ -611,7 +723,6 @@ function displayLeaveReports(reports) {
 
         <!-- Form Content -->
         <div style="padding: 30px;">
-          <!-- Row 1: Employee ID & Name -->
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
             <div>
               <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #333;">Employee ID</label>
@@ -627,7 +738,6 @@ function displayLeaveReports(reports) {
             </div>
           </div>
 
-          <!-- Row 3: Department, Position, Date Filed -->
           <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px;">
             <div>
               <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #333;">Department</label>
@@ -649,17 +759,14 @@ function displayLeaveReports(reports) {
             </div>
           </div>
 
-          <!-- Section Title: Leave Details -->
+          <!-- Leave Details Section -->
           <div style="background: linear-gradient(180deg, #8B0000 0%, #5a0000 100%); color: white; padding: 12px 30px; font-size: 14px; font-weight: bold; letter-spacing: 1px; margin: 20px -30px;">
             LEAVE DETAILS
           </div>
 
-          <!-- Details Section -->
           <div style="border-top: 2px solid #e0e0e0; padding-top: 20px; margin-top: 10px;">
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
-              <!-- Left Column -->
               <div>
-                <!-- Leave Type -->
                 <div style="margin-bottom: 20px;">
                   <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #333;">Type of Leave</label>
                   <div style="padding: 10px 12px; border: 1px solid #d0d0d0; border-radius: 4px; background-color: #f9f9f9; font-size: 14px; color: #555;">
@@ -667,40 +774,19 @@ function displayLeaveReports(reports) {
                   </div>
                 </div>
 
-                <!-- Employee Photo Display -->
                 <div style="background-color: #f9f5f7; padding: 20px; border-radius: 8px; border: 1px solid #e0e0e0; text-align: center;">
                   <label style="display: block; margin-bottom: 10px; font-size: 13px; font-weight: 600; color: #333;">Employee Photo</label>
-                  
                   <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                    <!-- Circular photo -->
-                    <div style="
-                      width: 120px;
-                      height: 120px;
-                      border-radius: 50%;
-                      overflow: hidden;
-                      border: 3px solid #8B0000;
-                      margin-bottom: 12px;
-                      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-                    ">
+                    <div style="width: 120px; height: 120px; border-radius: 50%; overflow: hidden; border: 3px solid #8B0000; margin-bottom: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
                       <img src="${photoUrl}" alt="Employee Photo" style="width: 100%; height: 100%; object-fit: cover;">
                     </div>
-
-                    <!-- Employee Name -->
-                    <div style="font-size: 16px; font-weight: bold; color: #222; margin-bottom: 4px;">
-                      ${employeeName}
-                    </div>
-
-                    <!-- Employee ID -->
-                    <div style="font-size: 13px; color: #666; background: #f0f0f0; padding: 6px 12px; border-radius: 12px;">
-                      ${employeeId}
-                    </div>
+                    <div style="font-size: 16px; font-weight: bold; color: #222; margin-bottom: 4px;">${employeeName}</div>
+                    <div style="font-size: 13px; color: #666; background: #f0f0f0; padding: 6px 12px; border-radius: 12px;">${employeeId}</div>
                   </div>
                 </div>
               </div>
 
-              <!-- Right Column -->
               <div>
-                <!-- Location (if exists) -->
                 ${location ? `
                 <div style="margin-bottom: 20px;">
                   <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #333;">Where Leave Will Be Spent</label>
@@ -710,7 +796,6 @@ function displayLeaveReports(reports) {
                 </div>
                 ` : ''}
 
-                <!-- Number of Days -->
                 <div style="margin-bottom: 20px;">
                   <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #333;">Number of Days</label>
                   <div style="padding: 10px 12px; border: 1px solid #d0d0d0; border-radius: 4px; background-color: #f9f9f9; font-size: 14px; color: #555;">
@@ -718,7 +803,6 @@ function displayLeaveReports(reports) {
                   </div>
                 </div>
 
-                <!-- Notes (if exists) -->
                 ${notes ? `
                 <div style="margin-bottom: 20px;">
                   <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #333;">Additional Notes</label>
@@ -728,13 +812,12 @@ function displayLeaveReports(reports) {
                 </div>
                 ` : ''}
 
-                <!-- Reviewer Info Box -->
                 <div style="background-color: ${statusBg}; padding: 15px; border-radius: 6px; border-left: 4px solid ${statusBorder};">
                   <h4 style="font-size: 13px; color: #333; margin: 0 0 8px 0;">
-                    ${status === 'approved' ? '✓ Approved By' : '✗ Denied By'}
+                    ${status.toLowerCase().includes('approved') ? '✓ Approved By' : '✗ Denied By'}
                   </h4>
                   <p style="font-size: 14px; color: #555; margin: 4px 0;">
-                    <strong>Reviewer:</strong> ${reviewerName}
+                    <strong>Reviewer:</strong> ${deanReviewer || hrReviewer || 'Admin'}
                   </p>
                   <p style="font-size: 14px; color: #555; margin: 4px 0;">
                     <strong>Date:</strong> ${formatDate(reviewedAt)}
@@ -757,22 +840,25 @@ function displayLeaveReports(reports) {
   }).join('');
 }
 
+
 async function approveLeaveRequest(id) {
-  if (!confirm('Are you sure you want to approve this leave request?')) return;
+  const comments = prompt('Enter comments for approval (optional):');
+  if (comments === null) return;
 
   try {
     showLoader();
-    const response = await fetch(`${API_BASE}/api/leave-requests/${id}/approve/`, {
+    const response = await fetch(`${API_BASE}/api/leave-requests/${id}/hr_approve/`, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
         'X-CSRFToken': csrftoken
-      }
+      },
+      body: JSON.stringify({ comments: comments || '' })
     });
-    
+
     const data = await response.json();
     if (response.ok && data.success) {
-      showSuccess('Leave request approved successfully');
+      showSuccess(data.message || 'Leave request approved by HR');
       await loadLeaveRequests();
       await loadLeaveReports();
     } else {
@@ -787,23 +873,26 @@ async function approveLeaveRequest(id) {
 }
 
 async function rejectLeaveRequest(id) {
-  const comments = prompt('Enter rejection reason (optional):');
-  if (comments === null) return;
-  
+  let comments = '';
+  while (!comments) {
+    comments = prompt('Enter rejection reason (required):');
+    if (comments === null) return;
+  }
+
   try {
     showLoader();
-    const response = await fetch(`${API_BASE}/api/leave-requests/${id}/reject/`, {
+    const response = await fetch(`${API_BASE}/api/leave-requests/${id}/hr_deny/`, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
         'X-CSRFToken': csrftoken
       },
-      body: JSON.stringify({ comments: comments || '' })
+      body: JSON.stringify({ comments })
     });
-    
+
     const data = await response.json();
     if (response.ok && data.success) {
-      showSuccess('Leave request rejected');
+      showSuccess(data.message || 'Leave request denied by HR');
       await loadLeaveRequests();
       await loadLeaveReports();
     } else {
@@ -817,7 +906,6 @@ async function rejectLeaveRequest(id) {
   }
 }
 
-// ==================== EMPLOYEE MODAL FUNCTIONS ====================
 function openAddEmployeeModal() {
   const form = document.getElementById('employeeForm');
   if (form) form.reset();
@@ -883,10 +971,11 @@ function displayEmployeeList() {
       <div class="employee-actions">
         <button onclick="editEmployee(${emp.id})" class="btn-edit">Edit</button>
         ${emp.is_active 
-          ? `<button onclick="deactivateEmployee(${emp.id})" class="btn-deactivate">Deactivate</button>`
+          ? `<button class="btn-deactivate" style="background: transparent;">✅</button>`
+
           : `<button onclick="activateEmployee(${emp.id})" class="btn-activate">Activate</button>`
         }
-        <button onclick="deleteEmployee(${emp.id})" class="btn-delete">Delete</button>
+        ${!emp.is_active ? '' : `<button onclick="deleteEmployee(${emp.id})" class="btn-delete">Deactivate</button>`}
       </div>
     </div>
   `).join('');
@@ -922,38 +1011,8 @@ async function activateEmployee(employeeId) {
   }
 }
 
-async function deactivateEmployee(employeeId) {
-  if (!confirm('Are you sure you want to deactivate this employee?')) return;
-  
-  try {
-    showLoader();
-    const response = await fetch(`${API_BASE}/api/employees/${employeeId}/deactivate/`, {
-      method: 'POST',
-      headers: {
-        'X-CSRFToken': csrftoken,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    const result = await response.json();
-
-    if (response.ok) {
-      showSuccess(result.message || "Employee deactivated successfully");
-      await loadEmployees();
-      displayEmployeeList();
-    } else {
-      showError(result.message || "Failed to deactivate employee");
-    }
-  } catch (error) {
-    console.error("Error deactivating employee:", error);
-    showError("Error deactivating employee");
-  } finally {
-    hideLoader();
-  }
-}
-
 async function deleteEmployee(employeeId) {
-  if (!confirm("Are you sure you want to permanently delete this employee? This action cannot be undone.")) return;
+  if (!confirm("Are you sure you want to deactivate this employee?")) return;
 
   try {
     showLoader();
@@ -965,16 +1024,16 @@ async function deleteEmployee(employeeId) {
     });
 
     if (response.ok) {
-      showSuccess("Employee deleted successfully");
+      showSuccess("Employee deactivated successfully");
       await loadEmployees();
       displayEmployeeList();
     } else {
       const error = await response.json();
-      showError(error.message || "Failed to delete employee");
+      showError(error.message || "Failed to deactivate employee");
     }
   } catch (error) {
-    console.error("Error deleting employee:", error);
-    showError("Error deleting employee");
+    console.error("Error deactivating employee:", error);
+    showError("Error deactivating employee");
   } finally {
     hideLoader();
   }
@@ -1113,7 +1172,6 @@ async function updateEmployeeId() {
   }
 }
 
-// ==================== DEPARTMENT & POSITION MODALS ====================
 function openDepartmentModal() {
   const form = document.getElementById('departmentForm');
   if (form) form.reset();
@@ -1221,7 +1279,6 @@ async function handlePositionSubmit(e) {
   }
 }
 
-// ==================== SECTION SWITCHING ====================
 function switchSection(section, menuItem) {
   document.querySelectorAll('.menu-item').forEach(item => {
     item.classList.remove('active');
@@ -1251,7 +1308,6 @@ function switchSection(section, menuItem) {
   }
 }
 
-// ==================== TOGGLE SECTIONS ====================
 function toggleSection(section) {
   const sectionElement = document.getElementById(`${section}-section`);
   const toggleIcon = document.getElementById(`${section}-toggle`);
@@ -1267,16 +1323,33 @@ function toggleSection(section) {
   }
 }
 
-// ==================== NAVIGATION & LOGOUT ====================
 function navigate(action) {
   if (action === 'Logout') {
     const modal = document.getElementById('logoutModal');
     if (modal) {
       modal.style.display = 'flex';
-      setTimeout(() => {
-        window.location.href = '/';
-      }, 1500);
     }
+
+    fetch('/logout/', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken')
+      }
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          setTimeout(() => {
+            window.location.href = data.redirect_url || '/';
+          }, 1500);
+        }
+      })
+      .catch(err => {
+        console.error('Logout failed:', err);
+        window.location.href = '/';
+      });
   }
 }
 
@@ -1284,7 +1357,6 @@ function toggleHRInfo() {
   toggleHRModal();
 }
 
-// ==================== MAKE FUNCTIONS GLOBAL ====================
 window.openAddEmployeeModal = openAddEmployeeModal;
 window.closeModal = closeModal;
 window.openUpdateModal = openUpdateModal;
@@ -1293,7 +1365,6 @@ window.handlePhotoUpload = handlePhotoUpload;
 window.editEmployee = editEmployee;
 window.deleteEmployee = deleteEmployee;
 window.activateEmployee = activateEmployee;
-window.deactivateEmployee = deactivateEmployee;
 window.openDepartmentModal = openDepartmentModal;
 window.closeDepartmentModal = closeDepartmentModal;
 window.openPositionModal = openPositionModal;

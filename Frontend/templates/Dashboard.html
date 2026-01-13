@@ -18,13 +18,11 @@
     </div>
     <div class="header-actions">
       <div class="admin-profile" id="adminProfile">
-        <!-- Avatar -->
         <div class="admin-avatar">
           <img id="hrAvatar" src="{% static 'assets/media/examplePIC.jpg' %}" alt="HR Avatar" onerror="this.src='{% static 'assets/media/examplePIC.jpg' %}'" />
         </div>
         <span>Admin ▾</span>
 
-        <!-- Dropdown Menu -->
         <div class="admin-dropdown hidden" id="adminDropdown">
           <div class="dropdown-item" onclick="openDepartmentModal()">
             ➕ Add Department
@@ -35,12 +33,43 @@
           <div class="dropdown-item" onclick="toggleHRModal()">
             👤 View Profile
           </div>
+          <div class="dropdown-item" id="toggleDeanFormBtn">
+            👨‍🎓 Create Dean Account
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Modal -->
+  <div id="create-dean-div" class="create-dean-div hidden">
+    <button id="closeDeanFormBtn" class="close-btn">&times;</button>
+    <h3>Create Dean Account</h3>
+    <form id="create-dean-form">
+      <div class="form-group">
+        <label for="dean-username">Username</label>
+        <input type="text" id="dean-username" placeholder="Enter username" required>
+      </div>
+      <div class="form-group">
+        <label for="dean-password">Password</label>
+        <input type="password" id="dean-password" placeholder="Enter password" required>
+      </div>
+      <div class="form-group">
+        <label for="dean-fullname">Full Name</label>
+        <input type="text" id="dean-fullname" placeholder="Enter full name" required>
+      </div>
+      <div class="form-group">
+        <label for="dean-department">Department</label>
+        <select id="dean-department" required>
+          <option value="">Select department</option>
+        </select>
+      </div>
+      <button type="submit" class="btn-submit">Create Dean</button>
+    </form>
+    <p id="create-dean-message"></p>
+  </div>
+
+
+
   <div id="hrModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
@@ -112,7 +141,6 @@
     </div>
   </div>
 
-  <!-- Add Department Modal -->
   <div id="departmentModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
@@ -148,7 +176,6 @@
     </div>
   </div>
 
-  <!-- Add Position Modal -->
   <div id="positionModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
@@ -415,7 +442,6 @@
     </div>
   </div>
 
-  <!-- Global Loading Modal -->
   <div id="globalLoadingModal" style="
     display: none;
     position: fixed;
@@ -456,6 +482,7 @@
 
 
   <script src="{% static 'assets/scripts/dashboard_interface.js' %}"></script>
+  <script src="{% static 'assets/scripts/dean_acc_creation.js' %}"></script>
 
 </body>
 </html>

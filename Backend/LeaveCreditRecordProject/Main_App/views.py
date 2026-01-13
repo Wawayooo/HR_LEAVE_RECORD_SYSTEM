@@ -1,55 +1,77 @@
 from django.shortcuts import render
+from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
+from django.utils.decorators import method_decorator
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.contrib.auth.hashers import make_password, check_password
+from django.db import transaction
+
 from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from django.utils import timezone
+
+import json
+from django.http import JsonResponse
+
+from django.contrib.auth import logout
+from django.shortcuts import redirect
+
 from .models import *
 from .serializers import *
 
-from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse
-from django.contrib.auth.hashers import check_password
-from .models import AccessKey
-
-import json
-from django.utils import timezone
-from rest_framework.response import Response
-
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
-from rest_framework.decorators import action
-
-from rest_framework.decorators import action, permission_classes
-from rest_framework.permissions import AllowAny
-from django.contrib.auth.decorators import login_required
-
-# ============= ViewSets with Full CRUD =============
-
 MAX_ANNUAL_LEAVE_DAYS = 15
 
+
+class IsHRUser(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return (
+            request.user.is_authenticated and 
+            hasattr(request.user, 'hruser') and 
+            request.user.hruser.is_hr
+        )
+
+
+class IsDean(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return (
+            request.user.is_authenticated and 
+            hasattr(request.user, 'dean_profile') and 
+            request.user.dean_profile.is_dean
+        )
+
+
+class IsHROrDean(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if not request.user.is_authenticated:
+            return False
+        return (
+            (hasattr(request.user, 'hruser') and request.user.hruser.is_hr) or
+            (hasattr(request.user, 'dean_profile') and request.user.dean_profile.is_dean)
+        )
+
 class DepartmentViewSet(viewsets.ModelViewSet):
-    """
-    Full CRUD operations for Departments:
-    - GET /api/departments/ - List all departments
-    - POST /api/departments/ - Create new department
-    - GET /api/departments/{id}/ - Retrieve single department
-    - PUT /api/departments/{id}/ - Update department
-    - PATCH /api/departments/{id}/ - Partial update
-    - DELETE /api/departments/{id}/ - Delete department
-    """
     queryset = Department.objects.all()
     serializer_class = DepartmentSerializer
     permission_classes = [permissions.AllowAny]
 
     def destroy(self, request, *args, **kwargs):
-        """Delete department with safety check"""
         department = self.get_object()
         employee_count = department.employees.count()
+        dean_count = Dean.objects.filter(department=department).count()
         
         if employee_count > 0:
             return Response({
                 'success': False,
                 'message': f'Cannot delete department. {employee_count} employee(s) are assigned to this department.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        if dean_count > 0:
+            return Response({
+                'success': False,
+                'message': f'Cannot delete department. {dean_count} dean(s) are assigned to this department.'
             }, status=status.HTTP_400_BAD_REQUEST)
         
         department.delete()
@@ -60,29 +82,27 @@ class DepartmentViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'])
     def employees(self, request, pk=None):
-        """Get all employees in this department"""
         department = self.get_object()
         employees = department.employees.filter(is_active=True)
         serializer = EmployeeSerializer(employees, many=True, context={'request': request})
         return Response(serializer.data)
+    
+    @action(detail=True, methods=['get'])
+    def dean(self, request, pk=None):
+        department = self.get_object()
+        dean = Dean.objects.filter(department=department, is_active=True).first()
+        if dean:
+            serializer = DeanSerializer(dean, context={'request': request})
+            return Response({'success': True, 'data': serializer.data})
+        return Response({'success': False, 'message': 'No dean assigned to this department'})
 
 
 class PositionViewSet(viewsets.ModelViewSet):
-    """
-    Full CRUD operations for Positions:
-    - GET /api/positions/ - List all positions
-    - POST /api/positions/ - Create new position
-    - GET /api/positions/{id}/ - Retrieve single position
-    - PUT /api/positions/{id}/ - Update position
-    - PATCH /api/positions/{id}/ - Partial update
-    - DELETE /api/positions/{id}/ - Delete position
-    """
     queryset = Position.objects.all()
     serializer_class = PositionSerializer
     permission_classes = [permissions.AllowAny]
 
     def destroy(self, request, *args, **kwargs):
-        """Delete position with safety check"""
         position = self.get_object()
         employee_count = position.employees.count()
         
@@ -100,12 +120,91 @@ class PositionViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'])
     def employees(self, request, pk=None):
-        """Get all employees in this position"""
         position = self.get_object()
         employees = position.employees.filter(is_active=True)
         serializer = EmployeeSerializer(employees, many=True, context={'request': request})
         return Response(serializer.data)
 
+
+class DeanViewSet(viewsets.ModelViewSet):
+    queryset = Dean.objects.all()
+    serializer_class = DeanSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    @action(detail=True, methods=['get'])
+    def profile(self, request, pk=None):
+        dean = self.get_object()
+        serializer = self.get_serializer(dean)
+        return Response({'success': True, 'data': serializer.data})
+
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            return [permissions.IsAuthenticated(), IsHRUser()]
+        return [permissions.IsAuthenticated()]
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        
+        password = request.data.get('password')
+        if password:
+            instance.user.set_password(password)
+            instance.user.save()
+        
+        username = request.data.get('username')
+        if username and username != instance.user.username:
+            if User.objects.filter(username=username).exclude(id=instance.user.id).exists():
+                return Response({
+                    'success': False,
+                    'message': 'Username already exists'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            instance.user.username = username
+            instance.user.save()
+
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        if serializer.is_valid():
+            dean = serializer.save()
+            return Response({
+                'success': True,
+                'message': 'Dean updated successfully',
+                'data': DeanSerializer(dean, context={'request': request}).data
+            })
+        return Response({
+            'success': False,
+            'errors': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, *args, **kwargs):
+        dean = self.get_object()
+        user = dean.user
+        
+        try:
+            with transaction.atomic():
+                dean.delete()
+                user.delete()
+                return Response({
+                    'success': True,
+                    'message': 'Dean account deleted successfully'
+                }, status=status.HTTP_204_NO_CONTENT)
+        except Exception as e:
+            return Response({
+                'success': False,
+                'message': f'Error deleting dean: {str(e)}'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['get'])
+    def by_department(self, request):
+        department_id = request.query_params.get('department')
+        if department_id:
+            dean = Dean.objects.filter(department_id=department_id, is_active=True).first()
+            if dean:
+                serializer = self.get_serializer(dean)
+                return Response({'success': True, 'data': serializer.data})
+            return Response({'success': False, 'message': 'No dean found for this department'})
+        return Response({'success': False, 'message': 'Department ID required'}, status=400)
+
+
+# ============= Employee ViewSet =============
 
 class EmployeeViewSet(viewsets.ModelViewSet):
     queryset = Employee.objects.all()
@@ -197,14 +296,13 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         serializer = LeaveApplicationSerializer(leave_applications, many=True)
         return Response(serializer.data)
 
-    @method_decorator(csrf_exempt, name='dispatch') 
+    @method_decorator(csrf_exempt, name='dispatch')
     @action(
         detail=False,
         methods=['post'],
         url_path='verify-employee',
         permission_classes=[AllowAny]
     )
-    @csrf_exempt  # optional if you want to skip CSRF
     def verify_employee(self, request):
         employee_code = request.data.get('employee_id', '').strip()
         if not employee_code:
@@ -229,10 +327,10 @@ class EmployeeViewSet(viewsets.ModelViewSet):
             return Response({'success': False, 'message': 'Employee not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
+# ============= Leave Application ViewSet =============
+
 class LeaveApplicationViewSet(viewsets.ModelViewSet):
-    """
-    Full CRUD operations for Leave Applications
-    """
+    """Full CRUD operations for Leave Applications"""
     queryset = LeaveApplication.objects.all()
     serializer_class = LeaveApplicationSerializer
     permission_classes = [permissions.AllowAny]
@@ -259,7 +357,6 @@ class LeaveApplicationViewSet(viewsets.ModelViewSet):
                 year=current_year
             )
         except EmployeeLeaveBalance.DoesNotExist:
-            # Create default balance if doesn't exist
             balance = EmployeeLeaveBalance.objects.create(
                 employee=employee,
                 year=current_year,
@@ -297,12 +394,12 @@ class LeaveApplicationViewSet(viewsets.ModelViewSet):
             # Deduct days from balance
             balance.deduct_days(days)
             
-            # Automatically create a leave request
-            LeaveRequest.objects.create(application=application)
+            # Automatically create a leave request (starts as pending for dean)
+            LeaveRequest.objects.create(application=application, status='pending')
             
             return Response({
                 'success': True,
-                'message': f'Leave application submitted successfully! {balance.remaining_days} days remaining.',
+                'message': f'Leave application submitted successfully! Pending dean approval. {balance.remaining_days} days remaining.',
                 'data': serializer.data,
                 'remaining_days': balance.remaining_days
             }, status=status.HTTP_201_CREATED)
@@ -344,11 +441,10 @@ class LeaveApplicationViewSet(viewsets.ModelViewSet):
                 employee=application.employee,
                 year=current_year
             )
-            # Add back the days
             balance.remaining_days += application.number_of_days
             balance.save()
         except EmployeeLeaveBalance.DoesNotExist:
-            pass  # Balance doesn't exist, nothing to restore
+            pass
         
         application.delete()
         return Response({
@@ -356,103 +452,306 @@ class LeaveApplicationViewSet(viewsets.ModelViewSet):
             'message': 'Leave application deleted successfully'
         }, status=status.HTTP_204_NO_CONTENT)
 
-from rest_framework import permissions
 
-class IsHRUser(permissions.BasePermission):
-    """
-    Custom permission to only allow HR users to perform certain actions.
-    Assumes you have an HRUser model linked to Django's User.
-    """
-    def has_permission(self, request, view):
-        # User must be authenticated and have an HRUser profile marked as HR
-        return (
-            request.user.is_authenticated and 
-            hasattr(request.user, 'hruser') and 
-            request.user.hruser.is_hr
-        )
+# ============= Leave Request ViewSet (Updated with Dean/HR Workflow) =============
 
 class LeaveRequestViewSet(viewsets.ModelViewSet):
     queryset = LeaveRequest.objects.all()
     serializer_class = LeaveRequestSerializer
-    permission_classes = [permissions.IsAuthenticated, IsHRUser]
+    permission_classes = [permissions.IsAuthenticated, IsHROrDean]
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = LeaveRequest.objects.all()
+
+        if hasattr(user, 'dean_profile'):
+            dean = user.dean_profile
+            queryset = queryset.filter(
+                application__employee__department=dean.department
+            )
+
+            view_type = self.request.query_params.get('view')
+
+            if view_type == 'requests':
+                queryset = queryset.filter(status='pending')
+
+            elif view_type == 'reports':
+                queryset = queryset.filter(status__in=['dean_approved', 'dean_denied'])
+
+        elif user.groups.filter(name='HR').exists():
+            view_type = self.request.query_params.get('view')
+
+            if view_type == 'dashboard':
+                queryset = self.hr_dash_queryset()
+
+            elif view_type == 'reports':
+                queryset = queryset.filter(status__in=['approved', 'denied'])
+
+            else:
+                queryset = queryset.exclude(status='pending')
+
+        return queryset
+
+    
+    def hr_dash_queryset(self):
+        """
+        HR dashboard:
+        - Only requests already approved by Dean
+        - Still pending HR action
+        """
+        return LeaveRequest.objects.filter(
+            status='dean_approved'
+        )
+
 
     @action(detail=False, methods=['get'])
-    def pending(self, request):
-        requests = self.queryset.filter(status='pending')
+    def pending_dean(self, request):
+        """Get requests pending dean approval"""
+        requests = self.get_queryset().filter(status='pending')
+        serializer = self.get_serializer(requests, many=True)
+        return Response({'success': True, 'data': serializer.data})
+
+    @action(detail=False, methods=['get'])
+    def pending_hr(self, request):
+        """Get requests pending HR approval (dean-approved)"""
+        if not hasattr(request.user, 'hruser'):
+            return Response({'success': False, 'message': 'HR only'}, status=403)
+        
+        requests = LeaveRequest.objects.filter(status='dean_approved')
+        if hasattr(request.user, 'dean_profile'):
+            dean = request.user.dean_profile
+            requests = requests.filter(application__employee__department=dean.department)
+
         serializer = self.get_serializer(requests, many=True)
         return Response({'success': True, 'data': serializer.data})
 
     @action(detail=True, methods=['post'])
-    def approve(self, request, pk=None):
+    def dean_approve(self, request, pk=None):
+        """Dean approves leave request"""
+        if not hasattr(request.user, 'dean_profile'):
+            return Response({'success': False, 'message': 'Dean only'}, status=403)
+        
+        dean = request.user.dean_profile
         leave_request = self.get_object()
+        
+        # Verify department match
+        if leave_request.application.employee.department != dean.department:
+            return Response({
+                'success': False,
+                'message': 'You can only approve requests from your department'
+            }, status=403)
+        
+        # Verify status
         if leave_request.status != 'pending':
-            return Response({'success': False, 'message': f'Already {leave_request.status}'}, status=400)
+            return Response({
+                'success': False,
+                'message': f'Request already {leave_request.status}'
+            }, status=400)
+        
+        try:
+            leave_request.dean_approve(dean)
+            return Response({
+                'success': True,
+                'message': 'Leave request approved and forwarded to HR',
+                'data': self.get_serializer(leave_request).data
+            })
+        except Exception as e:
+            return Response({
+                'success': False,
+                'message': f'Error: {str(e)}'
+            }, status=400)
 
-        leave_request.status = 'approved'
-        leave_request.reviewer = request.user if request.user.is_authenticated else None
-        leave_request.reviewed_at = timezone.now()
-        leave_request.save()
+    @action(detail=True, methods=['post'])
+    def dean_deny(self, request, pk=None):
+        """Dean denies leave request"""
+        if not hasattr(request.user, 'dean_profile'):
+            return Response({'success': False, 'message': 'Dean only'}, status=403)
+        
+        dean = request.user.dean_profile
+        leave_request = self.get_object()
+        
+        # Verify department match
+        if leave_request.application.employee.department != dean.department:
+            return Response({
+                'success': False,
+                'message': 'You can only deny requests from your department'
+            }, status=403)
+        
+        # Verify status
+        if leave_request.status != 'pending':
+            return Response({
+                'success': False,
+                'message': f'Request already {leave_request.status}'
+            }, status=400)
+        
+        comments = request.data.get('comments', '')
+        
+        try:
+            # Restore leave balance
+            current_year = timezone.now().year
+            balance, _ = EmployeeLeaveBalance.objects.get_or_create(
+                employee=leave_request.application.employee,
+                year=current_year,
+                defaults={'remaining_days': MAX_ANNUAL_LEAVE_DAYS}
+            )
+            days = leave_request.application.number_of_days
+            balance.remaining_days = min(balance.remaining_days + days, MAX_ANNUAL_LEAVE_DAYS)
+            balance.save()
+            
+            leave_request.dean_deny(dean, comments)
+            
+            return Response({
+                'success': True,
+                'message': f'Leave request denied. {days} days restored to employee balance.',
+                'data': self.get_serializer(leave_request).data
+            })
+        except Exception as e:
+            return Response({
+                'success': False,
+                'message': f'Error: {str(e)}'
+            }, status=400)
 
-        leave_request.application.status = 'approved'
-        leave_request.application.save()
+    @action(detail=True, methods=['post'])
+    def hr_approve(self, request, pk=None):
+        """HR approves dean-approved leave request"""
+        if not hasattr(request.user, 'hruser'):
+            return Response({'success': False, 'message': 'HR only'}, status=403)
+        
+        leave_request = self.get_object()
+        
+        # Verify status
+        if leave_request.status != 'dean_approved':
+            return Response({
+                'success': False,
+                'message': 'Request must be dean-approved first'
+            }, status=400)
+        
+        comments = request.data.get('comments', '')
+        
+        try:
+            leave_request.hr_approve(request.user)
+            if comments:
+                leave_request.hr_comments = comments
+                leave_request.save()
+            
+            return Response({
+                'success': True,
+                'message': 'Leave request approved by HR',
+                'data': self.get_serializer(leave_request).data
+            })
+        except Exception as e:
+            return Response({
+                'success': False,
+                'message': f'Error: {str(e)}'
+            }, status=400)
 
-        LeaveReport.create_from_leave_request(leave_request)
+    @action(detail=True, methods=['post'])
+    def hr_deny(self, request, pk=None):
+        """HR denies dean-approved leave request"""
+        if not hasattr(request.user, 'hruser'):
+            return Response({'success': False, 'message': 'HR only'}, status=403)
+        
+        leave_request = self.get_object()
+        
+        # Verify status
+        if leave_request.status != 'dean_approved':
+            return Response({
+                'success': False,
+                'message': 'Request must be dean-approved first'
+            }, status=400)
+        
+        comments = request.data.get('comments', '')
+        if not comments:
+            return Response({
+                'success': False,
+                'message': 'Comments required for denial'
+            }, status=400)
+        
+        try:
+            # Restore leave balance
+            current_year = timezone.now().year
+            balance, _ = EmployeeLeaveBalance.objects.get_or_create(
+                employee=leave_request.application.employee,
+                year=current_year,
+                defaults={'remaining_days': MAX_ANNUAL_LEAVE_DAYS}
+            )
+            days = leave_request.application.number_of_days
+            balance.remaining_days = min(balance.remaining_days + days, MAX_ANNUAL_LEAVE_DAYS)
+            balance.save()
+            
+            leave_request.hr_deny(request.user, comments)
+            
+            return Response({
+                'success': True,
+                'message': f'Leave request denied by HR. {days} days restored to employee balance.',
+                'data': self.get_serializer(leave_request).data
+            })
+        except Exception as e:
+            return Response({
+                'success': False,
+                'message': f'Error: {str(e)}'
+            }, status=400)
+            
+    @action(detail=False, methods=['get'])
+    def dean_approved(self, request):
+        if not hasattr(request.user, 'dean_profile'):
+            return Response({'success': False, 'message': 'Dean only'}, status=403)
 
-        return Response({
-            'success': True,
-            'message': 'Leave request approved successfully',
-            'data': LeaveRequestSerializer(leave_request, context={'request': request}).data
-        })
+        dean = request.user.dean_profile
+        queryset = LeaveRequest.objects.filter(
+            status='dean_approved',
+            application__employee__department=dean.department
+        )
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'success': True, 'data': serializer.data})
+
+
+    # Legacy methods for backwards compatibility
+    @action(detail=True, methods=['post'])
+    def approve(self, request, pk=None):
+        """Legacy approve - redirects based on user type"""
+        if hasattr(request.user, 'dean_profile'):
+            return self.dean_approve(request, pk)
+        elif hasattr(request.user, 'hruser'):
+            return self.hr_approve(request, pk)
+        return Response({'success': False, 'message': 'Unauthorized'}, status=403)
 
     @action(detail=True, methods=['post'])
     def reject(self, request, pk=None):
-        leave_request = self.get_object()
-
-        # Check if already processed
-        if leave_request.status != 'pending':
-            return Response({'success': False, 'message': f'Already {leave_request.status}'}, status=400)
-
-        # Reject the leave request
-        leave_request.status = 'denied'
-        leave_request.reviewer = request.user if request.user.is_authenticated else None
-        leave_request.reviewed_at = timezone.now()
-        leave_request.review_comments = request.data.get('comments', '')
-        leave_request.save()
-
-        # Update application status
-        leave_request.application.status = 'rejected'
-        leave_request.application.save()
-
-        # === Add back days to employee leave balance, capped at MAX_ANNUAL_LEAVE_DAYS ===
-        from datetime import date
-        current_year = date.today().year
-        days_requested = leave_request.application.number_of_days or 0
-        employee = leave_request.application.employee
-
-        # Get or create the EmployeeLeaveBalance for this year
-        balance, created = EmployeeLeaveBalance.objects.get_or_create(
-            employee=employee,
-            year=current_year,
-            defaults={'remaining_days': MAX_ANNUAL_LEAVE_DAYS}  # default if balance did not exist
-        )
-
-        # Add days but do not exceed MAX_ANNUAL_LEAVE_DAYS
-        balance.remaining_days = min(balance.remaining_days + days_requested, MAX_ANNUAL_LEAVE_DAYS)
-        balance.save()
-        # ================================================================
-
-        return Response({
-            'success': True,
-            'message': f'Leave request rejected and {days_requested} day(s) returned to balance',
-            'data': LeaveRequestSerializer(leave_request, context={'request': request}).data
-        })
+        """Legacy reject - redirects based on user type"""
+        if hasattr(request.user, 'dean_profile'):
+            return self.dean_deny(request, pk)
+        elif hasattr(request.user, 'hruser'):
+            return self.hr_deny(request, pk)
+        return Response({'success': False, 'message': 'Unauthorized'}, status=403)
 
 
+# ============= Leave Report ViewSet =============
 
 class LeaveReportViewSet(viewsets.ModelViewSet):
     queryset = LeaveReport.objects.all()
     serializer_class = LeaveReportSerializer
-    permission_classes = [permissions.IsAuthenticated, IsHRUser]
+    permission_classes = [permissions.IsAuthenticated, IsHROrDean]
+
+    def get_queryset(self):
+        """Filter reports based on user type"""
+        user = self.request.user
+        queryset = LeaveReport.objects.all()
+
+        if hasattr(user, 'dean_profile'):
+            # Dean: only reports from their department, excluding pending dean reviews
+            dean = user.dean_profile
+            queryset = queryset.filter(employee__department=dean.department).exclude(dean_status='pending')
+
+        elif user.groups.filter(name='HR').exists():
+            # HR: only reports that have been reviewed by dean
+            queryset = queryset.exclude(dean_status='pending')
+
+        else:
+            # Admin or other roles: see everything
+            queryset = queryset
+
+        return queryset
 
     @action(detail=False, methods=['get'])
     def recent(self, request):
@@ -464,9 +763,26 @@ class LeaveReportViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def statistics(self, request):
         from django.db.models import Count
-        stats = self.get_queryset().values('leave_type').annotate(count=Count('leave_type'))
-        return Response({'success': True, 'total_reports': self.get_queryset().count(), 'by_leave_type': stats})
+        queryset = self.get_queryset()
+        stats = queryset.values('leave_type').annotate(count=Count('leave_type'))
+        return Response({
+            'success': True,
+            'total_reports': queryset.count(),
+            'by_leave_type': stats
+        })
 
+
+# ============= HR User ViewSet =============
+
+class HRUserViewSet(viewsets.ModelViewSet):
+    queryset = HRUser.objects.all()
+    serializer_class = HRUserSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = 'username'
+
+    def get_object(self):
+        username = self.kwargs.get(self.lookup_field)
+        return HRUser.objects.get(user__username=username)
 
 
 # ============= API Views =============
@@ -527,35 +843,12 @@ def appointment_form_view(request):
 def starting_view(request):
     return render(request, "index.html")
 
+def dean_dash_view(request):
+    return render(request, "dean_dash.html")
+
 @login_required
 def HR_dash_view(request):
     return render(request, "Dashboard.html")
-
-from rest_framework import viewsets
-from .models import HRUser
-from .serializers import HRUserSerializer
-from rest_framework.permissions import IsAuthenticated
-from django.http import Http404
-
-# views.py
-from rest_framework import viewsets
-from django.http import Http404
-from .models import HRUser
-from .serializers import HRUserSerializer
-
-from rest_framework.permissions import IsAuthenticated
-
-class HRUserViewSet(viewsets.ModelViewSet):
-    queryset = HRUser.objects.all()
-    serializer_class = HRUserSerializer
-    permission_classes = [IsAuthenticated]  # ✅ require login
-    lookup_field = 'username'
-
-    def get_object(self):
-        username = self.kwargs.get(self.lookup_field)
-        return HRUser.objects.get(user__username=username)
-
-from django.contrib.auth import authenticate, login
 
 @csrf_exempt
 def hr_login(request):
@@ -577,8 +870,15 @@ def hr_login(request):
         else:
             return JsonResponse({"success": False, "message": "Invalid credentials"})
 
-from django.views.decorators.csrf import ensure_csrf_cookie
-from django.http import JsonResponse
+@csrf_exempt
+def logout_view(request):
+    if request.user.is_authenticated:
+        logout(request)
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({"success": True, "message": "Logged out successfully", "redirect_url": "/"})
+    
+    return redirect('/')
 
 @ensure_csrf_cookie
 def csrf(request):

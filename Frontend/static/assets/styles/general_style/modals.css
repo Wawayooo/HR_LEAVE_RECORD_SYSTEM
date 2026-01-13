@@ -15,7 +15,6 @@
   display: flex;
 }
 
-/* DELETE ITEM MODAL */
 .modal .delete-modal {
   background: var(--color-gradient-jet);
   padding: 1.5rem;

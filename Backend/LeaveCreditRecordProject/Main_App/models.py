@@ -166,22 +166,90 @@ class LeaveApplication(models.Model):
     def __str__(self):
         return f"{self.employee.full_name} - {self.leave_type} ({self.date_filed})"
 
-# ----------------- Leave Request (Approval) -----------------
+# ----------------- Dean User -----------------
+class Dean(models.Model):
+    # Link to Django's built-in User for authentication
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='dean_profile')
+    
+    # Dean-specific fields
+    full_name = models.CharField(max_length=255)
+    is_dean = models.BooleanField(default=True)
+    
+    # Department that this dean oversees
+    department = models.ForeignKey(
+        'Department', 
+        on_delete=models.PROTECT, 
+        related_name='dean',
+        help_text="Department this dean manages"
+    )
+    
+    # Personal information (similar to Employee)
+    gender = models.CharField(max_length=20, null=True, blank=True)
+    height = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    weight = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    age = models.PositiveIntegerField(null=True, blank=True)
+    
+    photo = models.ImageField(
+        upload_to='dean_photos/',
+        null=True,
+        blank=True,
+        default='static/assets/media/examplePIC.jpg'
+    )
+    
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    @property
+    def position(self):
+        return "Dean"
+
+    class Meta:
+        ordering = ['full_name']
+        verbose_name = 'Dean'
+        verbose_name_plural = 'Deans'
+
+    def __str__(self):
+        return f"{self.full_name} - Dean of {self.department.name}"
+
+
 class LeaveRequest(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Pending'),
-        ('approved', 'Approved'),
-        ('denied', 'Denied')
+        ('dean_approved', 'Dean Approved'),
+        ('dean_denied', 'Dean Denied'),
+        ('approved', 'HR Approved'),
+        ('denied', 'HR Denied')
     ]
 
     application = models.OneToOneField(
-        LeaveApplication,
+        'LeaveApplication',
         on_delete=models.CASCADE,
         related_name='leave_request'
     )
-    reviewer = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    reviewed_at = models.DateTimeField(null=True, blank=True)
-    review_comments = models.TextField(blank=True)
+    
+    # Dean review fields
+    dean_reviewer = models.ForeignKey(
+        'Dean', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        related_name='dean_reviews'
+    )
+    dean_reviewed_at = models.DateTimeField(null=True, blank=True)
+    dean_comments = models.TextField(blank=True)
+    
+    # HR review fields
+    hr_reviewer = models.ForeignKey(
+        User, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        related_name='hr_reviews'
+    )
+    hr_reviewed_at = models.DateTimeField(null=True, blank=True)
+    hr_comments = models.TextField(blank=True)
+    
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -192,8 +260,17 @@ class LeaveRequest(models.Model):
         verbose_name = 'Leave Request'
         verbose_name_plural = 'Leave Requests'
 
-    def _create_report(self, status, reviewer, comments=None):
+    def _create_report(self, status, reviewer_type, reviewer, comments=None):
+        """Helper to create leave report"""
         application = self.application
+        
+        # Determine who approved it
+        approved_by_user = None
+        if reviewer_type == 'dean' and isinstance(reviewer, Dean):
+            approved_by_user = reviewer.user
+        elif reviewer_type == 'hr' and isinstance(reviewer, User):
+            approved_by_user = reviewer
+            
         LeaveReport.objects.create(
             status=status,
             leave_request=self,
@@ -205,65 +282,138 @@ class LeaveRequest(models.Model):
             number_of_days=application.number_of_days,
             location=application.vacation_location or application.sick_location or 'N/A',
             date_filed=application.date_filed,
-            approved_by=reviewer,
-            approved_at=self.reviewed_at,
-            review_comments=comments or ''
+            approved_by=approved_by_user,
+            approved_at=self.hr_reviewed_at or self.dean_reviewed_at,
+            review_comments=comments or '',
+            reviewed_by_dean=reviewer if reviewer_type == 'dean' else None
         )
 
-    def approve(self, reviewer):
-        self.status = 'approved'
-        self.reviewer = reviewer
-        self.reviewed_at = timezone.now()
+    def dean_approve(self, dean):
+        """Dean approves the leave request, forwarding it to HR"""
+        self.status = 'dean_approved'
+        self.dean_reviewer = dean
+        self.dean_reviewed_at = timezone.now()
         self.save()
-        self.application.status = 'approved'
+        
+        # Update application status
+        self.application.status = 'pending'  # Still pending HR approval
         self.application.save()
 
-        # Use helper
-        self._create_report('approved', reviewer)
-
-    def deny(self, reviewer, comments=''):
-        self.status = 'denied'
-        self.reviewer = reviewer
-        self.reviewed_at = timezone.now()
-        self.review_comments = comments
+    def dean_deny(self, dean, comments=''):
+        """Dean denies the leave request"""
+        self.status = 'dean_denied'
+        self.dean_reviewer = dean
+        self.dean_reviewed_at = timezone.now()
+        self.dean_comments = comments
         self.save()
+        
+        # Update application status
         self.application.status = 'rejected'
         self.application.save()
+        
+        # Create report for denied request
+        self._create_report('rejected', 'dean', dean, comments)
 
-        # Use helper
-        self._create_report('rejected', reviewer, comments)
+    def hr_approve(self, hr_user):
+        """HR approves the leave request (after dean approval)"""
+        if self.status != 'dean_approved':
+            raise ValueError("Leave request must be dean-approved first")
+            
+        self.status = 'approved'
+        self.hr_reviewer = hr_user
+        self.hr_reviewed_at = timezone.now()
+        self.save()
+        
+        # Update application status
+        self.application.status = 'approved'
+        self.application.save()
+        
+        # Deduct leave balance
+        year = timezone.now().year
+        balance, created = EmployeeLeaveBalance.objects.get_or_create(
+            employee=self.application.employee,
+            year=year
+        )
+        balance.deduct_days(self.application.number_of_days)
+        
+        # Create report
+        self._create_report('approved', 'hr', hr_user)
+
+    def hr_deny(self, hr_user, comments=''):
+        """HR denies the leave request (after dean approval)"""
+        if self.status != 'dean_approved':
+            raise ValueError("Leave request must be dean-approved first")
+            
+        self.status = 'denied'
+        self.hr_reviewer = hr_user
+        self.hr_reviewed_at = timezone.now()
+        self.hr_comments = comments
+        self.save()
+        
+        # Update application status
+        self.application.status = 'rejected'
+        self.application.save()
+        
+        # Create report
+        self._create_report('rejected', 'hr', hr_user, comments)
 
     @property
-    def is_editable(self):
+    def is_pending_dean_approval(self):
+        """Check if waiting for dean approval"""
         return self.status == 'pending'
+    
+    @property
+    def is_pending_hr_approval(self):
+        """Check if waiting for HR approval"""
+        return self.status == 'dean_approved'
 
     def __str__(self):
         return f"{self.application.employee.full_name} - {self.status}"
 
-
 # ----------------- Leave Report -----------------
 class LeaveReport(models.Model):
-    STATUS_CHOICES = [('approved', 'Approved'), ('rejected', 'Rejected')]
+    DEAN_STATUS_CHOICES = [
+        ('pending', 'Pending Dean Review'),
+        ('approved', 'Dean Approved'),
+        ('denied', 'Dean Denied'),
+    ]
+    HR_STATUS_CHOICES = [
+        ('pending', 'Pending HR Review'),
+        ('approved', 'HR Approved'),
+        ('denied', 'HR Denied'),
+    ]
 
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES)
-    leave_request = models.OneToOneField(LeaveRequest, on_delete=models.CASCADE, related_name='report')
+    leave_request = models.OneToOneField(
+        'LeaveRequest', on_delete=models.CASCADE, related_name='report'
+    )
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='leave_reports')
     leave_type = models.CharField(max_length=50)
-    start_date = models.DateField()
-    end_date = models.DateField()
     number_of_days = models.PositiveIntegerField()
     location = models.CharField(max_length=50)
     date_filed = models.DateField()
-    approved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    
-    approved_at = models.DateTimeField(null=True, blank=True) 
-    review_comments = models.TextField(blank=True) 
-    reviewed_at = models.DateTimeField(null=True, blank=True)
+
+    # Track both dean and HR decisions
+    dean_status = models.CharField(max_length=20, choices=DEAN_STATUS_CHOICES, default='pending')
+    hr_status = models.CharField(max_length=20, choices=HR_STATUS_CHOICES, default='pending')
+
+    dean_reviewer = models.ForeignKey(
+        'Dean', on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_reports'
+    )
+    hr_reviewer = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, related_name='hr_reviewed_reports'
+    )
+
+    dean_reviewed_at = models.DateTimeField(null=True, blank=True)
+    hr_reviewed_at = models.DateTimeField(null=True, blank=True)
+
+    dean_comments = models.TextField(blank=True)
+    hr_comments = models.TextField(blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['-approved_at']
+        ordering = ['-created_at']
         verbose_name = 'Leave Report'
         verbose_name_plural = 'Leave Reports'
 
@@ -271,17 +421,198 @@ class LeaveReport(models.Model):
         return f"{self.employee.full_name} - {self.leave_type} Report"
 
     @classmethod
-    def create_from_leave_request(cls, leave_request):
-        application = leave_request.application
-        return cls.objects.create(
+    def create_or_update_from_leave_request(cls, leave_request):
+        """Ensure a report exists and update dean/hr info"""
+        report, created = cls.objects.get_or_create(
             leave_request=leave_request,
-            employee=leave_request.application.employee,
-            leave_type=application.leave_type,
-            number_of_days=application.number_of_days,
-            location=application.vacation_location or application.sick_location or 'N/A',
-            date_filed=application.date_filed,
-            approved_by=leave_request.reviewer,
-            approved_at=leave_request.reviewed_at
+            defaults={
+                'employee': leave_request.application.employee,
+                'leave_type': leave_request.application.leave_type,
+                'number_of_days': leave_request.application.number_of_days,
+                'location': leave_request.application.vacation_location or leave_request.application.sick_location or 'N/A',
+                'date_filed': leave_request.application.date_filed,
+            }
         )
 
+        # Update dean info
+        if leave_request.dean_reviewer:
+            report.dean_reviewer = leave_request.dean_reviewer
+            report.dean_status = 'approved' if leave_request.status != 'dean_denied' else 'denied'
+            report.dean_reviewed_at = leave_request.dean_reviewed_at
+            report.dean_comments = leave_request.dean_comments or ''
 
+        # Update HR info
+        if leave_request.hr_reviewer:
+            report.hr_reviewer = leave_request.hr_reviewer
+            report.hr_status = 'approved' if leave_request.status == 'approved' else 'denied'
+            report.hr_reviewed_at = leave_request.hr_reviewed_at
+            report.hr_comments = leave_request.hr_comments or ''
+
+        report.save()
+        return report
+
+# ----------------- Leave Request Archive -----------------
+class LeaveRequestArchive(models.Model):
+    """
+    Permanent archive of leave requests that have been fully processed.
+    This model is NOT connected to other models via ForeignKey to ensure
+    data persistence even if the original records are deleted.
+    """
+    STATUS_CHOICES = [
+        ('approved', 'Approved by Dean and HR'),
+        ('denied', 'Approved by Dean, Denied by HR')
+    ]
+    
+    LEAVE_TYPES = [
+        ('vacation', 'Vacation Leave'),
+        ('sick', 'Sick Leave'),
+        ('maternity', 'Maternity Leave'),
+        ('paternity', 'Paternity Leave'),
+        ('emergency', 'Emergency Leave'),
+    ]
+    
+    # Store original IDs for reference (not ForeignKey)
+    original_leave_request_id = models.IntegerField(help_text="Original LeaveRequest ID")
+    original_leave_application_id = models.IntegerField(help_text="Original LeaveApplication ID")
+    
+    # Employee Information (denormalized - stored as data, not relations)
+    employee_id = models.CharField(max_length=20, help_text="Employee ID from original employee")
+    employee_name = models.CharField(max_length=200)
+    employee_department = models.CharField(max_length=100)
+    employee_position = models.CharField(max_length=100)
+    
+    # Leave Application Details
+    leave_type = models.CharField(max_length=50, choices=LEAVE_TYPES)
+    number_of_days = models.PositiveIntegerField()
+    vacation_location = models.CharField(max_length=50, blank=True, null=True)
+    sick_location = models.CharField(max_length=50, blank=True, null=True)
+    reason = models.TextField(blank=True)
+    date_filed = models.DateField()
+    
+    # Dean Review Information
+    dean_name = models.CharField(max_length=255)
+    dean_department = models.CharField(max_length=100)
+    dean_reviewed_at = models.DateTimeField()
+    dean_comments = models.TextField(blank=True)
+    
+    # HR Review Information
+    hr_reviewer_username = models.CharField(max_length=150)
+    hr_reviewer_name = models.CharField(max_length=255)
+    hr_reviewed_at = models.DateTimeField()
+    hr_comments = models.TextField(blank=True)
+    
+    # Final Status
+    final_status = models.CharField(max_length=20, choices=STATUS_CHOICES)
+    
+    # Leave Balance Information (at time of approval/denial)
+    leave_balance_before = models.PositiveIntegerField(help_text="Days remaining before this request")
+    leave_balance_after = models.PositiveIntegerField(null=True, blank=True, help_text="Days remaining after (only if approved)")
+    leave_balance_year = models.PositiveIntegerField()
+    
+    # Archive metadata
+    archived_at = models.DateTimeField(auto_now_add=True)
+    archived_by_system = models.BooleanField(default=True, help_text="True if auto-archived, False if manually archived")
+    
+    class Meta:
+        ordering = ['-archived_at']
+        verbose_name = 'Leave Request Archive'
+        verbose_name_plural = 'Leave Request Archives'
+        indexes = [
+            models.Index(fields=['employee_id', '-archived_at']),
+            models.Index(fields=['final_status', '-archived_at']),
+            models.Index(fields=['-date_filed']),
+        ]
+    
+    def __str__(self):
+        return f"{self.employee_name} ({self.employee_id}) - {self.leave_type} - {self.final_status}"
+    
+    @classmethod
+    def archive_leave_request(cls, leave_request):
+        """
+        Create an archive record from a LeaveRequest that has been fully processed.
+        Only archives requests with status 'approved' or 'denied' (after dean approval).
+        """
+        # Validate status
+        if leave_request.status not in ['approved', 'denied']:
+            raise ValueError("Can only archive leave requests with final status (approved/denied)")
+        
+        if not leave_request.dean_reviewer or not leave_request.hr_reviewer:
+            raise ValueError("Leave request must be reviewed by both dean and HR")
+        
+        application = leave_request.application
+        employee = application.employee
+        
+        # Get leave balance information
+        year = timezone.now().year
+        try:
+            balance = EmployeeLeaveBalance.objects.get(employee=employee, year=year)
+            balance_before = balance.remaining_days
+            if leave_request.status == 'approved':
+                balance_after = balance.remaining_days  # Already deducted
+            else:
+                balance_after = balance.remaining_days  # Not deducted
+        except EmployeeLeaveBalance.DoesNotExist:
+            balance_before = 0
+            balance_after = 0
+        
+        # Determine final status
+        final_status = 'approved' if leave_request.status == 'approved' else 'denied'
+        
+        # Create archive record
+        archive = cls.objects.create(
+            original_leave_request_id=leave_request.id,
+            original_leave_application_id=application.id,
+            
+            # Employee info
+            employee_id=employee.employee_id,
+            employee_name=employee.full_name,
+            employee_department=employee.department.name,
+            employee_position=employee.position.title,
+            
+            # Leave details
+            leave_type=application.leave_type,
+            number_of_days=application.number_of_days,
+            vacation_location=application.vacation_location,
+            sick_location=application.sick_location,
+            reason=application.reason,
+            date_filed=application.date_filed,
+            
+            # Dean info
+            dean_name=leave_request.dean_reviewer.full_name,
+            dean_department=leave_request.dean_reviewer.department.name,
+            dean_reviewed_at=leave_request.dean_reviewed_at,
+            dean_comments=leave_request.dean_comments,
+            
+            # HR info
+            hr_reviewer_username=leave_request.hr_reviewer.username,
+            hr_reviewer_name=leave_request.hr_reviewer.get_full_name() or leave_request.hr_reviewer.username,
+            hr_reviewed_at=leave_request.hr_reviewed_at,
+            hr_comments=leave_request.hr_comments,
+            
+            # Status and balance
+            final_status=final_status,
+            leave_balance_before=balance_before + application.number_of_days if final_status == 'approved' else balance_before,
+            leave_balance_after=balance_after if final_status == 'approved' else None,
+            leave_balance_year=year,
+        )
+        
+        return archive
+    
+    def get_summary(self):
+        """Return a human-readable summary of the archived request"""
+        return {
+            'employee': f"{self.employee_name} ({self.employee_id})",
+            'department': self.employee_department,
+            'position': self.employee_position,
+            'leave_type': self.get_leave_type_display(),
+            'days_requested': self.number_of_days,
+            'date_filed': self.date_filed,
+            'dean_decision': 'Approved',
+            'dean_reviewer': f"{self.dean_name} (Dean of {self.dean_department})",
+            'dean_date': self.dean_reviewed_at,
+            'hr_decision': 'Approved' if self.final_status == 'approved' else 'Denied',
+            'hr_reviewer': self.hr_reviewer_name,
+            'hr_date': self.hr_reviewed_at,
+            'final_outcome': self.get_final_status_display(),
+            'archived_on': self.archived_at,
+        }

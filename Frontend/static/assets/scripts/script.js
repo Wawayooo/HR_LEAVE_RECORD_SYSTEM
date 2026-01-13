@@ -1,4 +1,3 @@
-// Initialize letter animations with CSS variables
 //const API_BASE = "https://kt2980zx-8000.asse.devtunnels.ms";
 
 document.querySelectorAll(".letter").forEach((el, i) => {
@@ -9,19 +8,14 @@ document.querySelectorAll(".letter").forEach((el, i) => {
   });
 });
 
-// Initialize tag word animations with CSS variables
 document.querySelectorAll(".tag-word").forEach((el, j) => {
   el.style.setProperty("--j", j);
 });
 
-// Redirect to appointment form
 function GotoForm() {
   window.location.href = "/appointment_form/";
 }
 
-// ==================== UTILITY FUNCTIONS ====================
-
-// Get CSRF token from cookies
 function getCookie(name) {
   let cookieValue = null;
   if (document.cookie && document.cookie !== '') {
@@ -37,15 +31,11 @@ function getCookie(name) {
   return cookieValue;
 }
 
-// ==================== DROPDOWN FUNCTIONS ====================
-
-// Toggle dropdown menu
 function toggleDropdown() {
   const dropdown = document.getElementById('adminDropdown');
   dropdown.classList.toggle('show');
 }
 
-// Close dropdown when clicking outside
 document.addEventListener('click', function(event) {
   const dropdown = document.getElementById('adminDropdown');
   const dropdownContainer = document.querySelector('.admin-dropdown-container');
@@ -55,42 +45,34 @@ document.addEventListener('click', function(event) {
   }
 });
 
-// ==================== HR LOGIN FUNCTIONS ====================
-
 let hrFailedAttempts = 0;
 let hrLockUntil = null;
 let hrCountdownInterval = null;
 
-// Show HR Login Modal
 function showHRLogin() {
   const modal = document.getElementById('loginModalHR');
   modal.style.display = 'flex';
   document.getElementById('adminDropdown').classList.remove('show');
   
-  // Clear any previous messages
   document.getElementById('loginMessageHR').textContent = '';
 }
 
-// Close HR Login Modal
 function closeHRLogin() {
   const modal = document.getElementById('loginModalHR');
   modal.style.display = 'none';
   document.getElementById('usernameHR').value = '';
   document.getElementById('passwordHR').value = '';
   document.getElementById('loginMessageHR').textContent = '';
-  
-  // Clear countdown if active
+
   if (hrCountdownInterval) {
     clearInterval(hrCountdownInterval);
     hrCountdownInterval = null;
   }
   
-  // Re-enable inputs
   document.getElementById('usernameHR').disabled = false;
   document.getElementById('passwordHR').disabled = false;
 }
 
-// Validate HR Login
 async function validateHRLogin() {
   const now = new Date().getTime();
   const messageEl = document.getElementById('loginMessageHR');
@@ -111,7 +93,7 @@ async function validateHRLogin() {
   document.getElementById('loadingModal').style.display = "flex";
 
   try {
-    const response = await fetch("/hr_login/", {   // ✅ match backend route
+    const response = await fetch("/hr_login/", { 
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -126,7 +108,6 @@ async function validateHRLogin() {
     if (result.success) {
       hrFailedAttempts = 0;
 
-      // ✅ Save HR profile data for later use
       localStorage.setItem('hrData', JSON.stringify({
         username: result.username,
         full_name: result.full_name,
@@ -159,12 +140,10 @@ async function validateHRLogin() {
   }
 }
 
-// Start countdown for HR login lockout
 function startHRCountdown(seconds) {
   const messageEl = document.getElementById("loginMessageHR");
   let remaining = seconds;
 
-  // Disable inputs
   document.getElementById("usernameHR").disabled = true;
   document.getElementById("passwordHR").disabled = true;
 
@@ -186,23 +165,18 @@ function startHRCountdown(seconds) {
   }, 1000);
 }
 
-// ==================== DEAN LOGIN FUNCTIONS ====================
-
 let deanFailedAttempts = 0;
 let deanLockUntil = null;
 let deanCountdownInterval = null;
 
-// Show Dean Login Modal
 function showDeanLogin() {
   const modal = document.getElementById('loginModalDean');
   modal.style.display = 'flex';
   document.getElementById('adminDropdown').classList.remove('show');
   
-  // Clear any previous messages
   document.getElementById('loginMessageDean').textContent = '';
 }
 
-// Close Dean Login Modal
 function closeDeanLogin() {
   const modal = document.getElementById('loginModalDean');
   modal.style.display = 'none';
@@ -210,38 +184,32 @@ function closeDeanLogin() {
   document.getElementById('passwordDean').value = '';
   document.getElementById('loginMessageDean').textContent = '';
   
-  // Clear countdown if active
   if (deanCountdownInterval) {
     clearInterval(deanCountdownInterval);
     deanCountdownInterval = null;
   }
   
-  // Re-enable inputs
   document.getElementById('usernameDean').disabled = false;
   document.getElementById('passwordDean').disabled = false;
 }
 
-// Validate Dean Login
 async function validateDeanLogin() {
   const now = new Date().getTime();
   const messageEl = document.getElementById('loginMessageDean');
   
-  // Check if locked
   if (deanLockUntil && now < deanLockUntil) {
-    return; // Prevent further attempts
+    return;
   }
 
   const username = document.getElementById('usernameDean').value;
   const password = document.getElementById('passwordDean').value;
 
-  // Validation
   if (!username || !password) {
     messageEl.textContent = 'Please fill in all fields';
     messageEl.style.color = '#ff0000';
     return;
   }
 
-  // Show loading modal
   document.getElementById('loadingModal').style.display = 'flex';
 
   try {
@@ -258,23 +226,18 @@ async function validateDeanLogin() {
     const result = await response.json();
 
     if (result.success) {
-      // Reset failed attempts
       deanFailedAttempts = 0;
       
-      // Show success message
       messageEl.textContent = 'Login successful! Redirecting...';
       messageEl.style.color = '#28a745';
       
-      // Redirect to Dean dashboard
       setTimeout(() => {
         window.location.href = "/dean_dashboard/";
       }, 1000);
     } else {
-      // Increment failed attempts
       deanFailedAttempts++;
       
       if (deanFailedAttempts >= 3) {
-        // Lock for 60 seconds
         deanLockUntil = now + 60 * 1000;
         startDeanCountdown(60);
         deanFailedAttempts = 0;
@@ -288,17 +251,14 @@ async function validateDeanLogin() {
     messageEl.textContent = "Error connecting to server. Please try again.";
     messageEl.style.color = '#ff0000';
   } finally {
-    // Hide loading modal
     document.getElementById('loadingModal').style.display = 'none';
   }
 }
 
-// Start countdown for Dean login lockout
 function startDeanCountdown(seconds) {
   const messageEl = document.getElementById("loginMessageDean");
   let remaining = seconds;
 
-  // Disable inputs
   document.getElementById("usernameDean").disabled = true;
   document.getElementById("passwordDean").disabled = true;
 
@@ -320,9 +280,6 @@ function startDeanCountdown(seconds) {
   }, 1000);
 }
 
-// ==================== MODAL EVENT LISTENERS ====================
-
-// Close modals when clicking outside
 window.onclick = function(event) {
   const hrModal = document.getElementById('loginModalHR');
   const deanModal = document.getElementById('loginModalDean');
@@ -335,7 +292,6 @@ window.onclick = function(event) {
   }
 }
 
-// Handle Enter key press for HR login
 document.addEventListener('DOMContentLoaded', function() {
   const hrUsernameInput = document.getElementById('usernameHR');
   const hrPasswordInput = document.getElementById('passwordHR');
@@ -351,7 +307,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
-  // Handle Enter key press for Dean login
   const deanUsernameInput = document.getElementById('usernameDean');
   const deanPasswordInput = document.getElementById('passwordDean');
   

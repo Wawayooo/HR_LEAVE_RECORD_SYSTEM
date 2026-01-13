@@ -5,7 +5,6 @@ let failedAttempts = 0;
 let lockUntil = null;
 let countdownInterval = null;
 
-// ---------------- Secret Key Verification ----------------
 function checkKey() {
     const now = new Date().getTime();
     if (lockUntil && now < lockUntil) return;
@@ -45,7 +44,7 @@ function checkKey() {
         } else {
             failedAttempts++;
             if (failedAttempts >= 3) {
-                lockUntil = now + 60 * 1000; // 1 min lock
+                lockUntil = now + 60 * 1000;
                 startCountdown(60);
                 failedAttempts = 0;
             } else {
@@ -90,7 +89,6 @@ function startCountdown(seconds) {
     }, 1000);
 }
 
-// Allow Enter key to submit login
 document.addEventListener('DOMContentLoaded', function() {
     const secretKeyInput = document.getElementById('secretKeyInput');
     if (secretKeyInput) {
@@ -102,17 +100,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// ---------------- Leave Type Logic ----------------
-// Verify employee when name is entered
 let employeeVerified = false;
 let verificationTimeout = null;
 
-// Debounced input listener for employee code
 document.getElementById('employeeCode').addEventListener('input', debounce(async function (e) {
     const employeeCode = e.target.value.trim();
     const validationMsg = document.getElementById('employeeValidationMsg');
 
-    // Reset state
     employeeVerified = false;
     document.getElementById('employeeId').value = '';
     document.getElementById('remainingDays').value = '0';
@@ -122,11 +116,9 @@ document.getElementById('employeeCode').addEventListener('input', debounce(async
 
     if (employeeCode.length < 3) return;
 
-    // Trigger verification
     await verifyEmployee(employeeCode);
 }, 500));
 
-// Debounce helper
 function debounce(fn, delay) {
     let timeout;
     return (...args) => {
@@ -145,10 +137,10 @@ async function verifyEmployee(employeeCode) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken') || '' // fallback if cookie missing
+                'X-CSRFToken': getCookie('csrftoken') || ''
             },
             body: JSON.stringify({ employee_id: employeeCode }),
-            credentials: 'include' // ensures cookies are sent/received even in incognito
+            credentials: 'include'
         });
 
         let result;
@@ -162,18 +154,16 @@ async function verifyEmployee(employeeCode) {
 
         if (response.ok && result.success) {
             employeeVerified = true;
-            document.getElementById('employeeId').value = result.employee_id; // internal DB id
+            document.getElementById('employeeId').value = result.employee_id;
             document.getElementById('remainingDays').value = result.remaining_days;
             document.getElementById('remainingDaysDisplay').innerText = result.remaining_days;
 
-            // Show full name field
             document.getElementById('employeeName').value = result.full_name;
             document.getElementById('fullNameGroup').style.display = 'block';
 
             validationMsg.style.color = 'green';
             validationMsg.innerText = `✓ Employee verified (${result.employee_code})`;
         } else {
-            // Reset fields on failure
             employeeVerified = false;
             document.getElementById('employeeId').value = '';
             document.getElementById('remainingDays').value = '0';
@@ -212,7 +202,6 @@ document.getElementById('leaveType').addEventListener('change', function() {
     }
 });
 
-// ---------------- Form Validation ----------------
 const formFields = document.querySelectorAll('input[required], select[required]');
 formFields.forEach(field => {
     field.addEventListener('blur', () => validateField(field));
@@ -221,7 +210,6 @@ formFields.forEach(field => {
     });
 });
 
-// Real-time remaining days validation
 document.getElementById('numberOfDays').addEventListener('input', function() {
     const numberOfDays = parseInt(this.value, 10) || 0;
     const remainingDays = parseInt(document.getElementById('remainingDays').value, 10) || 0;
@@ -251,11 +239,9 @@ document.getElementById('numberOfDays').addEventListener('input', function() {
     }
 });
 
-// ---------------- Form Submission ----------------
 document.getElementById('leaveApplicationForm').addEventListener('submit', async function(e) {
     e.preventDefault();
 
-    // Check if employee is verified
     if (!employeeVerified) {
         alert('Please enter a valid employee name. The name must match our records exactly.');
         document.getElementById('employeeName').focus();
@@ -270,7 +256,6 @@ document.getElementById('leaveApplicationForm').addEventListener('submit', async
     const numberOfDays = parseInt(document.getElementById('numberOfDays').value, 10);
     const remainingDays = parseInt(document.getElementById('remainingDays').value, 10);
 
-    // Validate number of days
     if (numberOfDays > 15) {
         alert('Maximum leave application is 15 days per request.');
         isValid = false;
@@ -294,14 +279,12 @@ document.getElementById('leaveApplicationForm').addEventListener('submit', async
     const formData = new FormData(this);
     const data = {};
     
-    // Convert FormData to JSON, excluding empty optional fields
     formData.forEach((value, key) => {
         if (value !== '' && value !== null && key !== 'full_name') {
             data[key] = value;
         }
     });
 
-    // Ensure employee ID is included
     const employeeId = document.getElementById('employeeId').value;
     if (!employeeId) {
         alert('Employee verification failed. Please re-enter your name.');
@@ -330,11 +313,9 @@ document.getElementById('leaveApplicationForm').addEventListener('submit', async
         const result = await response.json();
 
         if (response.ok && result.success) {
-            // Show success message
             const successMsg = document.getElementById('successMessage');
             successMsg.classList.add('show');
             
-            // Reset form
             this.reset();
             employeeVerified = false;
             document.getElementById('employeeId').value = '';
@@ -342,11 +323,9 @@ document.getElementById('leaveApplicationForm').addEventListener('submit', async
             document.getElementById('remainingDaysDisplay').innerText = 'Not verified';
             document.getElementById('employeeValidationMsg').innerText = '';
             
-            // Hide conditional fields
             document.getElementById('vacationLocationGroup').style.display = 'none';
             document.getElementById('sickLocationGroup').style.display = 'none';
             
-            // Hide success message after 5 seconds
             setTimeout(() => {
                 successMsg.classList.remove('show');
             }, 5000);
@@ -354,7 +333,6 @@ document.getElementById('leaveApplicationForm').addEventListener('submit', async
         } else {
             const errorMessage = result.message || result.errors || 'Failed to submit application';
             
-            // Handle specific error messages
             if (typeof errorMessage === 'string' && errorMessage.includes('not found')) {
                 alert('Error: Employee not found in our records. Please verify your name.');
             } else if (typeof errorMessage === 'string' && errorMessage.includes('remaining days')) {
@@ -373,11 +351,9 @@ document.getElementById('leaveApplicationForm').addEventListener('submit', async
     }
 });
 
-// ---------------- Helper Functions ----------------
 function validateField(field) {
     const errorMessage = field.parentElement.querySelector('.error-message');
 
-    // Skip validation for hidden fields
     if (field.offsetParent === null) {
         return true;
     }
