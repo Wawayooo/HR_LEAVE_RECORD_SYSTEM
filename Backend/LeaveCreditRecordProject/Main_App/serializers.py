@@ -46,8 +46,15 @@ class PositionSerializer(serializers.ModelSerializer):
 
 
 class DeanSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(source='user.username', read_only=True)
+    department = serializers.PrimaryKeyRelatedField(
+        queryset=Department.objects.all(),
+        required=False
+    )
+    
+    # Make username writable via nested user update
+    username = serializers.CharField(source='user.username', required=False)
     password = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    
     department_name = serializers.CharField(source='department.name', read_only=True)
     department_code = serializers.CharField(source='department.code', read_only=True)
     photo_url = serializers.SerializerMethodField()
@@ -55,12 +62,32 @@ class DeanSerializer(serializers.ModelSerializer):
     class Meta:
         model = Dean
         fields = [
-            'id', 'username', 'full_name', 'department', 'department_name', 
-            'department_code', 'gender', 'height', 'weight', 'age', 
-            'photo', 'photo_url', 'is_dean', 'is_active', 
+            'id', 'username', 'full_name', 'department', 'department_name',
+            'department_code', 'gender', 'height', 'weight', 'age',
+            'photo', 'photo_url', 'is_dean', 'is_active',
             'created_at', 'updated_at', 'password'
         ]
-        read_only_fields = ['id', 'is_dean', 'created_at', 'updated_at', 'username', 'photo_url']
+        read_only_fields = ['id', 'is_dean', 'created_at', 'updated_at', 'photo_url']
+
+    def update(self, instance, validated_data):
+        user_data = validated_data.pop('user', {})
+        password = validated_data.pop('password', None)
+
+        if 'username' in user_data:
+            new_username = user_data['username']
+            if new_username != instance.user.username:
+                if User.objects.filter(username=new_username).exclude(id=instance.user.id).exists():
+                    raise serializers.ValidationError({"username": "Username already exists"})
+                instance.user.username = new_username
+                instance.user.save()
+
+        if password:
+            instance.user.set_password(password)
+            instance.user.save()
+
+        validated_data['is_active'] = True
+
+        return super().update(instance, validated_data)
     
     def get_photo_url(self, obj):
         if obj.photo:
@@ -90,8 +117,6 @@ class DeanSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Please enter a valid weight (30-300 kg)")
         return value
 
-
-# ==================== Employee Serializer ====================
 class EmployeeSerializer(serializers.ModelSerializer):
     department_name = serializers.CharField(source='department.name', read_only=True)
     department_code = serializers.CharField(source='department.code', read_only=True)
@@ -140,7 +165,6 @@ class EmployeeSerializer(serializers.ModelSerializer):
         return value
     
     def validate_position(self, value):
-        """Allow multiple employees to share the same position"""
         return value
 
 
@@ -208,13 +232,13 @@ class LeaveRequestSerializer(serializers.ModelSerializer):
         model = LeaveRequest
         fields = [
             'id', 'application', 
-            # Dean fields
+
             'dean_reviewer', 'dean_reviewer_name', 'dean_reviewer_username',
             'dean_reviewed_at', 'dean_comments',
-            # HR fields
+
             'hr_reviewer', 'hr_reviewer_name',
             'hr_reviewed_at', 'hr_comments',
-            # Status
+
             'status', 'status_display', 'is_pending_dean', 'is_pending_hr',
             'created_at', 'updated_at'
         ]
@@ -236,12 +260,11 @@ class LeaveReportSerializer(serializers.ModelSerializer):
     employee_id = serializers.CharField(source='employee.employee_id', read_only=True)
     employee_photo_url = serializers.SerializerMethodField()
 
-    # Dean reviewer
     dean_reviewer_name = serializers.CharField(source='dean_reviewer.username', read_only=True, allow_null=True)
     dean_status_display = serializers.CharField(source='get_dean_status_display', read_only=True)
     
-    # HR reviewer
-    hr_reviewer_name = serializers.CharField(source='hr_reviewer.get_full_name', read_only=True, allow_null=True)
+    hr_reviewer_name = serializers.CharField(source='hr_reviewer.full_name', read_only=True)
+    
     hr_status_display = serializers.CharField(source='get_hr_status_display', read_only=True)
 
     department_name = serializers.CharField(source='employee.department.name', read_only=True)

@@ -11,10 +11,13 @@ router.register(r'leave-applications', LeaveApplicationViewSet, basename='leavea
 router.register(r'leave-requests', LeaveRequestViewSet, basename='leaverequest')
 router.register(r'leave-reports', LeaveReportViewSet, basename='leavereport')
 router.register(r'hruser', HRUserViewSet, basename='hruser')
-router.register(r'dean', DeanViewSet, basename='dean')
+router.register(r'deans', DeanViewSet, basename='dean')
 
 urlpatterns = [
     path('', starting_view, name='starting_page'),
+    
+    path('api/leave-requests/<int:pk>/approve-test/', test_approve),
+
     path('hr_dashboard/', HR_dash_view, name='hr-dashboard'),
     path('appointment_form/', appointment_form_view, name='appointment-form'),
     
