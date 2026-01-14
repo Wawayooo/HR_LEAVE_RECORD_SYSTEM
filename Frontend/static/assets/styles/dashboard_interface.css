@@ -381,6 +381,7 @@ body {
   animation: slideDown 0.3s ease;
 }
 
+
 @keyframes slideDown {
   from {
     transform: translateY(-50px);

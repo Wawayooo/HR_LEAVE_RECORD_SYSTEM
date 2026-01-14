@@ -579,22 +579,15 @@
   overflow: hidden;
   margin-bottom: 30px;
   max-width: 900px;
-  /* default for wide screens */
   width: 100%;
-  /* allow it to shrink naturally */
   padding: 16px;
   font-size: 1rem;
-  /* base font size */
 }
 
-/* Mobile styles */
 @media (max-width: 600px) {
   .leave-report-card {
     max-width: 400px;
-    /* fixed width for mobile */
     font-size: 0.85rem;
-    /* make content smaller */
     padding: 12px;
-    /* tighter spacing */
   }
 }
