@@ -8,25 +8,156 @@
   <link rel="stylesheet" href="{% static 'assets/styles/dean_dash.css' %}">
 </head>
 <body>
-    <!-- Header -->
+    <div class="modal_hidden_div" id="modal_hidden_div" style="display:none;">
+        <div class="dean-info-div" style="display:none;">
+            <form id="deanProfileForm" class="div_card">
+                <div class="modal-header">
+                    <button id="closeDeanModal" type="button">&times;</button>
+                </div>
+
+                <div class="dean-avatar">
+                    <img
+                        id="profilePhotoPreview"
+                        src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Crect fill='%23800020' width='120' height='120'/%3E%3Ctext fill='%23fff' font-size='60' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3ED%3C/text%3E%3C/svg%3E"
+                        alt="Dean Photo"
+                        style="width:120px; height:120px; object-fit:cover; border-radius:50%;"
+                    >
+                    <input
+                        type="file"
+                        id="profilePhotoInput"
+                        name="photo"
+                        accept="image/*"
+                        style="margin-top:10px;"
+                    >
+                </div>
+
+                <div class="org-title">
+                    <input
+                        type="text"
+                        id="profileFullName"
+                        name="full_name"
+                        placeholder="Full Name"
+                        required
+                    >
+                </div>
+
+                <div class="org-subtitle" id="profileDepartment">
+                    Department Name
+                </div>
+
+                <div class="org-details">
+                    <h4>Account Information</h4>
+
+                    <p>
+                        <strong>Username</strong><br>
+                        <input
+                            type="text"
+                            id="profileUsername"
+                            name="username"
+                            placeholder="Username"
+                            required
+                        >
+                    </p>
+
+                    <p>
+                        <strong>New Password</strong><br>
+                        <input
+                            type="password"
+                            id="profilePassword"
+                            name="password"
+                            placeholder="Leave blank to keep current password"
+                        >
+                    </p>
+                </div>
+
+                <div class="org-details">
+                    <h4>Personal Details</h4>
+
+                    <p>
+                        <strong>Gender</strong><br>
+                        <select id="profileGender" name="gender">
+                            <option value="">Select</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                        </select>
+                    </p>
+
+                    <p>
+                        <strong>Age</strong><br>
+                        <input
+                            type="number"
+                            id="profileAge"
+                            name="age"
+                            min="18"
+                            max="100"
+                        >
+                    </p>
+
+                    <p>
+                        <strong>Height (cm)</strong><br>
+                        <input
+                            type="number"
+                            id="profileHeight"
+                            name="height"
+                            min="100"
+                            max="250"
+                        >
+                    </p>
+
+                    <p>
+                        <strong>Weight (kg)</strong><br>
+                        <input
+                            type="number"
+                            id="profileWeight"
+                            name="weight"
+                            min="30"
+                            max="300"
+                        >
+                    </p>
+                </div>
+
+                <div style="margin-top: 20px; display: flex; gap: 10px;">
+                    <button
+                        type="submit"
+                        style="
+                            flex: 1;
+                            background-color: #8B0000;
+                            color: white;
+                            padding: 12px;
+                            border: none;
+                            border-radius: 4px;
+                            cursor: pointer;
+                            font-weight: 600;
+                        "
+                    >
+                        💾 Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
     <div class="header">
         <div class="logo-section">
         <div class="logo">OC</div>
         <div class="header-title">Osmeña Colleges HRIS - Dean Dashboard</div>
         </div>
         <div class="header-actions">
-        <div class="admin-profile" id="deanProfile">
+       <div class="admin-profile" id="deanProfile">
             <div class="admin-avatar">
-            <img id="deanAvatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect fill='%23800020' width='100' height='100'/%3E%3Ctext fill='%23fff' font-size='40' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3ED%3C/text%3E%3C/svg%3E" alt="Dean Avatar" />
+                <img id="deanAvatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect fill='%23800020' width='100' height='100'/%3E%3Ctext fill='%23fff' font-size='40' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3ED%3C/text%3E%3C/svg%3E" alt="Dean Avatar" />
             </div>
-            <span id="deanName">Dean Name ▾</span>
+            <span id="deanName" class="dropdown-trigger">Dean Name ▾</span>
+            <div class="modal_content" id="modal_cont" style="display: none;">
+                <div id="deanDropdown" class="dropdown-menu">
+                    <button onclick="viewProfile()">View Profile</button>
+                </div>
+            </div>
         </div>
         </div>
     </div>
 
-    <!-- Container -->
     <div class="container">
-        <!-- Sidebar -->
         <div class="sidebar">
         <div class="menu-item active" data-section="dashboardSection">
             <span>🏠 Dashboard</span>
@@ -42,37 +173,30 @@
         </div>
         </div>
 
-        <!-- Main Content -->
         <div class="main-content">
         <div class="breadcrumb" id="breadcrumb">📁 Dashboard / Dean</div>
 
-        <!-- Dashboard Section -->
         <div id="dashboardSection" class="section">
             <h1 class="page-title">Welcome, <span id="dashboardDeanName">Dean</span></h1>
 
-            <div class="org-chart">
-            <div class="org-card">
-                <div class="org-avatar">
-                <img id="deanPhoto" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Crect fill='%23800020' width='120' height='120'/%3E%3Ctext fill='%23fff' font-size='60' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3ED%3C/text%3E%3C/svg%3E" alt="Dean Photo">
+            <div class="org-chart-2">
+                <div class="org-card-2">
+                    <div class="org-avatar">
+                    <img id="deanPhoto" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Crect fill='%23800020' width='120' height='120'/%3E%3Ctext fill='%23fff' font-size='60' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3ED%3C/text%3E%3C/svg%3E" alt="Dean Photo">
+                    </div>
+                    <div class="org-title" id="deanFullName">Dean Full Name</div>
+                    <div class="org-subtitle" id="deanDepartment">Department Name</div>
+                    <div class="org-details">
+                    </div>
                 </div>
-                <div class="org-title" id="deanFullName">Dean Full Name</div>
-                <div class="org-subtitle" id="deanDepartment">Department Name</div>
-                <div class="org-details">
-                <p><strong>Gender:</strong> <span id="deanGender">Male</span></p>
-                <p><strong>Age:</strong> <span id="deanAge">45</span></p>
-                <p><strong>Height:</strong> <span id="deanHeight">175</span> cm</p>
-                <p><strong>Weight:</strong> <span id="deanWeight">70</span> kg</p>
-                </div>
-            </div>
             </div>
 
             <h2 class="section-subtitle">Faculty & Staff</h2>
             <div id="facultyChartContainer">
-            <p class="loading-text">Loading faculty & staff...</p>
+                <p class="loading-text">Loading faculty & staff...</p>
             </div>
         </div>
 
-        <!-- Leave Requests Section -->
         <div id="leaveRequestsSection" class="section hidden-section">
             <h1 class="page-title">Pending Leave Requests</h1>
             <div class="leave-requests-container">
@@ -80,7 +204,6 @@
             </div>
         </div>
 
-        <!-- Leave Reports Section -->
         <div id="leaveReportsSection" class="section hidden-section">
             <h1 class="page-title">Leave Reports</h1>
             <div class="leave-reports-cards-container">
@@ -90,46 +213,13 @@
         </div>
     </div>
 
-    <div id="globalLoadingModal" style="
-        display: none;
-        position: fixed;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        background: rgba(0,0,0,0.5);
-        z-index: 9999;
-        justify-content: center;
-        align-items: center;
-    ">
-        <div style="
-        background: #fff;
-        padding: 30px 40px;
-        border-radius: 12px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        ">
-        <div class="spinner" style="
-            border: 6px solid #f3f3f3;
-            border-top: 6px solid #3498db;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin-bottom: 15px;
-        "></div>
-        <div>Loading, please wait...</div>
-        </div>
-    </div>
-
-    <!-- Logout Modal -->
-    <div id="logoutModal" class="modal-overlay hidden">
+    <div id="logoutModal" class="modal-overlay hidden" style="z-index: 1000;">
         <div class="modal-content">
         <div class="spinner"></div>
-        <p>Logging out, please wait...</p>
+        <p>Loading, please wait...</p>
         </div>
     </div>
 
   <script src="{% static 'assets/scripts/dean_dash.js' %}"></script>
 </body>
 </html>
-
