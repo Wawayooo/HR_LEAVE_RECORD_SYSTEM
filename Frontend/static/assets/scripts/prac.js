@@ -48,9 +48,8 @@ async function initializeDashboard() {
     await loadDepartments();
     await loadPositions();
     await loadEmployees();
-
-    await loadLeaveData();
-
+    await loadLeaveRequests();
+    await loadLeaveReports();
     populateOrgChart();
   } catch (error) {
     console.error('Error initializing dashboard:', error);
@@ -294,26 +293,39 @@ async function loadEmployees() {
   }
 }
 
-async function loadLeaveData() {
+async function loadLeaveRequests() {
   try {
     const response = await fetch(`${API_BASE}/api/leave-requests/`);
-    if (!response.ok) throw new Error('Failed to load leave data');
+    if (!response.ok) throw new Error('Failed to load leave requests');
     
     const result = await response.json();
+    const allRequests = result.data || [];
 
-    // Handle both possible shapes: { data: [...] } or [...]
-    const allRequests = Array.isArray(result) ? result : (result.data || []);
-
-    // Split into categories
+    // ✅ Only dean_approved requests
     const deanApprovedRequests = allRequests.filter(req => req.status === 'dean_approved');
-    const nonPendingReports = allRequests.filter(req => req.status !== 'pending' && req.status !== 'Pending');
 
-    // Render separately
     displayLeaveRequests(deanApprovedRequests);
-    displayLeaveReports(nonPendingReports);
   } catch (error) {
-    console.error('Error loading leave data:', error);
+    console.error('Error loading leave requests:', error);
     displayLeaveRequests([]);
+  }
+}
+
+
+async function loadLeaveReports() {
+  try {
+    const response = await fetch(`${API_BASE}/api/leave-requests/`);
+    if (!response.ok) throw new Error('Failed to load leave reports');
+    
+    const allRequests = await response.json();
+    
+    const nonPendingRequests = allRequests.filter(req => 
+      req.status !== 'pending' && req.status !== 'Pending'
+    );
+    
+    displayLeaveReports(nonPendingRequests);
+  } catch (error) {
+    console.error('Error loading leave reports:', error);
     displayLeaveReports([]);
   }
 }
@@ -702,10 +714,13 @@ function displayLeaveReports(reports) {
           ` : ''}
         </div>
 
-        <div style="background-color: #f60707; padding: 15px; border-radius: 6px; border-left: 4px solid #FF9800; margin-top: 15px;">
-          <h4 style="font-size: 18px; color: #f2eeee; margin: 0 0 8px 0; font-family: monospace;">
-             ✖ DENIED REQUEST
+        <div style="background-color: #fff3e0; padding: 15px; border-radius: 6px; border-left: 4px solid #FF9800; margin-top: 15px;">
+          <h4 style="font-size: 13px; color: #333; margin: 0 0 8px 0;">
+            ⏳ Pending HR Approval
           </h4>
+          <p style="font-size: 14px; color: #555; margin: 4px 0;">
+            Waiting for HR to review and approve this request.
+          </p>
         </div>
       `;
     }
@@ -964,7 +979,8 @@ async function approveLeaveRequest(id) {
     const data = await response.json();
     if (response.ok && data.success) {
       showSuccess(data.message || 'Leave request approved by HR');
-      await loadLeaveData();
+      await loadLeaveRequests();
+      await loadLeaveReports();
     } else {
       showError(data.message || 'Failed to approve leave request');
     }
@@ -997,7 +1013,8 @@ async function rejectLeaveRequest(id) {
     const data = await response.json();
     if (response.ok && data.success) {
       showSuccess(data.message || 'Leave request denied by HR');
-      await loadLeaveData();
+      await loadLeaveRequests();
+      await loadLeaveReports();
     } else {
       showError(data.message || 'Failed to reject leave request');
     }
@@ -1428,7 +1445,7 @@ function toggleSection(section) {
 
 function navigate(action) {
   if (action === 'Logout') {
-    const confirmed = window.confirm("You'll be redirected to starting page, and you'll need to login again?");
+    const confirmed = window.confirm("Are you sure you want to log out?");
     if (!confirmed) {
       return;
     }
