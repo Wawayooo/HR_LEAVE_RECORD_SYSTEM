@@ -120,10 +120,9 @@
   <script>
     async function initCSRF() {
     try {
-        // Call your Django endpoint that sets the CSRF cookie
         await fetch(`${API_BASE_URL}/csrf/`, {
         method: 'GET',
-        credentials: 'include' // ensures cookies are stored even in incognito
+        credentials: 'include'
         });
         console.log("CSRF cookie initialized");
     } catch (err) {
@@ -131,7 +130,6 @@
     }
     }
 
-    // Run this once when the page loads
     document.addEventListener("DOMContentLoaded", initCSRF);
 </script>
 
