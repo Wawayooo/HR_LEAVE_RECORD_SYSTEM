@@ -12,7 +12,6 @@ const logoutModal = document.getElementById('logoutModal');
 
 const prof_Section = document.getElementById('modal_hidden_div');
 
-// Store dean data globally
 let currentDeanData = null;
 
 function getCookie(name) {
@@ -36,17 +35,14 @@ async function viewProfile() {
 
     if (!profileDivHolder || !profileDiv) return;
 
-    // Check if dean data is loaded
     if (!currentDeanData) {
         alert('Dean data is not loaded yet. Please wait...');
         return;
     }
 
-    // Show modal
     profileDivHolder.style.display = 'flex';
     profileDiv.style.display = 'block';
 
-    // Populate form with current dean data
     const dean = currentDeanData;
     const defaultPhoto = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Crect fill='%23800020' width='120' height='120'/%3E%3Ctext fill='%23fff' font-size='60' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3ED%3C/text%3E%3C/svg%3E";
     
@@ -61,7 +57,6 @@ async function viewProfile() {
     document.getElementById('profilePhoto').src = dean.photo_url || defaultPhoto;
 }
 
-// Close Profile Modal
 document.getElementById('closeDeanModal')?.addEventListener('click', function() {
     const profileDivHolder = document.getElementById('modal_hidden_div');
     const profileDiv = document.querySelector('.dean-info-div');
@@ -91,8 +86,6 @@ document.addEventListener('click', function(event) {
     }
 });
 
-// Profile Form Submission
-// Preview selected image
 document.getElementById('profilePhotoInput')?.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -239,11 +232,10 @@ async function loadDeanInfo() {
         if (!data.success) throw new Error(data.message || 'Failed to fetch dean info');
 
         const dean = data.data;
-        currentDeanData = dean; // Store globally for profile modal
+        currentDeanData = dean;
 
         const defaultPhoto = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Crect fill='%23800020' width='120' height='120'/%3E%3Ctext fill='%23fff' font-size='60' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3ED%3C/text%3E%3C/svg%3E";
 
-        // Update dashboard display
         if (dashboardDeanName) dashboardDeanName.textContent = dean.full_name || 'N/A';
         if (deanFullNameEl) deanFullNameEl.textContent = dean.full_name || 'N/A';
         if (deanDepartmentEl) deanDepartmentEl.textContent = dean.department_name || 'N/A';
@@ -341,7 +333,6 @@ async function loadLeaveReports(departmentName) {
             return;
         }
 
-        // Filter to show only dean_approved, dean_denied, and approved statuses
         const filteredReports = data.filter(report => 
             ['dean_approved', 'dean_denied', 'approved', 'denied'].includes(report.status)
         );
@@ -358,7 +349,6 @@ async function loadLeaveReports(departmentName) {
             const card = document.createElement('div');
             card.classList.add('leave-report-card');
 
-            // Determine status display and styling
             let statusText = '';
             let statusClass = '';
             let approvalSection = '';
@@ -636,18 +626,14 @@ async function loadLeaveRequests(departmentName) {
 }
 
 async function handleLeaveAction(leaveId, action) {
-    // Determine if user is Dean or HR based on the action type
-    // Dean actions: approve/deny
-    // HR actions: approve/deny also mapped internally via legacy approve/reject
     const comments = action === 'deny' ? prompt('Enter denial comments (optional):') || '' : '';
 
     const confirmed = confirm(`Are you sure you want to ${action} this leave request?`);
     if (!confirmed) return;
 
-    // Map JS action to DRF endpoint
     const actionMap = {
-        approve: 'dean_approve', // Use legacy 'approve' for routing
-        deny: 'dean_deny'      // Use legacy 'reject' for routing
+        approve: 'dean_approve', 
+        deny: 'dean_deny'    
     };
 
     const endpoint = actionMap[action];
@@ -656,7 +642,7 @@ async function handleLeaveAction(leaveId, action) {
         return;
     }
 
-    const url = `/api/leave-requests/${leaveId}/${endpoint}/`; // Ensure trailing slash
+    const url = `/api/leave-requests/${leaveId}/${endpoint}/`;
 
     try {
         const res = await fetch(url, {
@@ -670,7 +656,7 @@ async function handleLeaveAction(leaveId, action) {
         });
 
         if (!res.ok) {
-            const text = await res.text(); // debug info
+            const text = await res.text(); 
             throw new Error(`HTTP error ${res.status} - ${text}`);
         }
 
@@ -679,7 +665,6 @@ async function handleLeaveAction(leaveId, action) {
         if (data.success) {
             const pastTense = action === 'approve' ? 'approved' : 'denied';
             alert(data.message || `Leave request ${pastTense} successfully!`);
-            // Reload Dean/HR dashboard after action
             await loadDeanInfo();
         } else {
             alert('Action failed: ' + (data.message || 'Unknown error'));

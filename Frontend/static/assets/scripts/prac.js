@@ -59,7 +59,6 @@ async function initializeDashboard() {
   }
 }
 
-// Setup event listeners
 function setupEventListeners() {
   document.querySelectorAll('.menu-item').forEach(item => {
     item.addEventListener('click', function() {
@@ -301,7 +300,6 @@ async function loadLeaveRequests() {
     const result = await response.json();
     const allRequests = result.data || [];
 
-    // ✅ Only dean_approved requests
     const deanApprovedRequests = allRequests.filter(req => req.status === 'dean_approved');
 
     displayLeaveRequests(deanApprovedRequests);
@@ -455,7 +453,6 @@ function displayLeaveRequests(reports) {
   const container = document.querySelector('.leave-requests-container');
   if (!container) return;
 
-  // ✅ Only filter on the top-level status
   const filteredReports = (reports || []).filter(r => r.status === 'dean_approved');
 
   if (!filteredReports.length) {
@@ -479,25 +476,21 @@ function displayLeaveRequests(reports) {
   container.innerHTML = filteredReports.map(req => {
     const app = req.application || {};
 
-    // ✅ Employee info comes from application
     const employeeName = app.employee_name || 'N/A';
     const employeeId = app.employee_id_display || 'N/A';
     const departmentName = app.department_name || 'N/A';
     const positionTitle = app.position_title || 'N/A';
 
-    // ✅ Leave details
     const leaveType = app.leave_type || 'N/A';
     const numDays = app.number_of_days || 0;
     const dateFiled = app.date_filed || 'N/A';
     const location = app.vacation_location || app.sick_location || 'N/A';
     const reason = app.reason || '';
 
-    // ✅ Dean approval info comes from top-level fields
     const deanReviewerName = req.dean_reviewer_name || 'Dean';
     const deanReviewedAt = req.dean_reviewed_at || '';
     const deanComments = req.dean_comments || '';
 
-    // ✅ Use status_display from serializer
     const statusDisplay = req.status_display || 'Unknown Status';
 
     console.log(`Data To Be Displayed: ${JSON.stringify(req)}`);
@@ -565,7 +558,6 @@ function displayLeaveReports(reports) {
   
   if (!container) return;
 
-  // Filter for both dean_approved and approved (HR approved) statuses
   const filteredReports = (reports || []).filter(r => 
     r.status === 'denied' || r.status === 'approved'
   );
@@ -575,7 +567,6 @@ function displayLeaveReports(reports) {
     return;
   }
 
-  // Helper functions
   const formatDate = (dateStr) => {
     if (!dateStr || dateStr === 'N/A') return 'N/A';
     const date = new Date(dateStr);
@@ -606,35 +597,29 @@ function displayLeaveReports(reports) {
   container.innerHTML = filteredReports.map(req => {
     const app = req.application || {};
 
-    // Employee info from application
     const employeeName = app.employee_name || 'N/A';
     const employeeId = app.employee_id_display || 'N/A';
     const departmentName = app.department_name || 'N/A';
     const positionTitle = app.position_title || 'N/A';
     const photoUrl = app.employee_photo_url || '';
 
-    // Leave details from application
     const leaveType = app.leave_type || 'N/A';
     const numDays = app.number_of_days || 0;
     const dateFiled = app.date_filed || 'N/A';
     const location = app.vacation_location || app.sick_location || '';
     const notes = app.reason || '';
 
-    // Dean approval info
     const deanReviewer = req.dean_reviewer_name || null;
     const deanReviewedAt = req.dean_reviewed_at || '';
     const deanComments = req.dean_comments || '';
 
-    // HR approval info
     const hrReviewer = req.hr_reviewer_name || null;
     const hrReviewedAt = req.hr_reviewed_at || '';
     const hrComments = req.hr_comments || '';
 
-    // Status display
     const statusDisplay = req.status_display || 'Unknown Status';
     const status = req.status;
 
-    // Determine status color and background
     const statusColorMap = {
       'approved': '#4CAF50',
       'dean_approved': '#2196F3',
@@ -645,11 +630,9 @@ function displayLeaveReports(reports) {
     const statusBg = status === 'approved' ? '#e8f5e9' : '#e3f2fd';
     const statusBorder = status === 'approved' ? '#4CAF50' : '#2196F3';
 
-    // Approval section content
     let approvalSection = '';
     
     if (status === 'approved') {
-      // Both Dean and HR approved
       approvalSection = `
         <div style="background-color: ${statusBg}; padding: 15px; border-radius: 6px; border-left: 4px solid ${statusBorder};">
           <h4 style="font-size: 13px; color: #333; margin: 0 0 8px 0;">
@@ -692,7 +675,6 @@ function displayLeaveReports(reports) {
         </div>
       `;
     } else if (status === 'approved' || status === 'denied') {
-      // Only Dean approved, pending HR
       approvalSection = `
         <div style="background-color: ${statusBg}; padding: 15px; border-radius: 6px; border-left: 4px solid ${statusBorder};">
           <h4 style="font-size: 13px; color: #333; margin: 0 0 8px 0;">
@@ -855,7 +837,6 @@ function displayLeaveReports(reports) {
     `;
   }).join('');
   
-  // Add event listeners for archive buttons (HR only)
   container.querySelectorAll('.archive-btn').forEach(btn => {
     btn.addEventListener('mouseenter', (e) => {
       e.target.style.background = 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)';
@@ -871,7 +852,6 @@ function displayLeaveReports(reports) {
   });
 }
 
-// Check if current user is HR (you need to implement this based on your auth system)
 function isHRUser() {
   // Option 1: Check from global user object
   // return window.currentUser && window.currentUser.role === 'HR';
@@ -894,15 +874,12 @@ function getCSRFToken() {
     ?.split('=')[1];
 }
 
-// Archive function (HR only)
 async function archiveLeaveRequest(requestId) {
-  // Check if user is HR
   if (!isHRUser()) {
     alert('⚠️ Access Denied\n\nOnly HR users can archive leave requests.');
     return;
   }
   
-  // Custom confirmation modal
   const confirmed = confirm(
     '📦 Archive Leave Request\n\n' +
     'This will permanently archive this leave request to the archive database.\n\n' +
@@ -924,7 +901,6 @@ async function archiveLeaveRequest(requestId) {
     const result = await response.json();
     
     if (result.success) {
-      // Success notification
       const notification = document.createElement('div');
       notification.style.cssText = `
         position: fixed; top: 20px; right: 20px; z-index: 10000;
@@ -942,13 +918,11 @@ async function archiveLeaveRequest(requestId) {
       `;
       document.body.appendChild(notification);
       
-      // Remove notification after 3 seconds
       setTimeout(() => {
         notification.style.animation = 'slideOut 0.3s ease';
         setTimeout(() => notification.remove(), 300);
       }, 3000);
       
-      // Reload the reports
       setTimeout(() => {
         window.location.reload();
       }, 1000);
