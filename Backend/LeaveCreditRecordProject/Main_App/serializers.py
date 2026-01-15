@@ -51,7 +51,6 @@ class DeanSerializer(serializers.ModelSerializer):
         required=False
     )
     
-    # Make username writable via nested user update
     username = serializers.CharField(source='user.username', required=False)
     password = serializers.CharField(write_only=True, required=False, allow_blank=True)
     

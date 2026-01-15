@@ -231,7 +231,6 @@ class LeaveRequest(models.Model):
     def _create_report(self, reviewer_type, reviewer, comments=None):
         application = self.application
 
-        # Create or update the report tied to this leave request
         report, created = LeaveReport.objects.get_or_create(
             leave_request=self,
             defaults={
@@ -268,7 +267,6 @@ class LeaveRequest(models.Model):
         self.application.status = 'pending'
         self.application.save()
 
-        # Update report
         self._create_report('dean', dean, self.dean_comments)
 
 
@@ -282,7 +280,6 @@ class LeaveRequest(models.Model):
         self.application.status = 'rejected'
         self.application.save()
 
-        # Update report
         self._create_report('dean', dean, comments)
 
 
@@ -305,7 +302,6 @@ class LeaveRequest(models.Model):
         )
         balance.deduct_days(self.application.number_of_days)
 
-        # Update report
         self._create_report('hr', hr_user, self.hr_comments)
 
 
@@ -322,7 +318,6 @@ class LeaveRequest(models.Model):
         self.application.status = 'rejected'
         self.application.save()
 
-        # Update report
         self._create_report('hr', hr_user, comments)
 
 

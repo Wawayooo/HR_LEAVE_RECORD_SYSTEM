@@ -3,7 +3,6 @@ from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from django.db import transaction
-from .models import Dean, Department
 import json
 
 from django.contrib.auth import authenticate, login
@@ -15,12 +14,15 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from .serializers import DeanSerializer
 
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from .models import Dean, Employee, LeaveRequest, LeaveReport, Department
+from .serializers import EmployeeSerializer, LeaveRequestSerializer, LeaveReportSerializer
+
+from django.contrib.auth import logout
+
 @csrf_exempt
 def create_dean(request):
-    """
-    HR can create a Dean account (username, password, full_name, department_id)
-    POST request only.
-    """
     if not request.user.is_authenticated or not hasattr(request.user, 'hruser'):
         return JsonResponse({'success': False, 'message': 'Unauthorized: HR only'}, status=403)
 
@@ -34,31 +36,25 @@ def create_dean(request):
         full_name = data.get('full_name')
         department_id = data.get('department')
 
-        # Validate required fields
         if not all([username, password, full_name, department_id]):
             return JsonResponse({'success': False, 'message': 'All fields are required'}, status=400)
 
-        # Ensure department_id is numeric
         try:
             department_id = int(department_id)
         except (ValueError, TypeError):
             return JsonResponse({'success': False, 'message': 'Invalid department ID'}, status=400)
 
-        # Check if username already exists
         if User.objects.filter(username=username).exists():
             return JsonResponse({'success': False, 'message': 'Username already exists'}, status=400)
 
-        # Get department
         try:
             department = Department.objects.get(id=department_id)
         except Department.DoesNotExist:
             return JsonResponse({'success': False, 'message': 'Department not found'}, status=404)
 
         with transaction.atomic():
-            # Create Django user
             user = User.objects.create_user(username=username, password=password, is_active=True)
             
-            # Create Dean profile
             dean = Dean.objects.create(
                 user=user,
                 full_name=full_name,
@@ -109,20 +105,14 @@ def dean_login(request):
         "message": f"Welcome, {dean_profile.full_name}!"
     })
 
-from django.contrib.auth import logout
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-
 @csrf_exempt
 def dean_logout_view(request):
     if request.method != "POST":
         return JsonResponse({"success": False, "message": "Invalid method"}, status=405)
 
-    # Logout if authenticated
     if request.user.is_authenticated:
         logout(request)
 
-    # Always return JSON; JS will handle the redirect
     return JsonResponse({
         "success": True,
         "message": "Logged out successfully",
@@ -133,10 +123,8 @@ def dean_logout_view(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def dean_me(request):
-    """Return the profile of the logged-in Dean."""
     user = request.user
 
-    # Ensure user has a dean_profile
     if not hasattr(user, 'dean_profile'):
         return Response({'success': False, 'message': 'You are not a Dean'}, status=403)
 
@@ -144,15 +132,8 @@ def dean_me(request):
     serializer = DeanSerializer(dean, context={'request': request})
     return Response({'success': True, 'data': serializer.data})
 
-# views.py
-from django.http import JsonResponse
-from django.contrib.auth.decorators import login_required
-from .models import Dean, Employee, LeaveRequest, LeaveReport
-from .serializers import EmployeeSerializer, LeaveRequestSerializer, LeaveReportSerializer
-
 @login_required
 def dean_dashboard_data(request):
-    """Return all dean dashboard data filtered by the dean's department"""
     user = request.user
 
     try:
@@ -179,23 +160,20 @@ def dean_dashboard_data(request):
             }
         })
 
-    # Faculty/staff in dean's department
     faculty_qs = Employee.objects.filter(department=dean.department, is_active=True)
     faculty_data = EmployeeSerializer(faculty_qs, many=True, context={'request': request}).data
 
-    # Leave requests from employees in dean's department
     leave_requests_qs = LeaveRequest.objects.filter(
         application__employee__department=dean.department
     ).order_by('-created_at')
     leave_requests_data = LeaveRequestSerializer(leave_requests_qs, many=True, context={'request': request}).data
 
-    # Leave reports from employees in dean's department
     leave_reports_qs = LeaveReport.objects.filter(
         employee__department=dean.department
     ).order_by('-created_at')
     leave_reports_data = LeaveReportSerializer(leave_reports_qs, many=True, context={'request': request}).data
-
-    # Return all data
+    
+    #print(f"Data: {faculty_data}, {leave_requests_data}, {leave_reports_data}")
     return JsonResponse({
         'success': True,
         'data': {

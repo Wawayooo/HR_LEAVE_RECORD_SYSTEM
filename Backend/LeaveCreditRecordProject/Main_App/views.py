@@ -131,13 +131,11 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def dean_approve(self, request, pk=None):
-        # Fetch globally, not through get_queryset()
         try:
             leave_request = LeaveRequest.objects.get(pk=pk)
         except LeaveRequest.DoesNotExist:
             return Response({'success': False, 'message': 'Leave request not found'}, status=404)
 
-        # Now enforce dean-specific rules
         if not hasattr(request.user, 'dean_profile'):
             return Response({'success': False, 'message': 'Dean only'}, status=403)
 
@@ -171,26 +169,22 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def dean_deny(self, request, pk=None):
-        # Fetch globally, not through get_queryset()
         try:
             leave_request = LeaveRequest.objects.get(pk=pk)
         except LeaveRequest.DoesNotExist:
             return Response({'success': False, 'message': 'Leave request not found'}, status=404)
 
-        # Dean-only access
         if not hasattr(request.user, 'dean_profile'):
             return Response({'success': False, 'message': 'Dean only'}, status=403)
 
         dean = request.user.dean_profile
 
-        # Department check
         if leave_request.application.employee.department != dean.department:
             return Response({
                 'success': False,
                 'message': 'You can only deny requests from your department'
             }, status=403)
 
-        # Status check
         if leave_request.status != 'pending':
             return Response({
                 'success': False,
@@ -200,7 +194,6 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
         comments = request.data.get('comments', '')
 
         try:
-            # Restore leave balance
             current_year = timezone.now().year
             balance, _ = EmployeeLeaveBalance.objects.get_or_create(
                 employee=leave_request.application.employee,
@@ -211,7 +204,6 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
             balance.remaining_days = min(balance.remaining_days + days, MAX_ANNUAL_LEAVE_DAYS)
             balance.save()
 
-            # Perform denial
             leave_request.dean_deny(dean, comments)
 
             return Response({
@@ -228,7 +220,6 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def hr_approve(self, request, pk=None):
-        # FIXED: Check for HR user OR HR group
         if not (hasattr(request.user, 'hruser') or request.user.groups.filter(name='HR').exists()):
             return Response({'success': False, 'message': 'HR only'}, status=403)
         
@@ -261,7 +252,6 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def hr_deny(self, request, pk=None):
-        # FIXED: Check for HR user OR HR group
         if not (hasattr(request.user, 'hruser') or request.user.groups.filter(name='HR').exists()):
             return Response({'success': False, 'message': 'HR only'}, status=403)
         
