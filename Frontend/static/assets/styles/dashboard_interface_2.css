@@ -342,16 +342,16 @@ body {
 }
 
 .breadcrumb {
-  color: #666;
+  color: black;
+  font-family: 'Times New Roman', Times, serif;
   margin-bottom: 20px;
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 14px;
+  font-size: 15px;
   padding: 10px 15px;
-  background: white;
+  background: transparent;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .action-bar {
@@ -414,13 +414,13 @@ body {
 }
 
 .faculty-breadcrumb {
-  font-size: 14px;
-  color: #666;
+  font-size: 15px;
+  font-family: 'Times New Roman', Times, serif;
+  color: black;
   margin-bottom: 15px;
   padding: 10px 15px;
-  background: white;
+  background: transparent;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .faculty-title {
@@ -533,7 +533,7 @@ body {
 .leave-requests-container,
 .leave-reports-cards-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
   gap: 20px;
   margin-top: 20px;
 }
@@ -550,7 +550,6 @@ body {
 
 .leave-request-card:hover,
 .leave-report-card:hover {
-  transform: translateY(-5px);
   box-shadow: 0 8px 25px rgba(139, 21, 56, 0.15);
 }
 
@@ -1195,13 +1194,11 @@ body {
   }
 
   .header-title {
-    font-size: 18px;
+    transform: translate(16px, 1px);
   }
 
   .logo {
-    width: 40px;
-    height: 40px;
-    font-size: 16px;
+    display: none;
   }
 
   .main-content {

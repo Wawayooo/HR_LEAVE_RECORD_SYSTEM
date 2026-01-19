@@ -41,8 +41,8 @@ CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:8000',
 ]
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3000',  # example React frontend
-    'https://yourdomain.com',
+    'http://localhost:3000',
+    'https://kt2980zx-8000.asse.devtunnels.ms',
 ]
 
 # Application definition
@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'Main_App',
+    'django_extensions',
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True
@@ -69,11 +70,10 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
-        # or JWT if you prefer token-based auth
     ],
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
-        'rest_framework.renderers.BrowsableAPIRenderer',  # optional for debugging
+        'rest_framework.renderers.BrowsableAPIRenderer',
     ],
 }
 
@@ -180,6 +180,7 @@ STATICFILES_DIRS = [
     BASE_DIR.parent.parent / "Frontend" / "static"
 ]
 
+STATIC_ROOT = BASE_DIR.parent.parent / "static"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

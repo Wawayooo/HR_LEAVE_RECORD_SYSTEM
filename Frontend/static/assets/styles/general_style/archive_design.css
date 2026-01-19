@@ -1,0 +1,180 @@
+#archiveSection {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px 30px;
+  overflow: auto;
+}
+
+#archiveSection h2 {
+  font-size: 28px;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 30px;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.archive-container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.leave-report {
+  background: #ffffff;
+  border: 2px solid #2c3e50;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.report-header {
+  background: linear-gradient(135deg, #8B1538 0%, #A91D3A 100%);
+  color: #ffffff;
+  padding: 25px 30px;
+  border-bottom: 3px solid #1a252f;
+}
+
+.report-header h2 {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.employee-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.employee-id {
+  font-size: 16px;
+  font-weight: 400;
+  color: #bdc3c7;
+}
+
+.employee-position {
+  font-size: 14px;
+  color: #ecf0f1;
+  font-weight: 300;
+}
+
+.report-body {
+  padding: 30px;
+}
+
+.report-section {
+  margin-bottom: 30px;
+  padding-bottom: 25px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.report-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.report-section h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 15px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #3498db;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.report-section p {
+  font-size: 14px;
+  color: #34495e;
+  margin-bottom: 10px;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.report-section p strong {
+  font-weight: 600;
+  color: #2c3e50;
+  min-width: 200px;
+  margin-right: 10px;
+}
+
+.outcome {
+  background-color: #f8f9fa;
+  padding: 20px;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+.outcome h3 {
+  border-bottom-color: #27ae60;
+}
+
+@media print {
+  body {
+    background-color: #ffffff;
+    padding: 0;
+  }
+
+  .leave-report {
+    box-shadow: none;
+    page-break-after: always;
+  }
+}
+
+@media (max-width: 768px) {
+  body {
+    padding: 10px;
+  }
+
+  .report-header {
+    padding: 20px 15px;
+  }
+
+  .report-header h2 {
+    font-size: 20px;
+  }
+
+  .report-body {
+    padding: 20px 15px;
+  }
+
+  .report-section p strong {
+    min-width: 100%;
+    margin-bottom: 3px;
+  }
+
+  .report-section p {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .report-header h2 {
+    font-size: 18px;
+  }
+
+  .employee-id {
+    font-size: 14px;
+  }
+
+  .employee-position {
+    font-size: 13px;
+  }
+
+  .report-section h3 {
+    font-size: 14px;
+  }
+
+  .report-section p {
+    font-size: 13px;
+  }
+}
+
+.no-data {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+  font-size: 16px;
+}

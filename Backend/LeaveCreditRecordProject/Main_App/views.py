@@ -1,8 +1,8 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.utils.decorators import method_decorator
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password, check_password
@@ -13,11 +13,10 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+from django.views.decorators.http import require_http_methods
+
 import json
 from django.http import JsonResponse
-
-from django.contrib.auth import logout
-from django.shortcuts import redirect
 
 from .models import *
 from .serializers import *
@@ -36,6 +35,7 @@ class IsHRUser(permissions.BasePermission):
 
 class IsDean(permissions.BasePermission):
     def has_permission(self, request, view):
+            
         return (
             request.user.is_authenticated and 
             hasattr(request.user, 'dean_profile') and 
@@ -84,25 +84,27 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
             view_type = self.request.query_params.get('view')
 
             if view_type == 'requests':
-                queryset = queryset.filter(status='pending')
+                queryset = queryset.filter(status='pending', is_archived=False)
             elif view_type == 'reports':
                 queryset = queryset.filter(
                     status__in=['dean_approved', 'dean_denied', 'approved', 'denied']
                 )
+                # reports can include archived, so no is_archived filter here
             else:
-                queryset = queryset.exclude(status='pending')
+                queryset = queryset.exclude(status='pending').filter(is_archived=False)
 
         elif hasattr(user, 'hruser') or user.groups.filter(name='HR').exists():
             view_type = self.request.query_params.get('view')
 
             if view_type == 'dashboard':
-                queryset = self.hr_dash_queryset()
+                queryset = self.hr_dash_queryset().filter(is_archived=False)
             elif view_type == 'reports':
                 queryset = queryset.filter(
                     status__in=['dean_approved', 'approved', 'denied']
                 )
+                # reports can include archived
             else:
-                queryset = queryset.exclude(status='pending')
+                queryset = queryset.exclude(status='pending').filter(is_archived=False)
 
         return queryset
 
@@ -343,13 +345,15 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
         if leave_request.status not in ['approved', 'denied']:
             return Response({
                 'success': False,
-                'message': f'Cannot archive request with status "{leave_request.status}". Only approved or denied requests can be archived.'
+                'message': f'Cannot archive request with status \"{leave_request.status}\". Only approved or denied requests can be archived.'
             }, status=400)
-        
-        try:
-            from .models import LeaveRequestArchive
-            archive = LeaveRequestArchive.archive_leave_request(leave_request)
             
+        try:
+            archive = LeaveRequestArchive.archive_leave_request(leave_request)
+
+            leave_request.is_archived = True
+            leave_request.save(update_fields=['is_archived'])
+
             return Response({
                 'success': True,
                 'message': 'Leave request archived successfully',
@@ -357,14 +361,17 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
                     'archive_id': archive.id,
                     'employee_name': archive.employee_name,
                     'final_status': archive.final_status,
-                    'archived_at': archive.archived_at
+                    'archived_at': archive.archived_at,
+                    'is_archived': leave_request.is_archived
                 }
             })
+
         except Exception as e:
             return Response({
                 'success': False,
                 'message': f'Error archiving leave request: {str(e)}'
             }, status=400)
+
 
     @action(detail=False, methods=['post'])
     def archive_all_processed(self, request):
@@ -537,6 +544,7 @@ class DeanViewSet(viewsets.ModelViewSet):
             instance.user.save()
 
         data = request.data.copy()
+        data.pop('is_active', None)
 
         for field in ['username', 'password', 'department_name', 'department_code',
                     'photo_url', 'created_at', 'updated_at', 'is_dean']:
@@ -555,15 +563,15 @@ class DeanViewSet(viewsets.ModelViewSet):
                 'errors': serializer.errors
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        dean = serializer.save(is_active=True)
+        dean = serializer.save()
+        dean.is_active = True
+        dean.save()
         
         return Response({
             'success': True,
             'message': 'Dean updated successfully',
             'data': DeanSerializer(dean, context={'request': request}).data
         })
-
-
 
     def destroy(self, request, *args, **kwargs):
         dean = self.get_object()
@@ -723,7 +731,6 @@ class LeaveApplicationViewSet(viewsets.ModelViewSet):
         employee_id = request.data.get('employee')
         number_of_days = request.data.get('number_of_days')
         
-        # Validate employee exists
         try:
             employee = Employee.objects.get(id=employee_id, is_active=True)
         except Employee.DoesNotExist:
@@ -732,7 +739,6 @@ class LeaveApplicationViewSet(viewsets.ModelViewSet):
                 'message': 'Employee not found in records. Please verify your name.'
             }, status=status.HTTP_400_BAD_REQUEST)
         
-        # Get leave balance
         current_year = timezone.now().year
         try:
             balance = EmployeeLeaveBalance.objects.get(
@@ -770,7 +776,6 @@ class LeaveApplicationViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             application = serializer.save()
             
-            # Deduct days from balance
             balance.deduct_days(days)
             
             LeaveRequest.objects.create(application=application, status='pending')
@@ -920,11 +925,72 @@ def dashboard_stats(request):
         'departments': dept_stats
     })
 
+@csrf_exempt
+@require_http_methods(["DELETE"])
+@login_required
+def delete_leave_request_if_denied(request, pk):
+    user = request.user
+
+    if not (hasattr(user, 'dean_profile') and getattr(user.dean_profile, 'is_dean', False)):
+        return JsonResponse(
+            {"error": "Only Dean accounts can delete this request."},
+            status=403
+        )
+
+    try:
+        leave_request = LeaveRequest.objects.get(pk=pk, status='dean_denied')
+    except LeaveRequest.DoesNotExist:
+        return JsonResponse(
+            {"error": "Leave request not found or not eligible for deletion."},
+            status=404
+        )
+
+    if hasattr(leave_request, "is_pending_hr") and leave_request.is_pending_hr:
+        return JsonResponse(
+            {"error": "Leave request is still pending HR, cannot delete."},
+            status=400
+        )
+
+    leave_request.delete()
+    return JsonResponse(
+        {"success": f"Leave request {pk} deleted successfully."},
+        status=200
+    )
+
+
 def appointment_form_view(request):
     return render(request, 'leave_requests_interface.html')
 
 def starting_view(request):
     return render(request, "index.html")
+
+@api_view(['PUT', 'PATCH'])
+def update_department_name(request, pk):
+    department = get_object_or_404(Department, pk=pk)
+    new_name = request.data.get('name')
+
+    if not new_name:
+        return Response(
+            {"success": False, "message": "Department name is required."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    department.name = new_name
+    department.save()
+
+    return Response(
+        {
+            "success": True,
+            "message": "Department name updated successfully!",
+            "data": {
+                "id": department.id,
+                "code": department.code,
+                "name": department.name,
+                "description": department.description,
+            }
+        },
+        status=status.HTTP_200_OK
+    )
 
 def dean_dash_view(request):
     return render(request, "dean_dash.html")
@@ -942,7 +1008,7 @@ def hr_login(request):
 
         user = authenticate(request, username=username, password=password)
         if user is not None and hasattr(user, 'hruser') and user.hruser.is_hr:
-            login(request, user)  # sets session
+            login(request, user)
             return JsonResponse({
                 "success": True,
                 "message": "Login successful",
@@ -966,3 +1032,48 @@ def logout_view(request):
 @ensure_csrf_cookie
 def csrf(request):
     return JsonResponse({'detail': 'CSRF cookie set'})
+
+@login_required
+def org_chart_view(request):
+    hrs = HRUser.objects.all()
+    deans = Dean.objects.filter(is_active=True).order_by('full_name')
+
+    context = {
+        "hrs": hrs,
+        "deans": deans,
+    }
+    return render(request, "Dashboard.html", context)
+
+@login_required
+def org_chart_api(request):
+    hrs = HRUser.objects.filter(is_hr=True)
+    deans = Dean.objects.filter(is_active=True).select_related("department")
+
+    data = {
+        "hrs": [
+            {
+                "id": hr.id,
+                "full_name": hr.full_name,
+                "photo": hr.photo.url if hr.photo else "/static/assets/media/examplePIC.jpg",
+                "position": hr.position,
+            }
+            for hr in hrs
+        ],
+        "deans": [
+            {
+                "id": dean.id,
+                "username": dean.user.username,
+                "full_name": dean.full_name,
+                "department": dean.department.name,
+                "photo": dean.photo.url if dean.photo else "/static/assets/media/examplePIC.jpg",
+                "position": dean.position,
+                "gender": dean.gender,
+                "age": dean.age,
+                "height": dean.height,
+                "weight": dean.weight
+            }
+            for dean in deans
+        ]
+    }
+
+    return JsonResponse(data, safe=True)

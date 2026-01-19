@@ -1,5 +1,4 @@
 const CONFIG = {
-  // Development URL - replace with production URL when deploying
   DEV_URL: "https://kt2980zx-8000.asse.devtunnels.ms",
   //DEV_URL: "http://127.0.0.1:8000/api",
   PROD_URL: "",
@@ -48,8 +47,9 @@ async function initializeDashboard() {
     await loadDepartments();
     await loadPositions();
     await loadEmployees();
-    await loadLeaveRequests();
-    await loadLeaveReports();
+
+    await loadLeaveData();
+
     populateOrgChart();
   } catch (error) {
     console.error('Error initializing dashboard:', error);
@@ -244,6 +244,7 @@ async function handleHRProfileSubmit(e) {
       toggleHRModal();
       updateHRProfileUI(result);
       document.getElementById('hrPassword').value = '';
+      location.reload();
     } else {
       showError('Error: ' + (result.message || JSON.stringify(result)));
     }
@@ -254,6 +255,24 @@ async function handleHRProfileSubmit(e) {
     hideLoader();
   }
 }
+
+const photoInput = document.getElementById('hrPhoto');
+  const photoPreview = document.getElementById('photoPreview');
+
+  photoInput.addEventListener('change', function () {
+    const file = this.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        photoPreview.src = e.target.result;
+        photoPreview.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    } else {
+      photoPreview.src = "";
+      photoPreview.style.display = "none";
+    }
+  });
 
 async function loadDepartments() {
   try {
@@ -292,38 +311,23 @@ async function loadEmployees() {
   }
 }
 
-async function loadLeaveRequests() {
+async function loadLeaveData() {
   try {
     const response = await fetch(`${API_BASE}/api/leave-requests/`);
-    if (!response.ok) throw new Error('Failed to load leave requests');
+    if (!response.ok) throw new Error('Failed to load leave data');
     
     const result = await response.json();
-    const allRequests = result.data || [];
+
+    const allRequests = Array.isArray(result) ? result : (result.data || []);
 
     const deanApprovedRequests = allRequests.filter(req => req.status === 'dean_approved');
+    const nonPendingReports = allRequests.filter(req => req.status !== 'pending' && req.status !== 'Pending');
 
     displayLeaveRequests(deanApprovedRequests);
+    displayLeaveReports(nonPendingReports);
   } catch (error) {
-    console.error('Error loading leave requests:', error);
+    console.error('Error loading leave data:', error);
     displayLeaveRequests([]);
-  }
-}
-
-
-async function loadLeaveReports() {
-  try {
-    const response = await fetch(`${API_BASE}/api/leave-requests/`);
-    if (!response.ok) throw new Error('Failed to load leave reports');
-    
-    const allRequests = await response.json();
-    
-    const nonPendingRequests = allRequests.filter(req => 
-      req.status !== 'pending' && req.status !== 'Pending'
-    );
-    
-    displayLeaveReports(nonPendingRequests);
-  } catch (error) {
-    console.error('Error loading leave reports:', error);
     displayLeaveReports([]);
   }
 }
@@ -386,7 +390,7 @@ function createDepartmentCards(departments) {
       e.department === dept.id && e.is_active
     );
     const count = employees.length;
-
+    
     return `
       <div class="dept-card" onclick="filterEmployeesByDepartment(${dept.id})">
         <div class="dept-icon">📚</div>
@@ -471,7 +475,7 @@ function displayLeaveRequests(reports) {
     });
   };
 
-  console.log(`Data: ${JSON.stringify(filteredReports)}`);
+  //console.log(`Data: ${JSON.stringify(filteredReports)}`);
 
   container.innerHTML = filteredReports.map(req => {
     const app = req.application || {};
@@ -493,14 +497,14 @@ function displayLeaveRequests(reports) {
 
     const statusDisplay = req.status_display || 'Unknown Status';
 
-    console.log(`Data To Be Displayed: ${JSON.stringify(req)}`);
+    //console.log(`Data To Be Displayed: ${JSON.stringify(req)}`); --> Pangcheck
 
     return `
       <div class="leave-report-card">
         <div style="background: linear-gradient(180deg, #8B0000 0%, #5a0000 100%);
                     color: white; padding: 20px 30px; display: flex;
                     justify-content: space-between; align-items: center;">
-          <h2 style="margin: 0; font-size: 18px;">Leave Request #${req.id}</h2>
+          <h2 style="margin: 0; font-size: 13px;">Leave Request #${req.id}</h2>
           <span style="padding: 8px 16px; border-radius: 20px; font-size: 12px;
                        font-weight: bold; background-color: #FFC107; color: #000;">
             ${statusDisplay}
@@ -626,7 +630,7 @@ function displayLeaveReports(reports) {
       'pending': '#FFC107'
     };
 
-    const statusColor = statusColorMap[status] || '#999';
+    const statusColor = statusColorMap[status] || '#ff0e0e';
     const statusBg = status === 'approved' ? '#e8f5e9' : '#e3f2fd';
     const statusBorder = status === 'approved' ? '#4CAF50' : '#2196F3';
 
@@ -696,13 +700,10 @@ function displayLeaveReports(reports) {
           ` : ''}
         </div>
 
-        <div style="background-color: #fff3e0; padding: 15px; border-radius: 6px; border-left: 4px solid #FF9800; margin-top: 15px;">
-          <h4 style="font-size: 13px; color: #333; margin: 0 0 8px 0;">
-            ⏳ Pending HR Approval
+        <div style="background-color: #f60707; padding: 15px; border-radius: 6px; border-left: 4px solid #FF9800; margin-top: 15px;">
+          <h4 style="font-size: 18px; color: #f2eeee; margin: 0 0 8px 0; font-family: monospace;">
+             ✖ DENIED REQUEST
           </h4>
-          <p style="font-size: 14px; color: #555; margin: 4px 0;">
-            Waiting for HR to review and approve this request.
-          </p>
         </div>
       `;
     }
@@ -711,8 +712,8 @@ function displayLeaveReports(reports) {
       <div class="leave-report-card">
         <!-- Form Header -->
         <div style="background: linear-gradient(180deg, #8B0000 0%, #5a0000 100%); color: white; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center;">
-          <h2 style="font-size: 18px; margin: 0;">Leave Application Report #${req.id || ''}</h2>
-          <span style="padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: bold; background-color: ${statusColor}; color: white;">
+          <h2 style="font-size: 12px; margin: 12px;">Leave Application Report #${req.id || ''}</h2>
+          <span style="padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: bold; background-color: ${statusColor}; color: white; filter: drop-shadow(2px 4px 6px black);">
             ${statusDisplay.toUpperCase()}
           </span>
         </div>
@@ -817,18 +818,7 @@ function displayLeaveReports(reports) {
                 ${approvalSection}
                 
                 <!-- Archive Button (only for approved status and not archived) -->
-                ${status === 'approved' && !req.is_archived ? `
-                <div style="margin-top: 20px; padding-top: 15px; border-top: 2px solid #e0e0e0;">
-                  <button class="archive-btn" data-id="${req.id}" 
-                          style="width: 100%; padding: 12px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                                color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; 
-                                cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
-                                transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);">
-                    <span style="font-size: 18px;">📦</span>
-                    <span>Archive This Request</span>
-                  </button>
-                </div>
-                ` : ''}
+                
               </div>
             </div>
           </div>
@@ -953,8 +943,7 @@ async function approveLeaveRequest(id) {
     const data = await response.json();
     if (response.ok && data.success) {
       showSuccess(data.message || 'Leave request approved by HR');
-      await loadLeaveRequests();
-      await loadLeaveReports();
+      await loadLeaveData();
     } else {
       showError(data.message || 'Failed to approve leave request');
     }
@@ -987,8 +976,7 @@ async function rejectLeaveRequest(id) {
     const data = await response.json();
     if (response.ok && data.success) {
       showSuccess(data.message || 'Leave request denied by HR');
-      await loadLeaveRequests();
-      await loadLeaveReports();
+      await loadLeaveData();
     } else {
       showError(data.message || 'Failed to reject leave request');
     }
@@ -1309,6 +1297,7 @@ async function handleDepartmentSubmit(e) {
       closeDepartmentModal();
       await loadDepartments();
       populateOrgChart();
+      setTimeout(() => location.reload(), 1500);
     } else {
       showError('Error adding department: ' + JSON.stringify(result));
     }
@@ -1362,6 +1351,7 @@ async function handlePositionSubmit(e) {
       showSuccess('Position added successfully');
       closePositionModal();
       await loadPositions();
+      setTimeout(() => location.reload(), 1500);
     } else {
       showError('Error adding position: ' + JSON.stringify(result));
     }
@@ -1419,7 +1409,7 @@ function toggleSection(section) {
 
 function navigate(action) {
   if (action === 'Logout') {
-    const confirmed = window.confirm("Are you sure you want to log out?");
+    const confirmed = window.confirm("You'll be redirected to starting page, and you'll need to login again?");
     if (!confirmed) {
       return;
     }
@@ -1455,6 +1445,162 @@ function navigate(action) {
 function toggleHRInfo() {
   toggleHRModal();
 }
+
+document.addEventListener("DOMContentLoaded", async () => {
+  const container = document.getElementById("orgChartContainer");
+
+  container.innerHTML = `
+    <div class="loading-state">
+      <div class="loading-spinner"></div>
+      <p>Loading organizational chart...</p>
+    </div>
+  `;
+
+  try {
+    const response = await fetch("/api/org-chart/", {
+      headers: { "X-Requested-With": "XMLHttpRequest" }
+    });
+
+    if (!response.ok) throw new Error("Failed to load org chart");
+
+    const data = await response.json();
+    container.innerHTML = "";
+
+    renderHRs(container, data.hrs);
+    renderDeans(container, data.deans);
+
+  } catch (error) {
+    console.error(error);
+    container.innerHTML = `
+      <div class="error-state">
+        Unable to load organizational chart.
+      </div>
+    `;
+  }
+});
+
+
+function renderHRs(container, hrs) {
+  if (!hrs || hrs.length === 0) {
+    container.innerHTML += `
+      <div class="empty-state">
+        <p>No HR records found.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const validHRs = hrs.filter(hr => {
+    const name = hr.full_name?.trim().toLowerCase() || "";
+    const placeholders = [
+      "hr-name of osmeña",
+      "hr-name of example",
+      "test hr"
+    ];
+    return !placeholders.includes(name);
+  });
+
+  if (validHRs.length === 0) {
+    container.innerHTML += `
+      <div class="empty-state">
+        <p>No HR records found.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const level = document.createElement("div");
+  level.classList.add("org-level");
+
+  validHRs.forEach(hr => {
+    const photo = hr.photo || "/static/assets/media/examplePIC.jpg";
+    const card = document.createElement("div");
+    card.classList.add("org-card");
+
+    card.innerHTML = `
+      <div class="org-card-header">${hr.full_name}</div>
+      <div class="org-avatar">
+        <img src="${photo}" alt="${hr.full_name}" />
+      </div>
+      <div class="org-title">${hr.full_name}</div>
+      <div class="org-subtitle">${hr.position}</div>
+    `;
+
+    level.appendChild(card);
+  });
+
+  container.appendChild(level);
+}
+
+function renderDeans(container, deans) {
+  if (!deans || deans.length === 0) {
+    container.innerHTML += `
+      <div class="empty-state">
+        <p>No Deans yet. <strong onclick="alert('Add Dean form goes here')">Create One Now</strong></p>
+      </div>
+    `;
+    return;
+  }
+
+  const maxDisplay = 15;
+
+  for (let i = 0; i < deans.length && i < maxDisplay; i += 3) {
+    const level = document.createElement("div");
+    level.classList.add("org-level-two");
+
+    deans.slice(i, i + 3).forEach(dean => {
+      const photo = dean.photo || "/static/assets/media/examplePIC.jpg";
+
+      const card = document.createElement("div");
+      card.classList.add("org-card");
+      card.style.position = "relative";
+
+      const detailsHTML = `
+        <div class="dean-details-bubble" style="display:none;">
+          <button class="close-details">&times;</button>
+          <h4>${dean.full_name}</h4>
+          <p><strong>Username:</strong> ${dean.username}</p>
+          <p><strong>Department:</strong> ${dean.department}</p>
+          <p><strong>Position:</strong> ${dean.position}</p>
+          <p><strong>Gender:</strong> ${dean.gender || 'N/A'}</p>
+          <p><strong>Age:</strong> ${dean.age || 'N/A'}</p>
+          <p><strong>Height:</strong> ${dean.height || 'N/A'}</p>
+          <p><strong>Weight:</strong> ${dean.weight || 'N/A'}</p>
+        </div>
+      `;
+
+      card.innerHTML = `
+        <div class="org-avatar">
+          <img src="${photo}" alt="${dean.full_name}" />
+        </div>
+        <div class="org-title">${dean.full_name}</div>
+        <div class="org-subtitle">Dean of ${dean.department}</div>
+        ${detailsHTML}
+      `;
+
+      card.addEventListener("click", e => {
+        if (e.target.classList.contains("close-details")) return;
+
+        const panel = card.querySelector(".dean-details-bubble");
+        if (panel) {
+          panel.style.display = panel.style.display === "none" ? "block" : "none";
+        }
+      });
+
+      const closeBtn = card.querySelector(".close-details");
+      closeBtn.addEventListener("click", e => {
+        const panel = card.querySelector(".dean-details-bubble");
+        if (panel) panel.style.display = "none";
+        e.stopPropagation();
+      });
+
+      level.appendChild(card);
+    });
+
+    container.appendChild(level);
+  }
+}
+
 
 window.openAddEmployeeModal = openAddEmployeeModal;
 window.closeModal = closeModal;

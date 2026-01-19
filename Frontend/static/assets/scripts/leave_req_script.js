@@ -1,5 +1,5 @@
-//const API_BASE_URL = "http://127.0.0.1:8000/api";
-const API_BASE_URL = "https://kt2980zx-8000.asse.devtunnels.ms";
+const API_BASE_URL = "http://127.0.0.1:8000";
+//const API_BASE_URL = "https://kt2980zx-8000.asse.devtunnels.ms";
 
 let failedAttempts = 0;
 let lockUntil = null;

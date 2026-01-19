@@ -62,6 +62,7 @@ class Employee(models.Model):
     GENDER_CHOICES = [('male', 'Male'), ('female', 'Female'), ('other', 'Other')]
     employee_id = models.CharField(max_length=20, unique=True, editable=False)
     full_name = models.CharField(max_length=200)
+    email = models.EmailField(unique=True, null=True, blank=True)
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES)
     age = models.IntegerField(validators=[MinValueValidator(18), MaxValueValidator(100)])
     height = models.DecimalField(max_digits=5, decimal_places=2, help_text="Height in cm")
@@ -127,7 +128,7 @@ class LeaveApplication(models.Model):
     vacation_location = models.CharField(max_length=50, choices=LOCATION_CHOICES, blank=True, null=True)
     sick_location = models.CharField(max_length=50, choices=SICK_LOCATION_CHOICES, blank=True, null=True)
     number_of_days = models.PositiveIntegerField(validators=[MinValueValidator(1)], default=1)
-    reason = models.TextField(blank=True)  # optional field for employee to state reason
+    reason = models.TextField(blank=True) 
     date_filed = models.DateField(auto_now_add=True)
     status = models.CharField(
         max_length=20,
@@ -222,6 +223,11 @@ class LeaveRequest(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    is_archived = models.BooleanField(
+        default=False,
+        help_text="True if auto-archived, False if manually archived"
+    )
 
     class Meta:
         ordering = ['-created_at']

@@ -2,6 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import *
 from .views_create_user import *
+from .archive_views import *
 
 router = DefaultRouter()
 router.register(r'departments', DepartmentViewSet, basename='department')
@@ -13,6 +14,8 @@ router.register(r'leave-reports', LeaveReportViewSet, basename='leavereport')
 router.register(r'hruser', HRUserViewSet, basename='hruser')
 router.register(r'deans', DeanViewSet, basename='dean')
 
+router.register(r'leave-request-archives', LeaveRequestArchiveViewSet, basename='leave-request-archive')
+
 urlpatterns = [
     path('', starting_view, name='starting_page'),
     
@@ -20,6 +23,8 @@ urlpatterns = [
 
     path('hr_dashboard/', HR_dash_view, name='hr-dashboard'),
     path('appointment_form/', appointment_form_view, name='appointment-form'),
+    
+    path('api/departments/<int:pk>/update-name/', update_department_name, name='update-department-name'),
     
     path('api/create-dean/', create_dean, name='create_dean'),
     path('api/dean-login/', dean_login, name='dean-login'),
@@ -34,10 +39,19 @@ urlpatterns = [
 
     path("hr_login/", hr_login, name="hr_login"),
     path('api/verify-key/', verify_key, name='verify-key'),
+    
+    path('api/leave-requests/<int:pk>/delete-if-denied/', delete_leave_request_if_denied, name='delete_leave_request_if_denied'),
 
     path('api/dashboard-stats/', dashboard_stats, name='dashboard-stats'),
+    
+    path("api/org-chart/", org_chart_api, name="org_chart_api"),
+    path("org-chart/", org_chart_view, name="org_chart"),
+
+    path('leave-request-archives/<int:pk>/export-pdf/', export_archive_pdf_view, name='export-archive-pdf'),
 
     path('csrf/', csrf, name='csrf'),
     
     path('api/', include(router.urls)),
 ]
+
+

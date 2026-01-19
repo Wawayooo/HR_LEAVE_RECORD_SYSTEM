@@ -8,11 +8,16 @@
   <link rel="stylesheet" href="{% static 'assets/styles/dashboard_interface.css' %}">
   <link rel="stylesheet" href="{% static 'assets/styles/dashboard_interface_2.css' %}">
   <link rel="stylesheet" href="{% static 'assets/styles/general_style/other_designs.css' %}">
+  <link rel="stylesheet" href="{% static 'assets/styles/general_style/responsive.css' %}">
+  <link rel="stylesheet" href="{% static 'assets/styles/general_style/org_chart.css' %}">
+  <link rel="stylesheet" href="{% static 'assets/styles/general_style/envelope.css' %}">
+  <link rel="stylesheet" href="{% static 'assets/styles/general_style/archive_design.css' %}">
 </head>
 
 <body>
   <div class="header">
     <div class="logo-section">
+      <button class="burger" id="burgerBtn"></button>
       <div class="logo">OC</div>
       <div class="header-title">Osmeña Colleges HRIS</div>
     </div>
@@ -67,8 +72,6 @@
     </form>
     <p id="create-dean-message"></p>
   </div>
-
-
 
   <div id="hrModal" class="modal">
     <div class="modal-content">
@@ -127,9 +130,18 @@
           </div>
 
           <div class="form-group">
-            <label for="hrPhoto">Upload New Photo</label>
+            <label for="hrPhoto" 
+                  style="border: 2px solid black; padding: 6px; cursor: pointer; border-radius: 8px; background: maroon; color: white;">
+              Upload New Photo
+            </label>
             <input type="file" id="hrPhoto" accept="image/*" />
             <small style="color: #666; font-size: 12px;">Max file size: 5MB. Accepted formats: JPG, PNG, GIF</small>
+
+
+            <div style="margin-top:10px;">
+              <img id="photoPreview" src="" alt="Selected photo preview" 
+                  style="max-width:150px; border:1px solid #ccc; border-radius:8px; display:none;" />
+            </div>
           </div>
 
           <div class="form-footer">
@@ -212,7 +224,7 @@
   </div>
 
   <div class="container">
-    <div class="sidebar">
+    <div class="sidebar" id="sidebar">
       <div class="menu-item active" data-section="dashboard">
         <span class="menu-icon">🏠</span>
         <span>Dashboard</span>
@@ -229,12 +241,17 @@
         <span class="menu-icon">📊</span>
         <span>Reports</span>
       </div>
+      <div class="menu-item" data-section="archiveSection"> <span class="menu-icon">🗄️</span> <span>Archive</span> </div>
       <div class="menu-item" onclick="navigate('Logout')" style="position: absolute; bottom: 20px; width: 100%;">
         <span class="menu-icon">🚪</span>
         <span>Logout</span>
       </div>
     </div>
 
+    <div class="logo-section-mobile">
+      <div class="mobile-logo">OC</div>
+      <div class="mobile-header-title">Osmeña Colleges HRIS</div>
+    </div>
 
     <div class="main-content">
       <div class="breadcrumb">
@@ -244,34 +261,14 @@
       <div class="action-bar">
         <button class="btn-primary">+ Add Employee</button>
         <button class="btn-secondary">Update Employee</button>
-        <button class="more-btn" onclick="showAlert('More Options')">⋮</button>
+        <button class="btn-secondary" id="dept_postion">Manage Positions</button>
+        <button class="more-btn" onclick="showAlert('More Options')" style="display: none;">⋮</button>
       </div>
 
       <h1 class="page-title">Board of Trustees</h1>
 
-      <div class="org-chart" id="orgChartContainer">
-        <div class="org-level">
-          <div class="org-card">
-            <div class="org-card-header" id="oc_hr_name"></div>
-            <div class="org-avatar"></div>
-            <div class="org-subtitle">OC-Human Resource</div>
-          </div>
-        </div>
+      <div class="org-chart" id="orgChartContainer"></div>
 
-        <div class="org-level-two">
-          <div class="org-card">
-            <div class="org-avatar"></div>
-            <div class="org-title">Legal Counsel</div>
-            <div class="org-subtitle">Department Dean</div>
-          </div>
-          <div class="org-card">
-            <div class="org-avatar"></div>
-            <div class="org-title">Administrative Council</div>
-            <div class="org-subtitle">Department Dean</div>
-          </div>
-        </div>
-
-      </div>
     </div>
 
     <div id="facultySection" class="faculty-section" style="display: none;">
@@ -299,6 +296,13 @@
         <p style="text-align: center; padding: 40px; color: #666;">Loading leave reports...</p>
       </div>
     </div>
+    
+    <div id="archiveSection" style="display: none;">
+      <h2 style="color: maroon;">Archived Leave Requests</h2>
+      <div class="archive-container">
+      </div>
+    </div>
+
   </div>
 
   <div id="employeeModal" class="modal">
@@ -370,6 +374,11 @@
                 <div class="form-group-inline">
                   <label>Weight</label>
                   <input type="number" id="employeeWeight" placeholder="kg" min="30" max="300" step="0.1" required>
+                  <div class="error-message"></div>
+                </div>
+                <div class="form-group-inline">
+                  <label>Email</label>
+                  <input type="email" id="employeeEmail" placeholder="example@gmail.com" required>
                   <div class="error-message"></div>
                 </div>
               </div>
@@ -477,5 +486,13 @@
   <script src="{% static 'assets/scripts/dashboard_interface.js' %}"></script>
   <script src="{% static 'assets/scripts/dean_acc_creation.js' %}"></script>
 
+  <script>
+
+    burgerBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('open');
+        burgerBtn.classList.toggle('active');
+    });
+    
+  </script>
 </body>
 </html>

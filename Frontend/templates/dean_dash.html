@@ -6,171 +6,170 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Osmeña Colleges - Dean Dashboard</title>
   <link rel="stylesheet" href="{% static 'assets/styles/dean_dash.css' %}">
+  <link rel="stylesheet" href="{% static 'assets/styles/general_style/dash_style.css' %}">
 </head>
 <body>
-    <div class="modal_hidden_div" id="modal_hidden_div" style="display:none;">
-        <div class="dean-info-div" style="display:none;">
-            <form id="deanProfileForm" class="div_card">
-                <div class="modal-header">
-                    <button id="closeDeanModal" type="button">&times;</button>
-                </div>
+    <div class="dean-info-div" style="display:none;">
+        <form id="deanProfileForm" class="div_card">
+            <div class="modal-header">
+                <button id="closeDeanModal" type="button">&times;</button>
+            </div>
 
-                <div class="dean-avatar">
-                    <img
-                        id="profilePhotoPreview"
-                        src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Crect fill='%23800020' width='120' height='120'/%3E%3Ctext fill='%23fff' font-size='60' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3ED%3C/text%3E%3C/svg%3E"
-                        alt="Dean Photo"
-                        style="width:120px; height:120px; object-fit:cover; border-radius:50%;"
-                    >
-                    <input
-                        type="file"
-                        id="profilePhotoInput"
-                        name="photo"
-                        accept="image/*"
-                        style="margin-top:10px;"
-                    >
-                </div>
+            <div class="dean-avatar">
+                <img
+                    id="profilePhotoPreview"
+                    src="static/media/examplePIC.jpg"
+                    alt="Dean Photo"
+                    style="width:120px; height:120px; object-fit:cover; border-radius:50%;"
+                >
+                <input
+                    type="file"
+                    id="profilePhotoInput"
+                    name="photo"
+                    accept="image/*"
+                    style="margin-top:10px;"
+                >
+            </div>
 
-                <div class="org-title">
+            <div class="org-title">
+                <input
+                    type="text"
+                    id="profileFullName"
+                    name="full_name"
+                    placeholder="Full Name"
+                    required
+                >
+            </div>
+
+            <div class="org-subtitle" id="profileDepartment">
+                Department Name
+            </div>
+
+            <div class="org-details">
+                <h4>Account Information</h4>
+
+                <p>
+                    <strong>Username</strong><br>
                     <input
                         type="text"
-                        id="profileFullName"
-                        name="full_name"
-                        placeholder="Full Name"
+                        id="profileUsername"
+                        name="username"
+                        placeholder="Username"
                         required
                     >
-                </div>
+                </p>
 
-                <div class="org-subtitle" id="profileDepartment">
-                    Department Name
-                </div>
-
-                <div class="org-details">
-                    <h4>Account Information</h4>
-
-                    <p>
-                        <strong>Username</strong><br>
-                        <input
-                            type="text"
-                            id="profileUsername"
-                            name="username"
-                            placeholder="Username"
-                            required
-                        >
-                    </p>
-
-                    <p>
-                        <strong>New Password</strong><br>
-                        <input
-                            type="password"
-                            id="profilePassword"
-                            name="password"
-                            placeholder="Leave blank to keep current password"
-                        >
-                    </p>
-                </div>
-
-                <div class="org-details">
-                    <h4>Personal Details</h4>
-
-                    <p>
-                        <strong>Gender</strong><br>
-                        <select id="profileGender" name="gender">
-                            <option value="">Select</option>
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                        </select>
-                    </p>
-
-                    <p>
-                        <strong>Age</strong><br>
-                        <input
-                            type="number"
-                            id="profileAge"
-                            name="age"
-                            min="18"
-                            max="100"
-                        >
-                    </p>
-
-                    <p>
-                        <strong>Height (cm)</strong><br>
-                        <input
-                            type="number"
-                            id="profileHeight"
-                            name="height"
-                            min="100"
-                            max="250"
-                        >
-                    </p>
-
-                    <p>
-                        <strong>Weight (kg)</strong><br>
-                        <input
-                            type="number"
-                            id="profileWeight"
-                            name="weight"
-                            min="30"
-                            max="300"
-                        >
-                    </p>
-                </div>
-
-                <div style="margin-top: 20px; display: flex; gap: 10px;">
-                    <button
-                        type="submit"
-                        style="
-                            flex: 1;
-                            background-color: #8B0000;
-                            color: white;
-                            padding: 12px;
-                            border: none;
-                            border-radius: 4px;
-                            cursor: pointer;
-                            font-weight: 600;
-                        "
+                <p>
+                    <strong>New Password</strong><br>
+                    <input
+                        type="password"
+                        id="profilePassword"
+                        name="password"
+                        placeholder="Leave blank to keep current password"
                     >
-                        💾 Save Changes
-                    </button>
-                </div>
-            </form>
-        </div>
+                </p>
+            </div>
+
+            <div class="org-details">
+                <h4>Personal Details</h4>
+
+                <p>
+                    <strong>Gender</strong><br>
+                    <select id="profileGender" name="gender">
+                        <option value="">Select</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                    </select>
+                </p>
+
+                <p>
+                    <strong>Age</strong><br>
+                    <input
+                        type="number"
+                        id="profileAge"
+                        name="age"
+                        min="18"
+                        max="100"
+                    >
+                </p>
+
+                <p>
+                    <strong>Height (cm)</strong><br>
+                    <input
+                        type="number"
+                        id="profileHeight"
+                        name="height"
+                        min="100"
+                        max="250"
+                    >
+                </p>
+
+                <p>
+                    <strong>Weight (kg)</strong><br>
+                    <input
+                        type="number"
+                        id="profileWeight"
+                        name="weight"
+                        min="30"
+                        max="300"
+                    >
+                </p>
+            </div>
+
+            <div style="margin-top: 20px; display: flex; gap: 10px;">
+                <button
+                    type="submit"
+                    style="
+                        flex: 1;
+                        background-color: #8B0000;
+                        color: white;
+                        padding: 12px;
+                        border: none;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        font-weight: 600;
+                    "
+                >
+                    💾 Save Changes
+                </button>
+            </div>
+        </form>
     </div>
-    
-    <div class="header">
+
+    <header class="header">
+        <button class="burger" id="burgerBtn"></button>
         <div class="logo-section">
         <div class="logo">OC</div>
         <div class="header-title">Osmeña Colleges HRIS - Dean Dashboard</div>
         </div>
         <div class="header-actions">
-       <div class="admin-profile" id="deanProfile">
+        <div class="admin-profile" id="deanProfile">
             <div class="admin-avatar">
-                <img id="deanAvatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect fill='%23800020' width='100' height='100'/%3E%3Ctext fill='%23fff' font-size='40' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3ED%3C/text%3E%3C/svg%3E" alt="Dean Avatar" />
+            <img id="deanAvatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect fill='%23800020' width='100' height='100'/%3E%3Ctext fill='%23fff' font-size='40' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3ED%3C/text%3E%3C/svg%3E" alt="Dean Avatar" />
             </div>
             <span id="deanName" class="dropdown-trigger">Dean Name ▾</span>
-            <div class="modal_content" id="modal_cont" style="display: none;">
-                <div id="deanDropdown" class="dropdown-menu">
-                    <button onclick="viewProfile()">View Profile</button>
-                </div>
+            <div class="dropdown-menu" id="deanDropdown">
+            <button onclick="viewProfile()">View Profile</button>
             </div>
         </div>
         </div>
-    </div>
+    </header>
+
 
     <div class="container">
-        <div class="sidebar">
-        <div class="menu-item active" data-section="dashboardSection">
-            <span>🏠 Dashboard</span>
-        </div>
-        <div class="menu-item" data-section="leaveRequestsSection">
-            <span>📋 Leave Requests</span>
-        </div>
-        <div class="menu-item" data-section="leaveReportsSection">
-            <span>📊 Reports</span>
-        </div>
-        <div class="menu-item" id="logoutBtn" style="position: absolute; bottom: 20px; width: 100%;">
-            <span>🚪 Logout</span>
-        </div>
+        <div class="sidebar" id="sidebar">
+            <div class="menu-item active" data-section="dashboardSection">
+                <span>🏠 Dashboard</span>
+            </div>
+            <div class="menu-item" data-section="leaveRequestsSection">
+                <span>📋 Leave Requests</span>
+            </div>
+            <div class="menu-item" data-section="leaveReportsSection">
+                <span>📊 Reports</span>
+            </div>
+            <div class="menu-item" id="logoutBtn" style="position: absolute; bottom: 20px; width: 100%;">
+                <span>🚪 Logout</span>
+            </div>
         </div>
 
         <div class="main-content">
@@ -221,5 +220,25 @@
     </div>
 
   <script src="{% static 'assets/scripts/dean_dash.js' %}"></script>
+
+  <script>
+
+    burgerBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('open');
+        burgerBtn.classList.toggle('active');
+    });
+
+  </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+

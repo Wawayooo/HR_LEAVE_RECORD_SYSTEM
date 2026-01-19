@@ -1,6 +1,6 @@
 const CONFIG = {
-  DEV_URL: "https://kt2980zx-8000.asse.devtunnels.ms",
-  //DEV_URL: "http://127.0.0.1:8000/api", this is localhost
+  //DEV_URL: "https://kt2980zx-8000.asse.devtunnels.ms",
+  DEV_URL: "http://127.0.0.1:8000",
   PROD_URL: "",
   
   get API_BASE() {
@@ -47,6 +47,7 @@ async function initializeDashboard() {
     await loadDepartments();
     await loadPositions();
     await loadEmployees();
+    await loadArchive();
 
     await loadLeaveData();
 
@@ -55,6 +56,139 @@ async function initializeDashboard() {
     console.error('Error initializing dashboard:', error);
     showError('Failed to initialize dashboard. Please refresh the page.');
   } finally {
+    hideLoader();
+  }
+}
+
+async function loadArchive() {
+  try {
+      const response = await fetch('/api/leave-request-archives/', {
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' }
+      });
+      const archives = await response.json();
+
+      const container = document.querySelector('.archive-container');
+      if (!archives.length) {
+          container.innerHTML = '<p class="no-data">No archived requests found</p>';
+          return;
+      }
+
+      container.innerHTML = archives.map(a => `
+          <div class="leave-report">
+              <div class="report-header">
+                  <h2 class="employee-name">${a.employee_name} <span class="employee-id">(${a.employee_id})</span></h2>
+                  <p class="employee-position">${a.employee_position}, ${a.employee_department}</p>
+              </div>
+              
+              <div class="report-body">
+                  <div class="report-section">
+                      <h3>Leave Details</h3>
+                      <p><strong>Type:</strong> ${a.leave_type_display}</p>
+                      <p><strong>Days Requested:</strong> ${a.number_of_days}</p>
+                      <p><strong>Date Filed:</strong> ${new Date(a.date_filed).toLocaleDateString()}</p>
+                      <p><strong>Reason:</strong> ${a.reason || 'N/A'}</p>
+                  </div>
+                  
+                  <div class="report-section">
+                      <h3>Dean Review</h3>
+                      <p><strong>Reviewer:</strong> ${a.dean_name} (Dean of ${a.dean_department})</p>
+                      <p><strong>Date:</strong> ${new Date(a.dean_reviewed_at).toLocaleString()}</p>
+                      <br>
+                      <p><strong>Dean Signature:</strong> <br><br> __________________________________</p>
+                  </div>
+                  
+                  <div class="report-section">
+                      <h3>HR Review</h3>
+                      <p><strong>Reviewer:</strong> ${a.hr_reviewer_name}</p>
+                      <p><strong>Date:</strong> ${new Date(a.hr_reviewed_at).toLocaleString()}</p>
+                      <br>
+                      <p><strong>HR Signature:</strong><br><br> __________________________________</p>
+                  </div>
+                  
+                  <div class="report-section outcome">
+                      <h3>Final Outcome</h3>
+                      <p><strong>Status:</strong> ${a.final_status_display}</p>
+                      <p><strong>Leave Balance Per Year:</strong> 15 Days</p>
+                      <p><strong>Remaining Leave Balance Before Request:</strong> ${a.leave_balance_before}</p>
+                      <p><strong>Remaining Leave Balance After Request:</strong> ${a.leave_balance_after ?? 'N/A'}</p>
+                      <p><strong>SAVED AT:</strong> ${new Date(a.archived_at).toLocaleString()}</p>
+                  </div>
+              </div>
+
+              <div style="margin-top:20px; text-align:right;">
+                  <button onclick="sendMail('${a.employee_name}')" style="background:black;
+                    color:#fff; border:none; border-radius:6px;
+                    padding:10px 18px; font-size:14px; font-weight:600;
+                    cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.15);
+                    transition:all 0.3s ease;">
+                    📩 Send Email to Employee
+                  </button>
+                  <button onclick="exportArchive(${a.id})"
+                          style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+                                 color:#fff; border:none; border-radius:6px;
+                                 padding:10px 18px; font-size:14px; font-weight:600;
+                                 cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.15);
+                                 transition:all 0.3s ease;">
+                      📄 Export to PDF
+                  </button>
+              </div>
+          </div>
+      `).join('');
+  } catch (err) {
+      console.error('Error loading archives:', err);
+      document.querySelector('.archive-container').innerHTML = '<p class="no-data">Error loading archived requests</p>';
+  }
+}
+
+async function sendMail(employeeName) {
+  try {
+    showLoader();
+    const response = await fetch(`${API_BASE}/api/employees/`);
+    if (!response.ok) throw new Error('Failed to load employees');
+    const employees = await response.json();
+
+    const employee = employees.find(emp => emp.full_name === employeeName);
+
+    if (!employee || !employee.email) {
+      alert("No email address found for this employee.");
+      return;
+    }
+
+    const subject = encodeURIComponent("Leave Request Notification");
+    const body = encodeURIComponent(
+      `Hello ${employee.full_name},\n\nThis is regarding your leave request.\n\nRegards,\nHR Department`
+    );
+
+    const mailtoLink = `mailto:${employee.email}?subject=${subject}&body=${body}`;
+    window.location.href = mailtoLink;
+  } catch (error) {
+    console.error("Error fetching employee email:", error);
+    alert("Failed to fetch employee email.");
+  }finally {
+    hideLoader();
+  }
+}
+
+async function exportArchive(id) {
+  try {
+    showLoader();
+    const response = await fetch(`/leave-request-archives/${id}/export-pdf/`, {
+      method: 'GET',
+      credentials: 'same-origin'
+    });
+    if (!response.ok) throw new Error('Failed to export PDF');
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `leave_archive_${id}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  } catch (err) {
+    alert('❌ Error exporting PDF: ' + err.message);
+  }finally {
     hideLoader();
   }
 }
@@ -244,6 +378,7 @@ async function handleHRProfileSubmit(e) {
       toggleHRModal();
       updateHRProfileUI(result);
       document.getElementById('hrPassword').value = '';
+      location.reload();
     } else {
       showError('Error: ' + (result.message || JSON.stringify(result)));
     }
@@ -254,6 +389,24 @@ async function handleHRProfileSubmit(e) {
     hideLoader();
   }
 }
+
+const photoInput = document.getElementById('hrPhoto');
+  const photoPreview = document.getElementById('photoPreview');
+
+  photoInput.addEventListener('change', function () {
+    const file = this.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        photoPreview.src = e.target.result;
+        photoPreview.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    } else {
+      photoPreview.src = "";
+      photoPreview.style.display = "none";
+    }
+  });
 
 async function loadDepartments() {
   try {
@@ -371,7 +524,7 @@ function createDepartmentCards(departments) {
       e.department === dept.id && e.is_active
     );
     const count = employees.length;
-
+    
     return `
       <div class="dept-card" onclick="filterEmployeesByDepartment(${dept.id})">
         <div class="dept-icon">📚</div>
@@ -400,19 +553,25 @@ function populateFacultyChart() {
   const groupedByDept = {};
   activeEmployees.forEach(emp => {
     const deptName = emp.department_name || 'Unknown Department';
-    if (!groupedByDept[deptName]) {
-      groupedByDept[deptName] = [];
+    const deptId = emp.department;
+    if (!groupedByDept[deptId]) {
+      groupedByDept[deptId] = { name: deptName, employees: [] };
     }
-    groupedByDept[deptName].push(emp);
+    groupedByDept[deptId].employees.push(emp);
   });
 
   let html = '';
-  for (const [deptName, employees] of Object.entries(groupedByDept)) {
+  for (const [deptId, deptData] of Object.entries(groupedByDept)) {
     html += `
       <div class="faculty-department">
-        <h3 class="dept-header">${deptName}</h3>
+        <h3 class="dept-header">
+          ${deptData.name}
+          <button class="edit-dept-btn" onclick="editDepartmentName(${deptId}, '${deptData.name}')">
+            ✏️
+          </button>
+        </h3>
         <div class="faculty-grid">
-          ${employees.map(emp => `
+          ${deptData.employees.map(emp => `
             <div class="faculty-card">
               <div class="faculty-photo">
                 ${emp.photo_url 
@@ -434,11 +593,42 @@ function populateFacultyChart() {
   container.innerHTML = html;
 }
 
+async function editDepartmentName(deptId, oldName) {
+  const newName = prompt(`Enter a new name for ${oldName}:`);
+  if (!newName || newName.trim() === '') return;
+
+  try {
+    const response = await fetch(`${API_BASE}/api/departments/${deptId}/update-name/`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrftoken
+      },
+      body: JSON.stringify({ name: newName })
+    });
+
+    const result = await response.json();
+    if (response.ok && result.success) {
+      alert('Department name updated successfully!');
+      window.location.reload();
+    } else {
+      alert(result.message || 'Failed to update department name.');
+    }
+  } catch (error) {
+    console.error('Error updating department:', error);
+    alert('Error updating department.');
+  }
+}
+
 function displayLeaveRequests(reports) {
   const container = document.querySelector('.leave-requests-container');
   if (!container) return;
 
-  const filteredReports = (reports || []).filter(r => r.status === 'dean_approved');
+  //const filteredReports = (reports || []).filter(r => r.status === 'dean_approved');
+  const filteredReports = (reports || []).filter(
+    r => r.status === 'dean_approved' && r.is_archived === false
+  );
+
 
   if (!filteredReports.length) {
     container.innerHTML =
@@ -455,8 +645,6 @@ function displayLeaveRequests(reports) {
       day: 'numeric'
     });
   };
-
-  console.log(`Data: ${JSON.stringify(filteredReports)}`);
 
   container.innerHTML = filteredReports.map(req => {
     const app = req.application || {};
@@ -478,14 +666,14 @@ function displayLeaveRequests(reports) {
 
     const statusDisplay = req.status_display || 'Unknown Status';
 
-    console.log(`Data To Be Displayed: ${JSON.stringify(req)}`);
+    //console.log(`Data To Be Displayed: ${JSON.stringify(req)}`); --> Pangcheck
 
     return `
       <div class="leave-report-card">
         <div style="background: linear-gradient(180deg, #8B0000 0%, #5a0000 100%);
                     color: white; padding: 20px 30px; display: flex;
                     justify-content: space-between; align-items: center;">
-          <h2 style="margin: 0; font-size: 18px;">Leave Request #${req.id}</h2>
+          <h2 style="margin: 0; font-size: 13px;">Leave Request #${req.id}</h2>
           <span style="padding: 8px 16px; border-radius: 20px; font-size: 12px;
                        font-weight: bold; background-color: #FFC107; color: #000;">
             ${statusDisplay}
@@ -611,7 +799,7 @@ function displayLeaveReports(reports) {
       'pending': '#FFC107'
     };
 
-    const statusColor = statusColorMap[status] || '#999';
+    const statusColor = statusColorMap[status] || '#ff0e0e';
     const statusBg = status === 'approved' ? '#e8f5e9' : '#e3f2fd';
     const statusBorder = status === 'approved' ? '#4CAF50' : '#2196F3';
 
@@ -693,8 +881,8 @@ function displayLeaveReports(reports) {
       <div class="leave-report-card">
         <!-- Form Header -->
         <div style="background: linear-gradient(180deg, #8B0000 0%, #5a0000 100%); color: white; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center;">
-          <h2 style="font-size: 18px; margin: 0;">Leave Application Report #${req.id || ''}</h2>
-          <span style="padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: bold; background-color: ${statusColor}; color: white;">
+          <h2 style="font-size: 12px; margin: 12px;">Leave Application Report #${req.id || ''}</h2>
+          <span style="padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: bold; background-color: ${statusColor}; color: white; filter: drop-shadow(2px 4px 6px black);">
             ${statusDisplay.toUpperCase()}
           </span>
         </div>
@@ -799,17 +987,21 @@ function displayLeaveReports(reports) {
                 ${approvalSection}
                 
                 <!-- Archive Button (only for approved status and not archived) -->
-                ${status === 'approved' && !req.is_archived ? `
-                <div style="margin-top: 20px; padding-top: 15px; border-top: 2px solid #e0e0e0;">
-                  <button class="archive-btn" data-id="${req.id}" 
-                          style="width: 100%; padding: 12px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                                color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; 
-                                cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
-                                transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);">
-                    <span style="font-size: 18px;">📦</span>
-                    <span>Archive This Request</span>
-                  </button>
-                </div>
+                ${status === 'approved' ? `
+                  <div style="margin-top: 20px; padding-top: 15px; border-top: 2px solid #e0e0e0;">
+                    <button class="archive-btn" data-id="${req.id}" 
+                            ${req.is_archived ? 'disabled' : ''}
+                            style="width: 100%; padding: 12px 20px; 
+                                  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                                  color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; 
+                                  cursor: ${req.is_archived ? 'not-allowed' : 'pointer'}; 
+                                  opacity: ${req.is_archived ? '0.6' : '1'}; 
+                                  display: flex; align-items: center; justify-content: center; gap: 8px;
+                                  transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);">
+                      <span style="font-size: 18px;">📦</span>
+                      <span>${req.is_archived ? 'ALREADY ARCHIVED' : 'Archive This Request'}</span>
+                    </button>
+                  </div>
                 ` : ''}
               </div>
             </div>
@@ -835,17 +1027,6 @@ function displayLeaveReports(reports) {
 }
 
 function isHRUser() {
-  // Option 1: Check from global user object
-  // return window.currentUser && window.currentUser.role === 'HR';
-  
-  // Option 2: Check from localStorage
-  // return localStorage.getItem('userRole') === 'HR';
-  
-  // Option 3: Check from a data attribute on the page
-  // return document.body.dataset.userRole === 'HR';
-  
-  // For now, return true - replace with your actual check
-  // TODO: Implement proper HR user detection
   return true;
 }
 
@@ -881,7 +1062,17 @@ async function archiveLeaveRequest(requestId) {
     });
 
     const result = await response.json();
-    
+
+    if (result.success) {
+      const btn = document.querySelector(`.archive-btn[data-id="${requestId}"]`);
+      if (btn) {
+        btn.disabled = true;
+        btn.style.cursor = 'not-allowed';
+        btn.style.opacity = '0.6';
+        btn.querySelector('span:last-child').textContent = 'ALREADY ARCHIVED';
+      }
+    }
+
     if (result.success) {
       const notification = document.createElement('div');
       notification.style.cssText = `
@@ -1121,6 +1312,7 @@ async function editEmployee(id) {
   
   document.getElementById('modalTitle').textContent = 'Update Employee';
   document.getElementById('employeeId').value = employee.employee_id;
+  document.getElementById('employeeEmail').value = employee.email;
   document.getElementById('employeeName').value = employee.full_name;
   document.getElementById('employeeGender').value = employee.gender;
   document.getElementById('employeeAge').value = employee.age;
@@ -1151,6 +1343,7 @@ async function handleEmployeeSubmit(e) {
   const employeeId = e.target.dataset.employeeId;
 
   formData.append('full_name', document.getElementById('employeeName').value);
+  formData.append('email', document.getElementById('employeeEmail').value);
   formData.append('gender', document.getElementById('employeeGender').value);
   formData.append('age', document.getElementById('employeeAge').value);
   formData.append('weight', document.getElementById('employeeWeight').value);
@@ -1193,8 +1386,27 @@ async function handleEmployeeSubmit(e) {
       await loadEmployees();
       await loadPositions();
     } else {
-      const errorMsg = result.message || JSON.stringify(result);
-      showError('Error: ' + errorMsg);
+      document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
+
+      if (result.errors) {
+        const firstErrorField = Object.keys(result.errors)[0];
+        const firstErrorMsg = result.errors[firstErrorField].join(', ');
+        alert(firstErrorMsg);
+
+        Object.keys(result.errors).forEach(field => {
+          const input = document.getElementById(`employee${field.charAt(0).toUpperCase() + field.slice(1)}`);
+          if (input) {
+            const errorDiv = input.closest('.form-group-inline').querySelector('.error-message');
+            if (errorDiv) {
+              errorDiv.textContent = result.errors[field].join(', ');
+            }
+          }
+        });
+      } else {
+        const errorMsg = result.message || 'Unknown error occurred';
+        alert(errorMsg);
+        showError('Error: ' + errorMsg);
+      }
     }
   } catch (error) {
     console.error('Error saving employee:', error);
@@ -1289,6 +1501,7 @@ async function handleDepartmentSubmit(e) {
       closeDepartmentModal();
       await loadDepartments();
       populateOrgChart();
+      setTimeout(() => location.reload(), 1500);
     } else {
       showError('Error adding department: ' + JSON.stringify(result));
     }
@@ -1342,6 +1555,7 @@ async function handlePositionSubmit(e) {
       showSuccess('Position added successfully');
       closePositionModal();
       await loadPositions();
+      setTimeout(() => location.reload(), 1500);
     } else {
       showError('Error adding position: ' + JSON.stringify(result));
     }
@@ -1366,7 +1580,8 @@ function switchSection(section, menuItem) {
     document.querySelector('.main-content'),
     document.getElementById('facultySection'),
     document.getElementById('LeaveRequestsSection'),
-    document.getElementById('leaveReportsSection')
+    document.getElementById('leaveReportsSection'),
+    document.getElementById('archiveSection') 
   ];
 
   sections.forEach(sec => {
@@ -1435,6 +1650,162 @@ function navigate(action) {
 function toggleHRInfo() {
   toggleHRModal();
 }
+
+document.addEventListener("DOMContentLoaded", async () => {
+  const container = document.getElementById("orgChartContainer");
+
+  container.innerHTML = `
+    <div class="loading-state">
+      <div class="loading-spinner"></div>
+      <p>Loading organizational chart...</p>
+    </div>
+  `;
+
+  try {
+    const response = await fetch("/api/org-chart/", {
+      headers: { "X-Requested-With": "XMLHttpRequest" }
+    });
+
+    if (!response.ok) throw new Error("Failed to load org chart");
+
+    const data = await response.json();
+    container.innerHTML = "";
+
+    renderHRs(container, data.hrs);
+    renderDeans(container, data.deans);
+
+  } catch (error) {
+    console.error(error);
+    container.innerHTML = `
+      <div class="error-state">
+        Unable to load organizational chart.
+      </div>
+    `;
+  }
+});
+
+
+function renderHRs(container, hrs) {
+  if (!hrs || hrs.length === 0) {
+    container.innerHTML += `
+      <div class="empty-state">
+        <p>No HR records found.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const validHRs = hrs.filter(hr => {
+    const name = hr.full_name?.trim().toLowerCase() || "";
+    const placeholders = [
+      "hr-name of osmeña",
+      "hr-name of example",
+      "test hr"
+    ];
+    return !placeholders.includes(name);
+  });
+
+  if (validHRs.length === 0) {
+    container.innerHTML += `
+      <div class="empty-state">
+        <p>No HR records found.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const level = document.createElement("div");
+  level.classList.add("org-level");
+
+  validHRs.forEach(hr => {
+    const photo = hr.photo || "/static/assets/media/examplePIC.jpg";
+    const card = document.createElement("div");
+    card.classList.add("org-card");
+
+    card.innerHTML = `
+      <div class="org-card-header">${hr.full_name}</div>
+      <div class="org-avatar">
+        <img src="${photo}" alt="${hr.full_name}" />
+      </div>
+      <div class="org-title">${hr.full_name}</div>
+      <div class="org-subtitle">${hr.position}</div>
+    `;
+
+    level.appendChild(card);
+  });
+
+  container.appendChild(level);
+}
+
+function renderDeans(container, deans) {
+  if (!deans || deans.length === 0) {
+    container.innerHTML += `
+      <div class="empty-state">
+        <p>No Deans yet. <strong onclick="alert('Add Dean form goes here')">Create One Now</strong></p>
+      </div>
+    `;
+    return;
+  }
+
+  const maxDisplay = 15;
+
+  for (let i = 0; i < deans.length && i < maxDisplay; i += 3) {
+    const level = document.createElement("div");
+    level.classList.add("org-level-two");
+
+    deans.slice(i, i + 3).forEach(dean => {
+      const photo = dean.photo || "/static/assets/media/examplePIC.jpg";
+
+      const card = document.createElement("div");
+      card.classList.add("org-card");
+      card.style.position = "relative";
+
+      const detailsHTML = `
+        <div class="dean-details-bubble" style="display:none;">
+          <button class="close-details">&times;</button>
+          <h4>${dean.full_name}</h4>
+          <p><strong>Username:</strong> ${dean.username}</p>
+          <p><strong>Department:</strong> ${dean.department}</p>
+          <p><strong>Position:</strong> ${dean.position}</p>
+          <p><strong>Gender:</strong> ${dean.gender || 'N/A'}</p>
+          <p><strong>Age:</strong> ${dean.age || 'N/A'}</p>
+          <p><strong>Height:</strong> ${dean.height || 'N/A'}</p>
+          <p><strong>Weight:</strong> ${dean.weight || 'N/A'}</p>
+        </div>
+      `;
+
+      card.innerHTML = `
+        <div class="org-avatar">
+          <img src="${photo}" alt="${dean.full_name}" />
+        </div>
+        <div class="org-title">${dean.full_name}</div>
+        <div class="org-subtitle">Dean of ${dean.department}</div>
+        ${detailsHTML}
+      `;
+
+      card.addEventListener("click", e => {
+        if (e.target.classList.contains("close-details")) return;
+
+        const panel = card.querySelector(".dean-details-bubble");
+        if (panel) {
+          panel.style.display = panel.style.display === "none" ? "block" : "none";
+        }
+      });
+
+      const closeBtn = card.querySelector(".close-details");
+      closeBtn.addEventListener("click", e => {
+        const panel = card.querySelector(".dean-details-bubble");
+        if (panel) panel.style.display = "none";
+        e.stopPropagation();
+      });
+
+      level.appendChild(card);
+    });
+
+    container.appendChild(level);
+  }
+}
+
 
 window.openAddEmployeeModal = openAddEmployeeModal;
 window.closeModal = closeModal;

@@ -10,7 +10,7 @@ const leaveRequestsContainer = document.querySelector('.leave-requests-container
 const leaveReportsContainer = document.querySelector('.leave-reports-cards-container');
 const logoutModal = document.getElementById('logoutModal');
 
-const prof_Section = document.getElementById('modal_hidden_div');
+//const prof_Section = document.getElementById('deanProfileForm');
 
 let currentDeanData = null;
 
@@ -30,17 +30,15 @@ function getCookie(name) {
 }
 
 async function viewProfile() {
-    const profileDivHolder = document.getElementById('modal_hidden_div');
     const profileDiv = document.querySelector('.dean-info-div');
 
-    if (!profileDivHolder || !profileDiv) return;
+    if (!profileDiv) return;
 
     if (!currentDeanData) {
         alert('Dean data is not loaded yet. Please wait...');
         return;
     }
 
-    profileDivHolder.style.display = 'flex';
     profileDiv.style.display = 'block';
 
     const dean = currentDeanData;
@@ -54,14 +52,12 @@ async function viewProfile() {
     document.getElementById('profileHeight').value = dean.height || '';
     document.getElementById('profileWeight').value = dean.weight || '';
     document.getElementById('profilePassword').value = '';
-    document.getElementById('profilePhoto').src = dean.photo_url || defaultPhoto;
+    document.getElementById('profilePhotoPreview').src = dean.photo_url || defaultPhoto;
 }
 
 document.getElementById('closeDeanModal')?.addEventListener('click', function() {
-    const profileDivHolder = document.getElementById('modal_hidden_div');
     const profileDiv = document.querySelector('.dean-info-div');
     
-    if (profileDivHolder) profileDivHolder.style.display = 'none';
     if (profileDiv) profileDiv.style.display = 'none';
 });
 
@@ -72,7 +68,13 @@ document.getElementById('deanName')?.addEventListener('click', function(e) {
 
     const isOpen = dropdown.style.display === 'block';
     dropdown.style.display = isOpen ? 'none' : 'block';
-    modal_cont.style.display = isOpen ? 'none' : 'block';
+
+    if (dropdown && modal_cont) {
+        const isOpen = dropdown.style.display === 'block';
+        dropdown.style.display = isOpen ? 'none' : 'block';
+        modal_cont.style.display = isOpen ? 'none' : 'block';
+    }
+
 });
 
 document.addEventListener('click', function(event) {
@@ -100,42 +102,53 @@ document.getElementById('profilePhotoInput')?.addEventListener('change', (e) => 
 document.getElementById('deanProfileForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
 
+    const confirmed = window.confirm(
+        "Are you sure you want to update your profile?"
+    );
+    if (!confirmed) return;
+
     if (!currentDeanData || !currentDeanData.id) {
         alert('Dean ID is not available.');
         return;
     }
 
+    // Collect form values
+    const newFullName = document.getElementById('profileFullName').value;
+    const newGender   = document.getElementById('profileGender').value;
+    const newAge      = document.getElementById('profileAge').value;
+    const newHeight   = document.getElementById('profileHeight').value;
+    const newWeight   = document.getElementById('profileWeight').value;
+    const newPassword = document.getElementById('profilePassword').value;
+    const newUsername = document.getElementById('profileUsername').value;
+    const photoFile   = document.getElementById('profilePhotoInput').files[0];
+
+    // Track changes
+    const usernameChanged = newUsername && newUsername !== currentDeanData.username;
+    const passwordChanged = !!newPassword; // if user entered a new password
+
     const formData = new FormData();
-    formData.append('full_name', document.getElementById('profileFullName').value);
-    formData.append('gender', document.getElementById('profileGender').value);
-    formData.append('age', document.getElementById('profileAge').value);
-    formData.append('height', document.getElementById('profileHeight').value);
-    formData.append('weight', document.getElementById('profileWeight').value);
+    formData.append('full_name', newFullName);
+    formData.append('gender', newGender);
+    formData.append('age', newAge);
+    formData.append('height', newHeight);
+    formData.append('weight', newWeight);
     formData.append('department', currentDeanData.department);
 
-    const password = document.getElementById('profilePassword').value;
-    if (password) {
-        formData.append('password', password);
-    }
+    if (usernameChanged) formData.append('username', newUsername);
+    if (passwordChanged) formData.append('password', newPassword);
+    if (photoFile) formData.append('photo', photoFile);
 
-    const username = document.getElementById('profileUsername').value;
-    if (username) {
-        formData.append('username', username);
-    }
-
-    const photoFile = document.getElementById('profilePhotoInput').files[0];
-    if (photoFile) {
-        formData.append('photo', photoFile);
-    }
+    formData.append('is_active', 'true');
 
     try {
-        prof_Section.style.display = 'none';
+        const prof_Section = document.getElementById('deanProfileForm');
+        if (prof_Section) prof_Section.style.display = 'none';
+
         showModal(logoutModal);
+
         const response = await fetch(`/api/deans/${currentDeanData.id}/`, {
             method: 'PUT',
-            headers: {
-                'X-CSRFToken': getCookie('csrftoken')
-            },
+            headers: { 'X-CSRFToken': getCookie('csrftoken') },
             credentials: 'same-origin',
             body: formData
         });
@@ -143,17 +156,34 @@ document.getElementById('deanProfileForm')?.addEventListener('submit', async (e)
         const result = await response.json();
 
         if (result.success) {
-            alert('Profile updated successfully!');
-            await loadDeanInfo();
-            document.getElementById('modal_hidden_div').style.display = 'none';
-            document.querySelector('.dean-info-div').style.display = 'none';
+            if (usernameChanged || passwordChanged) {
+                alert('Profile updated successfully! Username/Password changed, you will be logged out.');
+                
+                const logoutRes = await fetch('/dean_logout/', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: { 'X-CSRFToken': getCookie('csrftoken') }
+                });
+                const logoutData = await logoutRes.json();
+
+                if (logoutData.success && logoutData.redirect_url) {
+                    setTimeout(() => {
+                        window.location.href = logoutData.redirect_url;
+                    }, 1000);
+                } else {
+                    alert('Logout failed. Please log in again manually.');
+                }
+            } else {
+                alert('Profile updated successfully! Reloading page...');
+                window.location.reload();
+            }
         } else {
             alert('Failed to update profile: ' + (result.message || 'Unknown error'));
         }
     } catch (error) {
         console.error('Error updating profile:', error);
         alert('An error occurred while updating the profile.');
-    } finally{
+    } finally {
         hideModal(logoutModal);
     }
 });
@@ -326,7 +356,7 @@ async function loadLeaveReports(departmentName) {
         });
         const data = await res.json();
 
-        console.log("Raw reports data:", data);
+        //console.log("Raw reports data:", data);
 
         if (!data || data.length === 0) {
             leaveReportsContainer.innerHTML = '<p class="loading-text">No leave reports in your department</p>';
@@ -466,6 +496,23 @@ async function loadLeaveReports(departmentName) {
                     statusText = report.status_display || report.status;
                     statusClass = `status-${report.status}`;
             }
+            let deleteButton = '';
+            if (report.status === 'dean_denied') {
+                deleteButton = `
+                    <div class="report-actions">
+                        <button class="delete-btn" 
+                                data-id="${report.id}" 
+                                data-department="${app.department_name || ''}"
+                                style="background:#f44336; color:white; border:none; 
+                                    padding:8px 14px; border-radius:6px; 
+                                    font-size:14px; cursor:pointer; 
+                                    display:flex; align-items:center; justify-content:center; gap:6px; 
+                                    transition:background 0.3s ease; width:100%; position:relative; top:15px;">
+                            <span class="btn-icon">🗑</span> Delete
+                        </button>
+                    </div>
+                `;
+            }
 
             card.innerHTML = `
                 <div class="report-header">
@@ -502,20 +549,27 @@ async function loadLeaveReports(departmentName) {
                     </div>
                     
                     ${approvalSection}
-                </div>
-                <div class="report-actions">
-                    <button class="delete-btn" data-id="${report.id}">
-                        <span class="btn-icon">🗑</span> Delete
-                    </button>
+                    ${deleteButton} 
                 </div>
             `;
 
             leaveReportsContainer.appendChild(card);
         });
         
+
         leaveReportsContainer.querySelectorAll('.delete-btn').forEach(btn => {
-            btn.addEventListener('click', () => deleteLeaveReport(btn.dataset.id));
+            btn.addEventListener('click', () => {
+                const reportId = btn.dataset.id;
+                const deptName = btn.dataset.department;
+
+                if (deptName) {
+                    localStorage.setItem('deptName', deptName);
+                }
+
+                deleteLeaveReport(reportId);
+            });
         });
+
 
     } catch (err) {
         console.error('Error fetching leave reports:', err);
@@ -559,7 +613,7 @@ async function loadLeaveRequests(departmentName) {
         });
         const data = await res.json();
 
-        console.log("Raw requests data:", data);
+        //console.log("Raw requests data:", data);
 
         if (!data || data.length === 0) {
             leaveRequestsContainer.innerHTML = '<p class="loading-text">No pending leave requests in your department</p>';
@@ -679,24 +733,42 @@ async function deleteLeaveReport(reportId) {
     if (!confirm("Are you sure you want to delete this report?")) return;
 
     try {
-        const res = await fetch(`/api/leave-requests/${reportId}/`, {
+        showModal(logoutModal);
+
+        const res = await fetch(`/api/leave-requests/${reportId}/delete-if-denied/`, {
             method: 'DELETE',
-            credentials: 'same-origin'
+            credentials: 'same-origin',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            }
         });
 
         if (res.ok) {
-            //console.log(`Report ${reportId} deleted successfully`);
-            const deptName = document.querySelector('#leaveReportsSection').dataset.department;
-            loadLeaveReports(deptName);
+            const result = await res.json();
+            //console.log("Delete response:", result); ..pang debug lng
+
+            const deptName = localStorage.getItem('deptName');
+            if (deptName) {
+                loadLeaveReports(deptName);
+                localStorage.removeItem('deptName');
+            }
         } else {
-            console.error(`Failed to delete report ${reportId}`, res.status);
-            alert("Failed to delete report. Please try again.");
+            let errorMessage = "Failed to delete report. Please try again.";
+            try {
+                const result = await res.json();
+                errorMessage = result.error || errorMessage;
+            } catch (e) {
+            }
+            alert(errorMessage);
         }
     } catch (err) {
-        //console.error('Error deleting report:', err);
+        //console.error("Fetch error:", err); ..pang debug lng
         alert("Error deleting report. Please try again.");
+    } finally {
+        hideModal(logoutModal);
     }
 }
+
 
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.menu-item[data-section]').forEach(item => {

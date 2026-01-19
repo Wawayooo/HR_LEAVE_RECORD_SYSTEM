@@ -3,6 +3,8 @@ from .models import *
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
+import re
+from django.core.exceptions import ValidationError
 
 
 class DepartmentSerializer(serializers.ModelSerializer):
@@ -84,9 +86,12 @@ class DeanSerializer(serializers.ModelSerializer):
             instance.user.set_password(password)
             instance.user.save()
 
+        validated_data.pop('is_active', None)
+
         validated_data['is_active'] = True
 
         return super().update(instance, validated_data)
+
     
     def get_photo_url(self, obj):
         if obj.photo:
@@ -116,6 +121,15 @@ class DeanSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Please enter a valid weight (30-300 kg)")
         return value
 
+class EmailValidator:
+    def validate_email(self, value):
+        gmail_regex = r'^[a-zA-Z0-9._%+-]+@gmail\.com$'
+
+        if not re.match(gmail_regex, value):
+            raise ValidationError("Please enter a valid Gmail address.")
+
+        return value
+
 class EmployeeSerializer(serializers.ModelSerializer):
     department_name = serializers.CharField(source='department.name', read_only=True)
     department_code = serializers.CharField(source='department.code', read_only=True)
@@ -124,15 +138,24 @@ class EmployeeSerializer(serializers.ModelSerializer):
     photo_url = serializers.SerializerMethodField()
     company_id = serializers.CharField(required=False, allow_blank=True)
 
+    email = serializers.EmailField(
+        required=False,
+        allow_blank=True,
+        validators=[EmailValidator().validate_email]
+    )
+
     class Meta:
         model = Employee
         fields = [
-            'id', 'employee_id', 'company_id', 'full_name', 'gender', 'age',
+            'id', 'employee_id', 'company_id', 'full_name', 'email', 'gender', 'age',
             'height', 'weight', 'department', 'department_name', 'department_code',
             'position', 'position_title', 'position_code', 'photo', 'photo_url',
             'motto_in_life', 'is_active', 'date_created', 'updated_at'
         ]
         read_only_fields = ['employee_id', 'date_created', 'updated_at']
+
+    def validate_email(self, value):
+        return EmailValidator().validate_email(value)
 
     def get_photo_url(self, obj):
         if obj.photo:
@@ -227,6 +250,8 @@ class LeaveRequestSerializer(serializers.ModelSerializer):
     is_pending_dean = serializers.BooleanField(source='is_pending_dean_approval', read_only=True)
     is_pending_hr = serializers.BooleanField(source='is_pending_hr_approval', read_only=True)
 
+    is_archived = serializers.BooleanField(read_only=True)
+
     class Meta:
         model = LeaveRequest
         fields = [
@@ -239,10 +264,10 @@ class LeaveRequestSerializer(serializers.ModelSerializer):
             'hr_reviewed_at', 'hr_comments',
 
             'status', 'status_display', 'is_pending_dean', 'is_pending_hr',
-            'created_at', 'updated_at'
+            'created_at', 'updated_at', 'is_archived'
         ]
         read_only_fields = ['created_at', 'updated_at', 'dean_reviewed_at', 'hr_reviewed_at']
-    
+
     def get_status_display(self, obj):
         status_map = {
             'pending': 'Pending Dean Approval',
@@ -252,7 +277,6 @@ class LeaveRequestSerializer(serializers.ModelSerializer):
             'denied': 'Denied by HR'
         }
         return status_map.get(obj.status, obj.status)
-
 
 class LeaveReportSerializer(serializers.ModelSerializer):
     employee_name = serializers.CharField(source='employee.full_name', read_only=True)
@@ -361,3 +385,22 @@ class HRUserSerializer(serializers.ModelSerializer):
         
         instance.save()
         return instance
+
+class LeaveRequestArchiveSerializer(serializers.ModelSerializer):
+    leave_type_display = serializers.CharField(source='get_leave_type_display', read_only=True)
+    final_status_display = serializers.CharField(source='get_final_status_display', read_only=True)
+
+    class Meta:
+        model = LeaveRequestArchive
+        fields = [
+            'id',
+            'original_leave_request_id',
+            'employee_id', 'employee_name', 'employee_department', 'employee_position',
+            'leave_type', 'leave_type_display',
+            'number_of_days', 'vacation_location', 'sick_location', 'reason', 'date_filed',
+            'dean_name', 'dean_department', 'dean_reviewed_at', 'dean_comments',
+            'hr_reviewer_username', 'hr_reviewer_name', 'hr_reviewed_at', 'hr_comments',
+            'final_status', 'final_status_display',
+            'leave_balance_before', 'leave_balance_after', 'leave_balance_year',
+            'archived_at', 'archived_by_system'
+        ]
