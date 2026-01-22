@@ -98,7 +98,7 @@ class Employee(models.Model):
 class EmployeeLeaveBalance(models.Model):
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='leave_balances')
     year = models.PositiveIntegerField()
-    remaining_days = models.PositiveIntegerField(default=15)  # Every employee starts with 15 days
+    remaining_days = models.PositiveIntegerField(default=15)
 
     class Meta:
         unique_together = ('employee', 'year')
@@ -300,13 +300,6 @@ class LeaveRequest(models.Model):
 
         self.application.status = 'approved'
         self.application.save()
-
-        year = timezone.now().year
-        balance, created = EmployeeLeaveBalance.objects.get_or_create(
-            employee=self.application.employee,
-            year=year
-        )
-        balance.deduct_days(self.application.number_of_days)
 
         self._create_report('hr', hr_user, self.hr_comments)
 

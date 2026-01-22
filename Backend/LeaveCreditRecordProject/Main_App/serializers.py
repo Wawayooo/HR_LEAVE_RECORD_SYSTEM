@@ -137,6 +137,8 @@ class EmployeeSerializer(serializers.ModelSerializer):
     position_code = serializers.CharField(source='position.code', read_only=True)
     photo_url = serializers.SerializerMethodField()
     company_id = serializers.CharField(required=False, allow_blank=True)
+    
+    remaining_days = serializers.SerializerMethodField()
 
     email = serializers.EmailField(
         required=False,
@@ -150,7 +152,7 @@ class EmployeeSerializer(serializers.ModelSerializer):
             'id', 'employee_id', 'company_id', 'full_name', 'email', 'gender', 'age',
             'height', 'weight', 'department', 'department_name', 'department_code',
             'position', 'position_title', 'position_code', 'photo', 'photo_url',
-            'motto_in_life', 'is_active', 'date_created', 'updated_at'
+            'motto_in_life', 'is_active', 'date_created', 'updated_at', 'remaining_days'
         ]
         read_only_fields = ['employee_id', 'date_created', 'updated_at']
 
@@ -188,6 +190,11 @@ class EmployeeSerializer(serializers.ModelSerializer):
     
     def validate_position(self, value):
         return value
+    
+    def get_remaining_days(self, obj): 
+        current_year = timezone.now().year 
+        balance = obj.leave_balances.filter(year=current_year).first() 
+        return balance.remaining_days if balance else None
 
 
 class LeaveApplicationSerializer(serializers.ModelSerializer):

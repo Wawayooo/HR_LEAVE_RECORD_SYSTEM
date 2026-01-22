@@ -89,7 +89,6 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
                 queryset = queryset.filter(
                     status__in=['dean_approved', 'dean_denied', 'approved', 'denied']
                 )
-                # reports can include archived, so no is_archived filter here
             else:
                 queryset = queryset.exclude(status='pending').filter(is_archived=False)
 
@@ -102,7 +101,6 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
                 queryset = queryset.filter(
                     status__in=['dean_approved', 'approved', 'denied']
                 )
-                # reports can include archived
             else:
                 queryset = queryset.exclude(status='pending').filter(is_archived=False)
 
@@ -114,6 +112,10 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
             status='dean_approved'
         )
 
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.delete()
+        return Response({"detail": "Leave request permanently deleted."}, status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False, methods=['get'])
     def pending_dean(self, request):
@@ -298,7 +300,6 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
             
     @action(detail=False, methods=['get'])
     def dean_approved(self, request):
-        """Get all dean-approved requests (accessible by both Dean and HR)"""
         if not (hasattr(request.user, 'dean_profile') or 
                 hasattr(request.user, 'hruser') or 
                 request.user.groups.filter(name='HR').exists()):
@@ -316,7 +317,6 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def approve(self, request, pk=None):
-        """Legacy approve - redirects based on user type"""
         if hasattr(request.user, 'dean_profile'):
             return self.dean_approve(request, pk)
         elif hasattr(request.user, 'hruser') or request.user.groups.filter(name='HR').exists():
@@ -325,7 +325,6 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def reject(self, request, pk=None):
-        """Legacy reject - redirects based on user type"""
         if hasattr(request.user, 'dean_profile'):
             return self.dean_deny(request, pk)
         elif hasattr(request.user, 'hruser') or request.user.groups.filter(name='HR').exists():
@@ -648,15 +647,26 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         kwargs['partial'] = True
         return self.update(request, *args, **kwargs)
 
+    #def deactivate_employee(self, request, *args, **kwargs):
+    #    employee = self.get_object()
+    #    employee.is_active = False
+    #    employee.save()
+    #    return Response({
+    #        'success': True,
+    #        'message': 'Employee deactivated',
+    #        'data': EmployeeSerializer(employee, context={'request': request}).data
+    #    }, status=status.HTTP_200_OK)
+        
     def destroy(self, request, *args, **kwargs):
         employee = self.get_object()
-        employee.is_active = False
-        employee.save()
-        return Response({
-            'success': True,
-            'message': 'Employee deactivated',
-            'data': EmployeeSerializer(employee, context={'request': request}).data
-        }, status=status.HTTP_200_OK)
+        employee.delete()
+        return Response(
+            {
+                'success': True,
+                'message': 'Employee permanently deleted'
+            },
+            status=status.HTTP_204_NO_CONTENT
+        )
 
     @action(detail=True, methods=['post'])
     def activate(self, request, pk=None):
@@ -1077,3 +1087,86 @@ def org_chart_api(request):
     }
 
     return JsonResponse(data, safe=True)
+
+def get_positions(request):
+    positions = Position.objects.all().values("id", "code", "title", "description", "created_at")
+    return JsonResponse(list(positions), safe=False)
+
+@csrf_exempt
+def update_position(request, id):
+    if request.method in ["PUT", "PATCH"]:
+        position = get_object_or_404(Position, id=id)
+
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+        position.code = data.get("code", position.code)
+        position.title = data.get("title", position.title)
+        position.description = data.get("description", position.description)
+        position.save()
+
+        serializer = PositionSerializer(position)
+        return JsonResponse({
+            "success": True,
+            "message": "Position updated successfully!",
+            "position": serializer.data
+        }, status=200)
+
+    return JsonResponse({"error": "Invalid request method"}, status=405)
+
+@csrf_exempt
+def delete_position(request, id):
+    if request.method == "DELETE":
+        position = get_object_or_404(Position, id=id)
+        serializer = PositionSerializer(position)
+
+        if serializer.data.get("occupied"):
+            occupied_by = serializer.data.get("occupied_by")
+            message = "Cannot delete position. It is currently occupied."
+            return JsonResponse({"success": False, "message": message}, status=400)
+
+        position.delete()
+        return JsonResponse({"success": True, "message": "Position deleted successfully!"}, status=200)
+
+    return JsonResponse({"error": "Invalid request method"}, status=400)
+
+import json
+
+@csrf_exempt
+@login_required
+def update_dean_department(request, dean_id):
+    if request.method == "POST":
+        dean = get_object_or_404(Dean, id=dean_id)
+
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+        department_id = data.get("department_id")
+        if not department_id:
+            return JsonResponse({"error": "Department ID is required"}, status=400)
+
+        department = get_object_or_404(Department, id=department_id)
+        dean.department = department
+        dean.save()
+
+        return JsonResponse({
+            "message": f"{dean.full_name} reassigned to {department.name}",
+            "dean_id": dean.id,
+            "new_department": department.name
+        })
+
+    return JsonResponse({"error": "Invalid request method"}, status=405)
+
+@csrf_exempt
+@login_required
+def delete_dean(request, dean_id):
+    if request.method == "POST":
+        dean = get_object_or_404(Dean, id=dean_id)
+        dean.delete()
+        return JsonResponse({"message": "Dean deleted successfully"})
+    
+    return JsonResponse({"error": "Invalid request method"}, status=405)

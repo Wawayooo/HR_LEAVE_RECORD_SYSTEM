@@ -48,6 +48,13 @@ urlpatterns = [
     path("org-chart/", org_chart_view, name="org_chart"),
 
     path('leave-request-archives/<int:pk>/export-pdf/', export_archive_pdf_view, name='export-archive-pdf'),
+    
+    path("positions/", get_positions, name="get_positions"),
+    path("positions/update/<int:id>/", update_position, name="update_position"),
+    path("positions/delete/<int:id>/", delete_position, name="delete_position"),
+    
+    path("dean/<int:dean_id>/update/", update_dean_department, name="update_dean_department"),
+    path("dean/<int:dean_id>/delete/", delete_dean, name="delete_dean"),
 
     path('csrf/', csrf, name='csrf'),
     
