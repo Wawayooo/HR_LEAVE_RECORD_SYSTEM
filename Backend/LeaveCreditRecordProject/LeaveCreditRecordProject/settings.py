@@ -129,8 +129,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'Leave_Credit_Record_DataBase',
-        'USER': 'keith_user',
-        'PASSWORD': '113728cortes',
+        'USER': 'username',
+        'PASSWORD': 'password',
         'HOST': '127.0.0.1',
         'PORT': '5432',
     }
