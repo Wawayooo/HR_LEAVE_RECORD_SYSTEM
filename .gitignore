@@ -57,3 +57,5 @@ hr_photos
 employee_photos
 
 migrations
+static
+staticfiles

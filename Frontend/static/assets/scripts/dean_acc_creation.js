@@ -96,3 +96,43 @@ function hideLoader() {
   if (loader) loader.style.display = 'none';
 }
 
+function toggleChangeKeyModal() {
+  const modal = document.getElementById("change-key-Modal");
+  modal.style.display = (modal.style.display === "flex") ? "none" : "flex";
+}
+
+
+function submitSecretKey(keyId) {
+  const keyInput = document.getElementById("secretKeyInput").value;
+  const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+
+  if (!regex.test(keyInput)) {
+    alert("Secret key must be at least 8 characters long and include uppercase, lowercase, numbers, and special characters.");
+    return;
+  }
+  showLoader();
+  fetch(`/access-key/${1}/update/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": getCookie("csrftoken")
+    },
+    body: JSON.stringify({ key: keyInput })
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error("Failed to update secret key");
+    }
+    return response.json();
+  })
+  .then(data => {
+    alert(data.message || "Secret key updated successfully!");
+    toggleChangeKeyModal();
+  })
+  .catch(error => {
+    alert("Error: " + error.message);
+  })
+  .finally(() => {
+    hideLoader();
+  });
+}

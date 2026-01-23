@@ -62,110 +62,188 @@ async function initializeDashboard() {
 
 async function loadArchive() {
   try {
-      const response = await fetch('/api/leave-request-archives/', {
-          credentials: 'same-origin',
-          headers: { 'Content-Type': 'application/json' }
-      });
-      const archives = await response.json();
+    const response = await fetch('/api/leave-request-archives/', {
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const archives = await response.json();
 
-      const container = document.querySelector('.archive-container');
-      if (!archives.length) {
-          container.innerHTML = '<p class="no-data">No archived requests found</p>';
-          return;
+    const container = document.querySelector('.archive-container');
+    const searchBox = document.getElementById('archiveSearch');
+
+    if (!archives.length) {
+      container.innerHTML = '<p class="no-data">No archived requests found</p>';
+      return;
+    }
+
+    function renderArchives(filter = "") {
+      const filtered = archives.filter(a =>
+        a.employee_name.toLowerCase().includes(filter.toLowerCase()) ||
+        a.employee_id.toLowerCase().includes(filter.toLowerCase()) ||
+        a.employee_position.toLowerCase().includes(filter.toLowerCase()) ||
+        a.employee_department.toLowerCase().includes(filter.toLowerCase())
+      );
+
+      if (!filtered.length) {
+        container.innerHTML = '<p class="no-data">No matching results</p>';
+        return;
       }
 
-      container.innerHTML = archives.map(a => `
-          <div class="leave-report">
-              <div class="report-header">
-                  <h2 class="employee-name">${a.employee_name} <span class="employee-id">(${a.employee_id})</span></h2>
-                  <p class="employee-position">${a.employee_position}, ${a.employee_department}</p>
-              </div>
-              
-              <div class="report-body">
-                  <div class="report-section">
-                      <h3>Leave Details</h3>
-                      <p><strong>Type:</strong> ${a.leave_type_display}</p>
-                      <p><strong>Days Requested:</strong> ${a.number_of_days}</p>
-                      <p><strong>Date Filed:</strong> ${new Date(a.date_filed).toLocaleDateString()}</p>
-                      <p><strong>Reason:</strong> ${a.reason || 'N/A'}</p>
-                  </div>
-                  
-                  <div class="report-section">
-                      <h3>Dean Review</h3>
-                      <p><strong>Reviewer:</strong> ${a.dean_name} (Dean of ${a.dean_department})</p>
-                      <p><strong>Date:</strong> ${new Date(a.dean_reviewed_at).toLocaleString()}</p>
-                      <br>
-                      <p><strong>Dean Signature:</strong> <br><br> __________________________________</p>
-                  </div>
-                  
-                  <div class="report-section">
-                      <h3>HR Review</h3>
-                      <p><strong>Reviewer:</strong> ${a.hr_reviewer_name}</p>
-                      <p><strong>Date:</strong> ${new Date(a.hr_reviewed_at).toLocaleString()}</p>
-                      <br>
-                      <p><strong>HR Signature:</strong><br><br> __________________________________</p>
-                  </div>
-                  
-                  <div class="report-section outcome">
-                      <h3>Final Outcome</h3>
-                      <p><strong>Status:</strong> ${a.final_status_display}</p>
-                      <p><strong>Leave Balance Per Year:</strong> 15 Days</p>
-                      <p><strong>Remaining Leave Balance Before Request:</strong> ${a.leave_balance_before}</p>
-                      <p><strong>Remaining Leave Balance After Request:</strong> ${a.leave_balance_after ?? 'N/A'}</p>
-                      <p><strong>SAVED AT:</strong> ${new Date(a.archived_at).toLocaleString()}</p>
-                  </div>
-              </div>
-
-              <div style="margin-top:20px; text-align:right;">
-                  <button onclick="sendMail('${a.employee_name}')" style="background:black;
-                    color:#fff; border:none; border-radius:6px;
-                    padding:10px 18px; font-size:14px; font-weight:600;
-                    cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.15);
-                    transition:all 0.3s ease;">
-                    📩 Send Email to Employee
-                  </button>
-                  <button onclick="exportArchive(${a.id})"
-                          style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
-                                 color:#fff; border:none; border-radius:6px;
-                                 padding:10px 18px; font-size:14px; font-weight:600;
-                                 cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.15);
-                                 transition:all 0.3s ease;">
-                      📄 Export to PDF
-                  </button>
-              </div>
+      container.innerHTML = filtered.map(a => `
+        <div class="leave-report" style="border:1px solid #ddd; padding:15px; margin-bottom:15px; border-radius:8px;">
+          <div class="report-header">
+            <h2 class="employee-name">${a.employee_name} <span class="employee-id">(${a.employee_id})</span></h2>
+            <p class="employee-position">${a.employee_position}, ${a.employee_department}</p>
           </div>
+          <div class="report-body">
+            <div class="report-section">
+              <h3>Leave Details</h3>
+              <p><strong>Type:</strong> ${a.leave_type_display}</p>
+              <p><strong>Days Requested:</strong> ${a.number_of_days}</p>
+              <p><strong>Date Filed:</strong> ${new Date(a.date_filed).toLocaleDateString()}</p>
+              <p><strong>Reason:</strong> ${a.reason || 'N/A'}</p>
+            </div>
+            <div class="report-section">
+              <h3>Dean Review</h3>
+              <p><strong>Reviewer:</strong> ${a.dean_name} (Dean of ${a.dean_department})</p>
+              <p><strong>Date:</strong> ${new Date(a.dean_reviewed_at).toLocaleString()}</p>
+              <br>
+              <p><strong>Dean Signature:</strong><br><br> __________________________________</p>
+            </div>
+            <div class="report-section">
+              <h3>HR Review</h3>
+              <p><strong>Reviewer:</strong> ${a.hr_reviewer_name}</p>
+              <p><strong>Date:</strong> ${new Date(a.hr_reviewed_at).toLocaleString()}</p>
+              <br>
+              <p><strong>HR Signature:</strong><br><br> __________________________________</p>
+            </div>
+            <div class="report-section outcome">
+              <h3>Final Outcome</h3>
+              <p><strong>Status:</strong> ${a.final_status_display}</p>
+              <p><strong>Leave Balance Per Year:</strong> 15 Days</p>
+              <p><strong>Remaining Leave Balance Before Request:</strong> ${a.leave_balance_before}</p>
+              <p><strong>Remaining Leave Balance After Request:</strong> ${a.leave_balance_after ?? 'N/A'}</p>
+              <p><strong>SAVED AT:</strong> ${new Date(a.archived_at).toLocaleString()}</p>
+            </div>
+          </div>
+          <div style="margin-top:20px; text-align:right;">
+            <button onclick="sendMail('${a.employee_name}')" style="background:black;
+              color:#fff; border:none; border-radius:6px;
+              padding:10px 18px; font-size:14px; font-weight:600;
+              cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.15);
+              transition:all 0.3s ease;">
+              📩 Send Email to Employee
+            </button>
+            <button onclick="exportArchive(${a.id})"
+                    style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+                           color:#fff; border:none; border-radius:6px;
+                           padding:10px 18px; font-size:14px; font-weight:600;
+                           cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.15);
+                           transition:all 0.3s ease;">
+                📄 Export to PDF
+            </button>
+            <button onclick="deleteArchive(${a.id}, this)"
+                    style="background: linear-gradient(135deg, #ff4e50 0%, #f93523 100%);
+                          color: #fff; border: none; border-radius: 6px;
+                          padding:10px 18px; font-size:14px; font-weight:600;
+                          cursor:pointer; box-shadow:0 2px 6px rgba(255,78,80,0.3);
+                          transition: all 0.3s ease;">
+              Delete Archive
+            </button>
+          </div>
+        </div>
       `).join('');
+    }
+
+    renderArchives();
+
+    searchBox.addEventListener('input', e => {
+      renderArchives(e.target.value);
+    });
+
   } catch (err) {
-      console.error('Error loading archives:', err);
-      document.querySelector('.archive-container').innerHTML = '<p class="no-data">Error loading archived requests</p>';
+    console.error('Error loading archives:', err);
+    document.querySelector('.archive-container').innerHTML = '<p class="no-data">Error loading archived requests</p>';
+  }
+}
+
+async function deleteArchive(id, buttonEl) {
+  if (!confirm("Are you sure you want to permanently delete this archive?")) return;
+
+  try {
+    showLoader();
+    const response = await fetch(`/api/leave-request-archives/${id}/delete/`, {
+      method: 'DELETE',
+      credentials: 'same-origin',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrftoken
+      }
+    });
+
+    if (response.ok) {
+      alert("Archive deleted successfully.");
+      const card = buttonEl.closest('.leave-report');
+      if (card) card.remove();
+    } else {
+      const errorData = await response.json();
+      alert(`Failed to delete archive: ${errorData.detail || response.statusText}`);
+    }
+  } catch (err) {
+    console.error("Error deleting archive:", err);
+    alert("An error occurred while deleting the archive.");
+  } finally {
+    hideLoader();
   }
 }
 
 async function sendMail(employeeName) {
   try {
     showLoader();
+
     const response = await fetch(`${API_BASE}/api/employees/`);
     if (!response.ok) throw new Error('Failed to load employees');
     const employees = await response.json();
 
     const employee = employees.find(emp => emp.full_name === employeeName);
-
     if (!employee || !employee.email) {
       alert("No email address found for this employee.");
       return;
     }
 
+    const leaveResponse = await fetch(
+      `${API_BASE}/api/leave-request-archives/by-employee/${employee.employee_id}/`,
+      {
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' }
+      }
+    );
+    if (!leaveResponse.ok) throw new Error('Failed to load leave requests');
+    const leaveRequests = await leaveResponse.json();
+
+    if (!leaveRequests.length) {
+      alert("No leave requests found for this employee.");
+      return;
+    }
+
+    const leaveDetails = leaveRequests.map(lr => {
+      return `- Type: ${lr.leave_type_display}\n  Days Requested: ${lr.number_of_days}\n  Status: ${lr.final_status_display}\n  Filed On: ${new Date(lr.date_filed).toLocaleDateString()}\n`;
+    }).join("\n");
+
     const subject = encodeURIComponent("Leave Request Notification");
     const body = encodeURIComponent(
-      `Hello ${employee.full_name},\n\nThis is regarding your leave request.\n\nRegards,\nHR Department`
+      `Hello ${employee.full_name},\n\nThis is regarding your leave requests:\n\n` +
+      `${leaveDetails}\n` +
+      `Please contact HR if you have any questions.\n\nRegards,\nHR Department`
     );
 
     const mailtoLink = `mailto:${employee.email}?subject=${subject}&body=${body}`;
     window.location.href = mailtoLink;
+
   } catch (error) {
-    console.error("Error fetching employee email:", error);
-    alert("Failed to fetch employee email.");
-  }finally {
+    console.error("Error sending leave request email:", error);
+    alert("Failed to fetch leave request details.");
+  } finally {
     hideLoader();
   }
 }
@@ -582,6 +660,20 @@ function populateFacultyChart() {
                 <div class="faculty-name">${emp.full_name}</div>
                 <div class="faculty-position">${emp.position_title || 'N/A'}</div>
                 <div class="faculty-id">${emp.employee_id}</div>
+                <p>
+                  <strong style="color: ${
+                    emp.remaining_days !== null 
+                      ? (emp.remaining_days > 7 
+                          ? 'green' 
+                          : emp.remaining_days >= 3 
+                            ? 'orange' 
+                            : 'red')
+                      : 'green'
+                  }">
+                    ${emp.remaining_days !== null ? emp.remaining_days : 15}
+                  </strong> 
+                  Days Leave Credits Remaining
+                </p>
               </div>
             </div>
           `).join('')}
@@ -624,11 +716,9 @@ function displayLeaveRequests(reports) {
   const container = document.querySelector('.leave-requests-container');
   if (!container) return;
 
-  //const filteredReports = (reports || []).filter(r => r.status === 'dean_approved');
   const filteredReports = (reports || []).filter(
     r => r.status === 'dean_approved' && r.is_archived === false
   );
-
 
   if (!filteredReports.length) {
     container.innerHTML =
@@ -646,99 +736,106 @@ function displayLeaveRequests(reports) {
     });
   };
 
-  container.innerHTML = filteredReports.map(req => {
-    const app = req.application || {};
+  function renderRequests(list) {
+    container.innerHTML = list.map(req => {
+      const app = req.application || {};
+      const employeeName = app.employee_name || 'N/A';
+      const employeeId = app.employee_id_display || 'N/A';
+      const departmentName = app.department_name || 'N/A';
+      const positionTitle = app.position_title || 'N/A';
+      const leaveType = app.leave_type || 'N/A';
+      const numDays = app.number_of_days || 0;
+      const dateFiled = app.date_filed || 'N/A';
+      const location = app.vacation_location || app.sick_location || 'N/A';
+      const reason = app.reason || '';
+      const deanReviewerName = req.dean_reviewer_name || 'Dean';
+      const deanReviewedAt = req.dean_reviewed_at || '';
+      const deanComments = req.dean_comments || '';
+      const statusDisplay = req.status_display || 'Unknown Status';
 
-    const employeeName = app.employee_name || 'N/A';
-    const employeeId = app.employee_id_display || 'N/A';
-    const departmentName = app.department_name || 'N/A';
-    const positionTitle = app.position_title || 'N/A';
-
-    const leaveType = app.leave_type || 'N/A';
-    const numDays = app.number_of_days || 0;
-    const dateFiled = app.date_filed || 'N/A';
-    const location = app.vacation_location || app.sick_location || 'N/A';
-    const reason = app.reason || '';
-
-    const deanReviewerName = req.dean_reviewer_name || 'Dean';
-    const deanReviewedAt = req.dean_reviewed_at || '';
-    const deanComments = req.dean_comments || '';
-
-    const statusDisplay = req.status_display || 'Unknown Status';
-
-    //console.log(`Data To Be Displayed: ${JSON.stringify(req)}`); --> Pangcheck
-
-    return `
-      <div class="leave-report-card">
-        <div style="background: linear-gradient(180deg, #8B0000 0%, #5a0000 100%);
-                    color: white; padding: 20px 30px; display: flex;
-                    justify-content: space-between; align-items: center;">
-          <h2 style="margin: 0; font-size: 13px;">Leave Request #${req.id}</h2>
-          <span style="padding: 8px 16px; border-radius: 20px; font-size: 12px;
-                       font-weight: bold; background-color: #FFC107; color: #000;">
-            ${statusDisplay}
-          </span>
-        </div>
-
-        <div style="padding: 30px;">
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                      gap: 15px; margin-bottom: 20px;">
-            <div><label>Employee ID</label><div>${employeeId}</div></div>
-            <div><label>Employee Name</label><div>${employeeName}</div></div>
+      return `
+        <div class="leave-report-card">
+          <div style="background: linear-gradient(180deg, #8B0000 0%, #5a0000 100%);
+                      color: white; padding: 20px 30px; display: flex;
+                      justify-content: space-between; align-items: center;">
+            <h2 style="margin: 0; font-size: 13px;">Leave Request #${req.id}</h2>
+            <span style="padding: 8px 16px; border-radius: 20px; font-size: 12px;
+                         font-weight: bold; background-color: #FFC107; color: #000;">
+              ${statusDisplay}
+            </span>
           </div>
-
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-                      gap: 15px; margin-bottom: 20px;">
-            <div><label>Department</label><div>${departmentName}</div></div>
-            <div><label>Position</label><div>${positionTitle}</div></div>
-            <div><label>Date Filed</label><div>${formatDate(dateFiled)}</div></div>
-          </div>
-
-          <div style="background-color: #f5f5f5; padding: 20px; border-radius: 6px; margin-bottom: 20px;">
-            <h3>Leave Details</h3>
-            <p><strong>Type:</strong> ${leaveType}</p>
-            <p><strong>Location:</strong> ${location}</p>
-            <p><strong>Number of Days:</strong> ${numDays}</p>
-            ${reason ? `<p><strong>Reason:</strong> ${reason}</p>` : ''}
-          </div>
-
-          <div style="background-color: #e8f5e9; padding: 20px; border-radius: 6px; margin-bottom: 20px;">
-            <h3 style="color: #2e7d32;">Dean Approval</h3>
-            <p><strong>Reviewed By:</strong> ${deanReviewerName}</p>
-            <p><strong>Reviewed At:</strong> ${formatDate(deanReviewedAt)}</p>
-            ${deanComments ? `<p><strong>Comments:</strong> ${deanComments}</p>` : ''}
-          </div>
-
-          <div style="display: flex; gap: 10px;">
-            <button class="approve-btn" data-id="${req.id}">✓ Approve</button>
-            <button class="reject-btn" data-id="${req.id}">✕ Reject</button>
+          <div style="padding: 30px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                        gap: 15px; margin-bottom: 20px;">
+              <div><label>Employee ID</label><div>${employeeId}</div></div>
+              <div><label>Employee Name</label><div>${employeeName}</div></div>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                        gap: 15px; margin-bottom: 20px;">
+              <div><label>Department</label><div>${departmentName}</div></div>
+              <div><label>Position</label><div>${positionTitle}</div></div>
+              <div><label>Date Filed</label><div>${formatDate(dateFiled)}</div></div>
+            </div>
+            <div style="background-color: #f5f5f5; padding: 20px; border-radius: 6px; margin-bottom: 20px;">
+              <h3>Leave Details</h3>
+              <p><strong>Type:</strong> ${leaveType}</p>
+              <p><strong>Location:</strong> ${location}</p>
+              <p><strong>Number of Days:</strong> ${numDays}</p>
+              ${reason ? `<p><strong>Reason:</strong> ${reason}</p>` : ''}
+            </div>
+            <div style="background-color: #e8f5e9; padding: 20px; border-radius: 6px; margin-bottom: 20px;">
+              <h3 style="color: #2e7d32;">Dean Approval</h3>
+              <p><strong>Reviewed By:</strong> ${deanReviewerName}</p>
+              <p><strong>Reviewed At:</strong> ${formatDate(deanReviewedAt)}</p>
+              ${deanComments ? `<p><strong>Comments:</strong> ${deanComments}</p>` : ''}
+            </div>
+            <div style="display: flex; gap: 10px;">
+              <button class="approve-btn" data-id="${req.id}">✓ Approve</button>
+              <button class="reject-btn" data-id="${req.id}">✕ Reject</button>
+            </div>
           </div>
         </div>
-      </div>
-    `;
-  }).join('');
+      `;
+    }).join('');
 
-  container.querySelectorAll('.approve-btn').forEach(btn => {
-    btn.addEventListener('click', () => approveLeaveRequest(btn.dataset.id));
-  });
-  container.querySelectorAll('.reject-btn').forEach(btn => {
-    btn.addEventListener('click', () => rejectLeaveRequest(btn.dataset.id));
-  });
+    container.querySelectorAll('.approve-btn').forEach(btn => {
+      btn.addEventListener('click', () => approveLeaveRequest(btn.dataset.id));
+    });
+    container.querySelectorAll('.reject-btn').forEach(btn => {
+      btn.addEventListener('click', () => rejectLeaveRequest(btn.dataset.id));
+    });
+  }
+
+  renderRequests(filteredReports);
+
+  const searchBox = document.getElementById('leaveSearch');
+  if (searchBox) {
+    searchBox.addEventListener('input', e => {
+      const term = e.target.value.toLowerCase();
+      const results = filteredReports.filter(req => {
+        const app = req.application || {};
+        return (
+          (app.employee_name || '').toLowerCase().includes(term) ||
+          (app.employee_id_display || '').toLowerCase().includes(term) ||
+          (app.department_name || '').toLowerCase().includes(term) ||
+          (app.position_title || '').toLowerCase().includes(term) ||
+          (app.leave_type || '').toLowerCase().includes(term)
+        );
+      });
+      renderRequests(results);
+    });
+  }
 }
 
 function displayLeaveReports(reports) {
   const container = document.querySelector('.leave-reports-cards-container');
+  const searchInput = document.getElementById('leave_Reports');
   
   if (!container) return;
 
-  const filteredReports = (reports || []).filter(r => 
+  const allReports = (reports || []).filter(r => 
     r.status === 'denied' || r.status === 'approved'
   );
-
-  if (!filteredReports.length) {
-    container.innerHTML = '<p style="text-align: center; padding: 40px; color: #666;">No leave reports found</p>';
-    return;
-  }
 
   const formatDate = (dateStr) => {
     if (!dateStr || dateStr === 'N/A') return 'N/A';
@@ -767,264 +864,353 @@ function displayLeaveReports(reports) {
     return locations[loc] || loc;
   };
 
-  container.innerHTML = filteredReports.map(req => {
-    const app = req.application || {};
-
-    const employeeName = app.employee_name || 'N/A';
-    const employeeId = app.employee_id_display || 'N/A';
-    const departmentName = app.department_name || 'N/A';
-    const positionTitle = app.position_title || 'N/A';
-    const photoUrl = app.employee_photo_url || '';
-
-    const leaveType = app.leave_type || 'N/A';
-    const numDays = app.number_of_days || 0;
-    const dateFiled = app.date_filed || 'N/A';
-    const location = app.vacation_location || app.sick_location || '';
-    const notes = app.reason || '';
-
-    const deanReviewer = req.dean_reviewer_name || null;
-    const deanReviewedAt = req.dean_reviewed_at || '';
-    const deanComments = req.dean_comments || '';
-
-    const hrReviewer = req.hr_reviewer_name || null;
-    const hrReviewedAt = req.hr_reviewed_at || '';
-    const hrComments = req.hr_comments || '';
-
-    const statusDisplay = req.status_display || 'Unknown Status';
-    const status = req.status;
-
-    const statusColorMap = {
-      'approved': '#4CAF50',
-      'dean_approved': '#2196F3',
-      'pending': '#FFC107'
-    };
-
-    const statusColor = statusColorMap[status] || '#ff0e0e';
-    const statusBg = status === 'approved' ? '#e8f5e9' : '#e3f2fd';
-    const statusBorder = status === 'approved' ? '#4CAF50' : '#2196F3';
-
-    let approvalSection = '';
-    
-    if (status === 'approved') {
-      approvalSection = `
-        <div style="background-color: ${statusBg}; padding: 15px; border-radius: 6px; border-left: 4px solid ${statusBorder};">
-          <h4 style="font-size: 13px; color: #333; margin: 0 0 8px 0;">
-            ✓ Approved By Dean
-          </h4>
-          <p style="font-size: 14px; color: #555; margin: 4px 0;">
-            <strong>Reviewer:</strong> ${deanReviewer || 'Dean'}
-          </p>
-          <p style="font-size: 14px; color: #555; margin: 4px 0;">
-            <strong>Date:</strong> ${formatDate(deanReviewedAt)}
-          </p>
-          ${deanComments ? `
-          <div style="background-color: #fff9c4; padding: 12px; border-radius: 6px; margin-top: 10px; border-left: 4px solid #fbc02d;">
-            <strong style="font-size: 13px;">Dean Comments:</strong>
-            <p style="font-size: 13px; color: #666; font-style: italic; margin: 4px 0 0 0;">
-              ${deanComments}
-            </p>
-          </div>
-          ` : ''}
-        </div>
-
-        <div style="background-color: #e8f5e9; padding: 15px; border-radius: 6px; border-left: 4px solid #4CAF50; margin-top: 15px;">
-          <h4 style="font-size: 13px; color: #333; margin: 0 0 8px 0;">
-            ✓ Approved By HR
-          </h4>
-          <p style="font-size: 14px; color: #555; margin: 4px 0;">
-            <strong>Reviewer:</strong> ${hrReviewer || 'HR'}
-          </p>
-          <p style="font-size: 14px; color: #555; margin: 4px 0;">
-            <strong>Date:</strong> ${formatDate(hrReviewedAt)}
-          </p>
-          ${hrComments ? `
-          <div style="background-color: #fff9c4; padding: 12px; border-radius: 6px; margin-top: 10px; border-left: 4px solid #fbc02d;">
-            <strong style="font-size: 13px;">HR Comments:</strong>
-            <p style="font-size: 13px; color: #666; font-style: italic; margin: 4px 0 0 0;">
-              ${hrComments}
-            </p>
-          </div>
-          ` : ''}
-        </div>
-      `;
-    } else if (status === 'approved' || status === 'denied') {
-      approvalSection = `
-        <div style="background-color: ${statusBg}; padding: 15px; border-radius: 6px; border-left: 4px solid ${statusBorder};">
-          <h4 style="font-size: 13px; color: #333; margin: 0 0 8px 0;">
-            ✓ Approved By Dean
-          </h4>
-          <p style="font-size: 14px; color: #555; margin: 4px 0;">
-            <strong>Reviewer:</strong> ${deanReviewer || 'Dean'}
-          </p>
-          <p style="font-size: 14px; color: #555; margin: 4px 0;">
-            <strong>Date:</strong> ${formatDate(deanReviewedAt)}
-          </p>
-          ${deanComments ? `
-          <div style="background-color: #fff9c4; padding: 12px; border-radius: 6px; margin-top: 10px; border-left: 4px solid #fbc02d;">
-            <strong style="font-size: 13px;">Dean Comments:</strong>
-            <p style="font-size: 13px; color: #666; font-style: italic; margin: 4px 0 0 0;">
-              ${deanComments}
-            </p>
-          </div>
-          ` : ''}
-        </div>
-
-        <div style="background-color: #f60707; padding: 15px; border-radius: 6px; border-left: 4px solid #FF9800; margin-top: 15px;">
-          <h4 style="font-size: 18px; color: #f2eeee; margin: 0 0 8px 0; font-family: monospace;">
-             ✖ DENIED REQUEST
-          </h4>
-        </div>
-      `;
+  const renderReports = (reportsToRender) => {
+    if (!reportsToRender.length) {
+      container.innerHTML = '<p style="text-align: center; padding: 40px; color: #666;">No leave reports found</p>';
+      return;
     }
 
-    return `
-      <div class="leave-report-card">
-        <!-- Form Header -->
-        <div style="background: linear-gradient(180deg, #8B0000 0%, #5a0000 100%); color: white; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center;">
-          <h2 style="font-size: 12px; margin: 12px;">Leave Application Report #${req.id || ''}</h2>
-          <span style="padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: bold; background-color: ${statusColor}; color: white; filter: drop-shadow(2px 4px 6px black);">
-            ${statusDisplay.toUpperCase()}
-          </span>
-        </div>
+    container.innerHTML = reportsToRender.map(req => {
+      const app = req.application || {};
 
-        <!-- Section Title: Employee Information -->
-        <div style="background: linear-gradient(180deg, #8B0000 0%, #5a0000 100%); color: white; padding: 12px 30px; font-size: 14px; font-weight: bold; letter-spacing: 1px;">
-          EMPLOYEE INFORMATION
-        </div>
+      const employeeName = app.employee_name || 'N/A';
+      const employeeId = app.employee_id_display || 'N/A';
+      const departmentName = app.department_name || 'N/A';
+      const positionTitle = app.position_title || 'N/A';
+      const photoUrl = app.employee_photo_url || '';
 
-        <!-- Form Content -->
-        <div style="padding: 30px;">
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
-            <div>
-              <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #333;">Employee ID</label>
-              <div style="padding: 10px 12px; border: 1px solid #d0d0d0; border-radius: 4px; background-color: #f9f9f9; font-size: 14px; color: #555;">
-                ${employeeId}
-              </div>
+      const leaveType = app.leave_type || 'N/A';
+      const numDays = app.number_of_days || 0;
+      const dateFiled = app.date_filed || 'N/A';
+      const location = app.vacation_location || app.sick_location || '';
+      const notes = app.reason || '';
+
+      const deanReviewer = req.dean_reviewer_name || null;
+      const deanReviewedAt = req.dean_reviewed_at || '';
+      const deanComments = req.dean_comments || '';
+
+      const hrReviewer = req.hr_reviewer_name || null;
+      const hrReviewedAt = req.hr_reviewed_at || '';
+      const hrComments = req.hr_comments || '';
+
+      const statusDisplay = req.status_display || 'Unknown Status';
+      const status = req.status;
+
+      const statusColorMap = {
+        'approved': '#4CAF50',
+        'dean_approved': '#2196F3',
+        'pending': '#FFC107'
+      };
+
+      const statusColor = statusColorMap[status] || '#ff0e0e';
+      const statusBg = status === 'approved' ? '#e8f5e9' : '#e3f2fd';
+      const statusBorder = status === 'approved' ? '#4CAF50' : '#2196F3';
+
+      let approvalSection = '';
+      
+      if (status === 'approved') {
+        approvalSection = `
+          <div style="background-color: ${statusBg}; padding: 15px; border-radius: 6px; border-left: 4px solid ${statusBorder};">
+            <h4 style="font-size: 13px; color: #333; margin: 0 0 8px 0;">
+              ✓ Approved By Dean
+            </h4>
+            <p style="font-size: 14px; color: #555; margin: 4px 0;">
+              <strong>Reviewer:</strong> ${deanReviewer || 'Dean'}
+            </p>
+            <p style="font-size: 14px; color: #555; margin: 4px 0;">
+              <strong>Date:</strong> ${formatDate(deanReviewedAt)}
+            </p>
+            ${deanComments ? `
+            <div style="background-color: #fff9c4; padding: 12px; border-radius: 6px; margin-top: 10px; border-left: 4px solid #fbc02d;">
+              <strong style="font-size: 13px;">Dean Comments:</strong>
+              <p style="font-size: 13px; color: #666; font-style: italic; margin: 4px 0 0 0;">
+                ${deanComments}
+              </p>
             </div>
-            <div>
-              <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #333;">Employee Name</label>
-              <div style="padding: 10px 12px; border: 1px solid #d0d0d0; border-radius: 4px; background-color: #f9f9f9; font-size: 14px; color: #555;">
-                ${employeeName}
-              </div>
-            </div>
+            ` : ''}
           </div>
 
-          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px;">
-            <div>
-              <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #333;">Department</label>
-              <div style="padding: 10px 12px; border: 1px solid #d0d0d0; border-radius: 4px; background-color: #f9f9f9; font-size: 14px; color: #555;">
-                ${departmentName}
-              </div>
+          <div style="background-color: #e8f5e9; padding: 15px; border-radius: 6px; border-left: 4px solid #4CAF50; margin-top: 15px;">
+            <h4 style="font-size: 13px; color: #333; margin: 0 0 8px 0;">
+              ✓ Approved By HR
+            </h4>
+            <p style="font-size: 14px; color: #555; margin: 4px 0;">
+              <strong>Reviewer:</strong> ${hrReviewer || 'HR'}
+            </p>
+            <p style="font-size: 14px; color: #555; margin: 4px 0;">
+              <strong>Date:</strong> ${formatDate(hrReviewedAt)}
+            </p>
+            ${hrComments ? `
+            <div style="background-color: #fff9c4; padding: 12px; border-radius: 6px; margin-top: 10px; border-left: 4px solid #fbc02d;">
+              <strong style="font-size: 13px;">HR Comments:</strong>
+              <p style="font-size: 13px; color: #666; font-style: italic; margin: 4px 0 0 0;">
+                ${hrComments}
+              </p>
             </div>
-            <div>
-              <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #333;">Position</label>
-              <div style="padding: 10px 12px; border: 1px solid #d0d0d0; border-radius: 4px; background-color: #f9f9f9; font-size: 14px; color: #555;">
-                ${positionTitle}
-              </div>
+            ` : ''}
+          </div>
+        `;
+      } else if (status === 'denied') {
+        approvalSection = `
+          <div style="background-color: ${statusBg}; padding: 15px; border-radius: 6px; border-left: 4px solid ${statusBorder};">
+            <h4 style="font-size: 13px; color: #333; margin: 0 0 8px 0;">
+              ✓ Approved By Dean
+            </h4>
+            <p style="font-size: 14px; color: #555; margin: 4px 0;">
+              <strong>Reviewer:</strong> ${deanReviewer || 'Dean'}
+            </p>
+            <p style="font-size: 14px; color: #555; margin: 4px 0;">
+              <strong>Date:</strong> ${formatDate(deanReviewedAt)}
+            </p>
+            ${deanComments ? `
+            <div style="background-color: #fff9c4; padding: 12px; border-radius: 6px; margin-top: 10px; border-left: 4px solid #fbc02d;">
+              <strong style="font-size: 13px;">Dean Comments:</strong>
+              <p style="font-size: 13px; color: #666; font-style: italic; margin: 4px 0 0 0;">
+                ${deanComments}
+              </p>
             </div>
-            <div>
-              <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #333;">Date of Filing</label>
-              <div style="padding: 10px 12px; border: 1px solid #d0d0d0; border-radius: 4px; background-color: #f9f9f9; font-size: 14px; color: #555;">
-                ${formatDate(dateFiled)}
-              </div>
-            </div>
+            ` : ''}
           </div>
 
-          <!-- Leave Details Section -->
-          <div style="background: linear-gradient(180deg, #8B0000 0%, #5a0000 100%); color: white; padding: 12px 30px; font-size: 14px; font-weight: bold; letter-spacing: 1px; margin: 20px -30px;">
-            LEAVE DETAILS
+          <div style="background-color: #f60707; padding: 15px; border-radius: 6px; border-left: 4px solid #FF9800; margin-top: 15px;">
+            <h4 style="font-size: 18px; color: #f2eeee; margin: 0 0 8px 0; font-family: monospace;">
+               ✖ DENIED REQUEST
+            </h4>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="leave-report-card">
+          <!-- Form Header -->
+          <div style="background: linear-gradient(180deg, #8B0000 0%, #5a0000 100%); color: white; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center;">
+            <h2 style="font-size: 12px; margin: 12px;">Leave Application Report #${req.id || ''}</h2>
+            <span style="padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: bold; background-color: ${statusColor}; color: white; filter: drop-shadow(2px 4px 6px black);">
+              ${statusDisplay.toUpperCase()}
+            </span>
           </div>
 
-          <div style="border-top: 2px solid #e0e0e0; padding-top: 20px; margin-top: 10px;">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+          <!-- Section Title: Employee Information -->
+          <div style="background: linear-gradient(180deg, #8B0000 0%, #5a0000 100%); color: white; padding: 12px 30px; font-size: 14px; font-weight: bold; letter-spacing: 1px;">
+            EMPLOYEE INFORMATION
+          </div>
+
+          <!-- Form Content -->
+          <div style="padding: 30px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
               <div>
-                <div style="margin-bottom: 20px;">
-                  <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #333;">Type of Leave</label>
-                  <div style="padding: 10px 12px; border: 1px solid #d0d0d0; border-radius: 4px; background-color: #f9f9f9; font-size: 14px; color: #555;">
-                    ${getLeaveTypeLabel(leaveType)}
-                  </div>
+                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #333;">Employee ID</label>
+                <div style="padding: 10px 12px; border: 1px solid #d0d0d0; border-radius: 4px; background-color: #f9f9f9; font-size: 14px; color: #555;">
+                  ${employeeId}
                 </div>
+              </div>
+              <div>
+                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #333;">Employee Name</label>
+                <div style="padding: 10px 12px; border: 1px solid #d0d0d0; border-radius: 4px; background-color: #f9f9f9; font-size: 14px; color: #555;">
+                  ${employeeName}
+                </div>
+              </div>
+            </div>
 
-                <div style="background-color: #f9f5f7; padding: 20px; border-radius: 8px; border: 1px solid #e0e0e0; text-align: center;">
-                  <label style="display: block; margin-bottom: 10px; font-size: 13px; font-weight: 600; color: #333;">Employee Photo</label>
-                  <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                    <div style="width: 120px; height: 120px; border-radius: 50%; overflow: hidden; border: 3px solid #8B0000; margin-bottom: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-                      <img src="${photoUrl}" alt="Employee Photo" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%22120%22%3E%3Crect fill=%22%23ddd%22 width=%22120%22 height=%22120%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2218%22 fill=%22%23999%22%3ENo Photo%3C/text%3E%3C/svg%3E'">
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px;">
+              <div>
+                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #333;">Department</label>
+                <div style="padding: 10px 12px; border: 1px solid #d0d0d0; border-radius: 4px; background-color: #f9f9f9; font-size: 14px; color: #555;">
+                  ${departmentName}
+                </div>
+              </div>
+              <div>
+                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #333;">Position</label>
+                <div style="padding: 10px 12px; border: 1px solid #d0d0d0; border-radius: 4px; background-color: #f9f9f9; font-size: 14px; color: #555;">
+                  ${positionTitle}
+                </div>
+              </div>
+              <div>
+                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #333;">Date of Filing</label>
+                <div style="padding: 10px 12px; border: 1px solid #d0d0d0; border-radius: 4px; background-color: #f9f9f9; font-size: 14px; color: #555;">
+                  ${formatDate(dateFiled)}
+                </div>
+              </div>
+            </div>
+
+            <!-- Leave Details Section -->
+            <div style="background: linear-gradient(180deg, #8B0000 0%, #5a0000 100%); color: white; padding: 12px 30px; font-size: 14px; font-weight: bold; letter-spacing: 1px; margin: 20px -30px;">
+              LEAVE DETAILS
+            </div>
+
+            <div style="border-top: 2px solid #e0e0e0; padding-top: 20px; margin-top: 10px;">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                <div>
+                  <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #333;">Type of Leave</label>
+                    <div style="padding: 10px 12px; border: 1px solid #d0d0d0; border-radius: 4px; background-color: #f9f9f9; font-size: 14px; color: #555;">
+                      ${getLeaveTypeLabel(leaveType)}
                     </div>
-                    <div style="font-size: 16px; font-weight: bold; color: #222; margin-bottom: 4px;">${employeeName}</div>
-                    <div style="font-size: 13px; color: #666; background: #f0f0f0; padding: 6px 12px; border-radius: 12px;">${employeeId}</div>
                   </div>
-                </div>
-              </div>
 
-              <div>
-                ${location ? `
-                <div style="margin-bottom: 20px;">
-                  <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #333;">Where Leave Will Be Spent</label>
-                  <div style="padding: 10px 12px; border: 1px solid #d0d0d0; border-radius: 4px; background-color: #f9f9f9; font-size: 14px; color: #555;">
-                    ${getLocationLabel(location)}
-                  </div>
-                </div>
-                ` : ''}
-
-                <div style="margin-bottom: 20px;">
-                  <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #333;">Number of Days</label>
-                  <div style="padding: 10px 12px; border: 1px solid #d0d0d0; border-radius: 4px; background-color: #f9f9f9; font-size: 14px; color: #555;">
-                    ${numDays} day(s)
+                  <div style="background-color: #f9f5f7; padding: 20px; border-radius: 8px; border: 1px solid #e0e0e0; text-align: center;">
+                    <label style="display: block; margin-bottom: 10px; font-size: 13px; font-weight: 600; color: #333;">Employee Photo</label>
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                      <div style="width: 120px; height: 120px; border-radius: 50%; overflow: hidden; border: 3px solid #8B0000; margin-bottom: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                        <img src="${photoUrl}" alt="Employee Photo" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%22120%22%3E%3Crect fill=%22%23ddd%22 width=%22120%22 height=%22120%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2218%22 fill=%22%23999%22%3ENo Photo%3C/text%3E%3C/svg%3E'">
+                      </div>
+                      <div style="font-size: 16px; font-weight: bold; color: #222; margin-bottom: 4px;">${employeeName}</div>
+                      <div style="font-size: 13px; color: #666; background: #f0f0f0; padding: 6px 12px; border-radius: 12px;">${employeeId}</div>
+                    </div>
                   </div>
                 </div>
 
-                ${notes ? `
-                <div style="margin-bottom: 20px;">
-                  <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #333;">Additional Notes</label>
-                  <div style="padding: 10px 12px; border: 1px solid #d0d0d0; border-radius: 4px; background-color: #f9f9f9; font-size: 14px; color: #555; min-height: 60px; white-space: pre-wrap;">
-                    ${notes}
+                <div>
+                  ${location ? `
+                  <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #333;">Where Leave Will Be Spent</label>
+                    <div style="padding: 10px 12px; border: 1px solid #d0d0d0; border-radius: 4px; background-color: #f9f9f9; font-size: 14px; color: #555;">
+                      ${getLocationLabel(location)}
+                    </div>
                   </div>
-                </div>
-                ` : ''}
+                  ` : ''}
 
-                <!-- Approval Status Sections -->
-                ${approvalSection}
-                
-                <!-- Archive Button (only for approved status and not archived) -->
-                ${status === 'approved' ? `
-                  <div style="margin-top: 20px; padding-top: 15px; border-top: 2px solid #e0e0e0;">
-                    <button class="archive-btn" data-id="${req.id}" 
-                            ${req.is_archived ? 'disabled' : ''}
-                            style="width: 100%; padding: 12px 20px; 
-                                  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                                  color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; 
-                                  cursor: ${req.is_archived ? 'not-allowed' : 'pointer'}; 
-                                  opacity: ${req.is_archived ? '0.6' : '1'}; 
-                                  display: flex; align-items: center; justify-content: center; gap: 8px;
-                                  transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);">
-                      <span style="font-size: 18px;">📦</span>
-                      <span>${req.is_archived ? 'ALREADY ARCHIVED' : 'Archive This Request'}</span>
+                  <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #333;">Number of Days</label>
+                    <div style="padding: 10px 12px; border: 1px solid #d0d0d0; border-radius: 4px; background-color: #f9f9f9; font-size: 14px; color: #555;">
+                      ${numDays} day(s)
+                    </div>
+                  </div>
+
+                  ${notes ? `
+                  <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #333;">Additional Notes</label>
+                    <div style="padding: 10px 12px; border: 1px solid #d0d0d0; border-radius: 4px; background-color: #f9f9f9; font-size: 14px; color: #555; min-height: 60px; white-space: pre-wrap;">
+                      ${notes}
+                    </div>
+                  </div>
+                  ` : ''}
+
+                  <!-- Approval Status Sections -->
+                  ${approvalSection}
+                  
+                  <!-- Archive Button (only for approved status and not archived) -->
+                  ${status === 'approved' ? `
+                    <div style="margin-top: 20px; padding-top: 15px; border-top: 2px solid #e0e0e0;">
+                      <button class="archive-btn" data-id="${req.id}" 
+                              ${req.is_archived ? 'disabled' : ''}
+                              style="width: 100%; padding: 12px 20px; 
+                                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                                    color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; 
+                                    cursor: ${req.is_archived ? 'not-allowed' : 'pointer'}; 
+                                    opacity: ${req.is_archived ? '0.6' : '1'}; 
+                                    display: flex; align-items: center; justify-content: center; gap: 8px;
+                                    transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);">
+                        <span style="font-size: 18px;">📦</span>
+                        <span>${req.is_archived ? 'ALREADY ARCHIVED' : 'Archive This Request'}</span>
+                      </button>
+                    </div>
+                  ` : ''}
+                  <!-- Delete Button -->
+                  <div style="margin-top: 15px;">
+                    <button class="delete-btn" onclick="DeleteThisReport(${req.id})"
+                            style="width: 100%; padding: 12px 20px;
+                                  background: linear-gradient(135deg, #ff4e50 0%, #f9d423 100%);
+                                  color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600;
+                                  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+                                  transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(255, 78, 80, 0.3);">
+                      <span style="font-size: 18px;">❌</span>
+                      <span>Delete Report</span>
                     </button>
                   </div>
-                ` : ''}
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    `;
-  }).join('');
-  
-  container.querySelectorAll('.archive-btn').forEach(btn => {
-    btn.addEventListener('mouseenter', (e) => {
-      e.target.style.background = 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)';
-      e.target.style.transform = 'translateY(-2px)';
-      e.target.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.4)';
+      `;
+    }).join('');
+    
+    container.querySelectorAll('.archive-btn').forEach(btn => {
+      btn.addEventListener('mouseenter', (e) => {
+        if (!e.target.disabled) {
+          e.target.style.background = 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)';
+          e.target.style.transform = 'translateY(-2px)';
+          e.target.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.4)';
+        }
+      });
+      btn.addEventListener('mouseleave', (e) => {
+        if (!e.target.disabled) {
+          e.target.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+          e.target.style.transform = 'translateY(0)';
+          e.target.style.boxShadow = '0 2px 8px rgba(102, 126, 234, 0.3)';
+        }
+      });
+      btn.addEventListener('click', () => {
+        if (!btn.disabled) {
+          archiveLeaveRequest(btn.dataset.id);
+        }
+      });
     });
-    btn.addEventListener('mouseleave', (e) => {
-      e.target.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-      e.target.style.transform = 'translateY(0)';
-      e.target.style.boxShadow = '0 2px 8px rgba(102, 126, 234, 0.3)';
+  };
+
+  renderReports(allReports);
+
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      const searchTerm = e.target.value.toLowerCase().trim();
+      
+      if (!searchTerm) {
+        renderReports(allReports);
+        return;
+      }
+
+      const filteredReports = allReports.filter(req => {
+        const app = req.application || {};
+        const employeeName = (app.employee_name || '').toLowerCase();
+        const employeeId = (app.employee_id_display || '').toLowerCase();
+        const departmentName = (app.department_name || '').toLowerCase();
+        const positionTitle = (app.position_title || '').toLowerCase();
+        const leaveType = (app.leave_type || '').toLowerCase();
+        const leaveTypeLabel = getLeaveTypeLabel(app.leave_type || '').toLowerCase();
+
+        return employeeName.includes(searchTerm) ||
+               employeeId.includes(searchTerm) ||
+               departmentName.includes(searchTerm) ||
+               positionTitle.includes(searchTerm) ||
+               leaveType.includes(searchTerm) ||
+               leaveTypeLabel.includes(searchTerm);
+      });
+
+      renderReports(filteredReports);
     });
-    btn.addEventListener('click', () => archiveLeaveRequest(btn.dataset.id));
-  });
+  }
 }
+
+async function DeleteThisReport(id) {
+  if (!id) return;
+
+  if (!confirm("Are you sure you want to permanently delete this leave request?")) return;
+
+  try {
+    const response = await fetch(`/api/leave-requests/${id}/`, {
+      method: 'DELETE',
+      credentials: 'same-origin',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrftoken
+      }
+    });
+
+    if (response.ok) {
+      alert("Leave request deleted successfully.");
+      const card = document.querySelector(`.delete-btn[data-id="${id}"]`)?.closest('.leave-report');
+      if (card) card.remove();
+    } else {
+      const errorData = await response.json();
+      alert(`Failed to delete leave request: ${errorData.detail || response.statusText}`);
+    }
+  } catch (err) {
+    console.error("Error deleting leave request:", err);
+    alert("An error occurred while deleting the leave request.");
+  }
+}
+
 
 function isHRUser() {
   return true;
@@ -1215,16 +1401,18 @@ function closeUpdateModal() {
   if (modal) modal.style.display = 'none';
 }
 
-function displayEmployeeList() {
+function displayEmployeeList(filteredEmployees = null) {
   const container = document.getElementById('employeeList');
   if (!container) return;
-  
-  if (allEmployees.length === 0) {
+
+  const employees = filteredEmployees || allEmployees;
+
+  if (employees.length === 0) {
     container.innerHTML = '<p style="text-align: center; padding: 20px;">No employees found</p>';
     return;
   }
 
-  container.innerHTML = allEmployees.map(emp => `
+  container.innerHTML = employees.map(emp => `
     <div class="employee-list-item ${!emp.is_active ? 'inactive' : ''}">
       <div class="employee-info">
         <div class="employee-name-text">${emp.full_name}</div>
@@ -1237,14 +1425,23 @@ function displayEmployeeList() {
         <button onclick="editEmployee(${emp.id})" class="btn-edit">Edit</button>
         ${emp.is_active 
           ? `<button class="btn-deactivate" style="background: transparent;">✅</button>`
-
           : `<button onclick="activateEmployee(${emp.id})" class="btn-activate">Activate</button>`
         }
-        ${!emp.is_active ? '' : `<button onclick="deleteEmployee(${emp.id})" class="btn-delete">Deactivate</button>`}
+        ${!emp.is_active ? '' : `<button onclick="deleteEmployee(${emp.id})" class="btn-delete">Delete</button>`}
       </div>
     </div>
   `).join('');
 }
+
+document.getElementById("employeeSearch").addEventListener("input", (e) => {
+  const term = e.target.value.toLowerCase();
+  const filtered = allEmployees.filter(emp =>
+    emp.full_name.toLowerCase().includes(term) ||
+    emp.employee_id.toLowerCase().includes(term) ||
+    (emp.position_title && emp.position_title.toLowerCase().includes(term))
+  );
+  displayEmployeeList(filtered);
+});
 
 async function activateEmployee(employeeId) {
   if (!confirm('Are you sure you want to activate this employee?')) return;
@@ -1277,7 +1474,7 @@ async function activateEmployee(employeeId) {
 }
 
 async function deleteEmployee(employeeId) {
-  if (!confirm("Are you sure you want to deactivate this employee?")) return;
+  if (!confirm("Are you sure you want to delete this employee?")) return;
 
   try {
     showLoader();
@@ -1289,16 +1486,16 @@ async function deleteEmployee(employeeId) {
     });
 
     if (response.ok) {
-      showSuccess("Employee deactivated successfully");
+      showSuccess("Employee deleted successfully");
       await loadEmployees();
       displayEmployeeList();
     } else {
       const error = await response.json();
-      showError(error.message || "Failed to deactivate employee");
+      showError(error.message || "Failed to delete employee");
     }
   } catch (error) {
-    console.error("Error deactivating employee:", error);
-    showError("Error deactivating employee");
+    console.error("Error deleting employee:", error);
+    showError("Error deleting employee");
   } finally {
     hideLoader();
   }
@@ -1781,6 +1978,16 @@ function renderDeans(container, deans) {
         <div class="org-title">${dean.full_name}</div>
         <div class="org-subtitle">Dean of ${dean.department}</div>
         ${detailsHTML}
+        <div style="margin-top:18px; display:flex; justify-content:space-between; gap:12px;">
+          <button onclick="updateDean(${dean.id})" 
+            style="flex:1; padding:10px; border:none; border-radius:8px; background:#800000; color:#fff; font-weight:600; cursor:pointer; transition:all 0.3s ease;">
+            Update
+          </button>
+          <button onclick="deleteDean(${dean.id})" 
+            style="flex:1; padding:10px; border:none; border-radius:8px; background:#d32f2f; color:#fff; font-weight:600; cursor:pointer; transition:all 0.3s ease;">
+            Delete
+          </button>
+      </div>
       `;
 
       card.addEventListener("click", e => {
@@ -1804,6 +2011,108 @@ function renderDeans(container, deans) {
 
     container.appendChild(level);
   }
+}
+
+function deleteDean(deanId) {
+  if (!confirm("Are you sure you want to delete this Dean?")) return;
+
+  showLoader();
+
+  fetch(`${API_BASE}/dean/${deanId}/delete/`, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${csrftoken}`
+    }
+  })
+  .then(res => res.json())
+  .then(resp => {
+    alert(resp.message || "Dean deleted successfully");
+    setTimeout(() => location.reload(), 2000);
+  })
+  .catch(() => alert("Error deleting dean"))
+  .finally(() => hideLoader());
+}
+
+function updateDean(deanId) {
+  const overlay = document.createElement("div");
+  overlay.style.position = "fixed";
+  overlay.style.top = "0";
+  overlay.style.left = "0";
+  overlay.style.width = "100%";
+  overlay.style.height = "100%";
+  overlay.style.background = "rgba(0,0,0,0.6)";
+  overlay.style.display = "flex";
+  overlay.style.justifyContent = "center";
+  overlay.style.alignItems = "center";
+  overlay.style.zIndex = "2000";
+
+  const modal = document.createElement("div");
+  modal.style.background = "#fff";
+  modal.style.padding = "20px";
+  modal.style.borderRadius = "10px";
+  modal.style.width = "90%";
+  modal.style.maxWidth = "400px";
+  modal.style.boxShadow = "0 6px 20px rgba(0,0,0,0.25)";
+  modal.innerHTML = `
+    <h3 style="margin-top:0; color:#800000;">Reassign Dean</h3>
+    <label for="employeeDepartment">Select Department:</label>
+    <select id="employeeDepartment" style="width:100%; padding:8px; margin:10px 0; border-radius:6px; border:1px solid #ccc;">
+      <option value="">Select Department</option>
+    </select>
+    <div style="margin-top:15px; display:flex; justify-content:flex-end; gap:10px;">
+      <button id="cancelBtn" style="padding:8px 14px; border:none; border-radius:6px; background:#000; color:#fff; cursor:pointer;">Cancel</button>
+      <button id="saveBtn" style="padding:8px 14px; border:none; border-radius:6px; background:#800000; color:#fff; cursor:pointer;">Save</button>
+    </div>
+  `;
+
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+
+  const deptSelect = modal.querySelector("#employeeDepartment");
+  const sourceSelect = document.getElementById("employeeDepartment");
+  if (sourceSelect) {
+    Array.from(sourceSelect.options).forEach(opt => {
+      if (opt.value) {
+        const newOpt = document.createElement("option");
+        newOpt.value = opt.value;
+        newOpt.textContent = opt.textContent;
+        deptSelect.appendChild(newOpt);
+      }
+    });
+  }
+
+  modal.querySelector("#cancelBtn").addEventListener("click", () => {
+    document.body.removeChild(overlay);
+  });
+
+  modal.querySelector("#saveBtn").addEventListener("click", () => {
+    const newDeptId = deptSelect.value;
+    if (!newDeptId) {
+      alert("Please select a department");
+      return;
+    }
+
+    showLoader();
+
+    fetch(`${API_BASE}/dean/${deanId}/update/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${csrftoken}`
+      },
+      body: JSON.stringify({ department_id: newDeptId })
+    })
+    .then(res => res.json())
+    .then(resp => {
+      alert(resp.message || "Dean updated successfully");
+      setTimeout(() => location.reload(), 2000);
+    })
+    .catch(() => alert("Error updating dean"))
+    .finally(() => {
+      hideLoader();
+      document.body.removeChild(overlay);
+    });
+  });
 }
 
 
