@@ -12,6 +12,7 @@
   <div class="container">
     <div id="loginOverlay">
         <div id="loginDiv">
+            <a href="{% url 'home_page' %}" class="back_button">← Back</a>
             <h3>Enter Secret Key</h3>
             <input type="password" id="secretKeyInput" placeholder="Secret Key" autocomplete="off">
             <button onclick="checkKey()">Login</button>
@@ -24,7 +25,7 @@
   <div class="container" id="formDiv" style="display:none;">
     <div id="loginNotification">✅ Login successful!</div>
     <div class="header">
-        <a href="{% url 'starting_page' %}" class="back-button">← Back</a>
+        <a href="{% url 'home_page' %}" class="back-button">← Back</a>
         <h1>Leave Application Form</h1>
         <p>Fill out the information below to request leave</p>
     </div>

@@ -1,0 +1,93 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="{% static 'assets/styles/styles.css' %}">
+</head>
+
+<body>
+
+  <div class="admin-dropdown-container">
+    <button class="admin-dropdown-btn" onclick="toggleDropdown()">
+      <span>👨🏻‍💼</span> Admin Access
+      <svg class="dropdown-arrow" width="12" height="12" viewBox="0 0 12 12">
+        <path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none"/>
+      </svg>
+    </button>
+    <div id="adminDropdown" class="dropdown-menu">
+      <button class="dropdown-item" onclick="showHRLogin()">
+        <span>👔</span> Log-in as HR
+      </button>
+      <button class="dropdown-item" onclick="showDeanLogin()">
+        <span>🎓</span> Log-in as Dean
+      </button>
+      <button class="dropdown-item" onclick="GotoForm()">
+        <span>📃 Request Leave</span>
+      </button>
+    </div>
+  </div>
+
+  <div id="loginModalHR" class="login-modal">
+    <div class="login-content">
+      <h2>HR Login</h2>
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="usernameHR" placeholder="Enter username">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="passwordHR" placeholder="Enter password">
+      </div>
+      <div class="form-actions">
+        <button class="btn-cancel" onclick="closeHRLogin()">Cancel</button>
+        <button class="btn-login" onclick="validateHRLogin()">Login</button>
+      </div>
+      <p id="loginMessageHR" class="login-message"></p>
+    </div>
+  </div>
+
+  <div id="loginModalDean" class="login-modal">
+    <div class="login-content">
+      <h2>Dean Login</h2>
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="usernameDean" placeholder="Enter username">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="passwordDean" placeholder="Enter password">
+      </div>
+      <div class="form-actions">
+        <button class="btn-cancel" onclick="closeDeanLogin()">Cancel</button>
+        <button class="btn-login" onclick="validateDeanLogin()">Login</button>
+      </div>
+      <p id="loginMessageDean" class="login-message"></p>
+    </div>
+  </div>
+  
+  <div id="loadingModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="spinner"></div>
+      <p>Checking credentials...</p>
+    </div>
+  </div>
+
+  <div class="Logo_Container">
+    <div class="logo-content-wrapper">
+      <div class="intro-container">
+        <div class="circle-logo">
+          <div class="vortex-string"></div>
+          <img src="{% static 'assets/media/logo/ocLogo-Maroon.jpg' %}" alt="Osmeña Colleges Logo" class="logo-img" />
+          <div class="inner-glow"></div>
+        </div>
+      </div>
+  </div>
+
+  <script src="{% static 'assets/scripts/home.js' %}"></script>
+</body>
+
+</html>

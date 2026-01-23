@@ -1,0 +1,213 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Osmeña Colleges HRIS - Homepage</title>
+  <link rel="stylesheet" href="{% static 'assets/styles/home.css' %}">
+</head>
+<body>
+  <nav class="navbar">
+    <ul class="nav-links">
+      <li><a href="#" onclick="goToSlide(0)">HOME</a></li>
+      <li><a href="#" onclick="goToSlide(1)">ABOUT</a></li>
+      <li><a href="#" onclick="goToSlide(2)">CONTACT</a></li>
+      <li class="dropdown">
+        <button class="dropdown-btn">
+          Admin Access
+          <svg class="dropdown-arrow" width="12" height="12" viewBox="0 0 12 12">
+            <path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none"/>
+          </svg>
+        </button>
+        <div class="dropdown-menu">
+          <button class="dropdown-item" onclick="showHRLogin()">👔 Log-in as HR</button>
+          <button class="dropdown-item" onclick="showDeanLogin()">🎓 Log-in as Dean</button>
+          <button class="dropdown-item" onclick="GotoForm()">📃 Request Leave</button>
+        </div>
+      </li>
+    </ul>
+  </nav>
+
+  <div id="loginModalHR" class="login-modal">
+    <div class="login-content">
+      <h2>HR Login</h2>
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="usernameHR" placeholder="Enter username">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="passwordHR" placeholder="Enter password">
+      </div>
+      <div class="form-actions">
+        <button class="btn-cancel" onclick="closeHRLogin()">Cancel</button>
+        <button class="btn-login" onclick="validateHRLogin()">Login</button>
+      </div>
+      <p id="loginMessageHR" class="login-message"></p>
+    </div>
+  </div>
+
+  <div id="loginModalDean" class="login-modal">
+    <div class="login-content">
+      <h2>Dean Login</h2>
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="usernameDean" placeholder="Enter username">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="passwordDean" placeholder="Enter password">
+      </div>
+      <div class="form-actions">
+        <button class="btn-cancel" onclick="closeDeanLogin()">Cancel</button>
+        <button class="btn-login" onclick="validateDeanLogin()">Login</button>
+      </div>
+      <p id="loginMessageDean" class="login-message"></p>
+    </div>
+  </div>
+  
+  <div id="loadingModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="spinner"></div>
+      <p>Checking credentials...</p>
+    </div>
+  </div>
+
+  <div class="carousel-container">
+    <div class="carousel-track">
+      <div class="carousel-slide home-slide">
+        <div class="home-content">
+
+          <div class="home-header">
+            <img src="{% static 'assets/media/logo/ocLogo-Maroon.jpg' %}" alt="Osmeña Colleges Logo" class="college-logo" />
+            <h1>Osmeña Colleges</h1>
+            <p class="subtitle">Excellence in Education Since 1970</p>
+          </div>
+
+          <div class="info-panels">
+            
+            <div class="panel">
+              <h2>VISION</h2>
+              <p>A premier polytechnic university in Bicol region for sustainable socio-economic transformation.</p>
+            </div>
+
+            <div class="panel core-values">
+              <h2>CORE VALUES</h2>
+              <div class="life-grid">
+                <div class="life-item"><span class="life-icon">L</span> Leadership</div>
+                <div class="life-item"><span class="life-icon">I</span> Integrity</div>
+                <div class="life-item"><span class="life-icon">F</span> Fortitude</div>
+                <div class="life-item"><span class="life-icon">E</span> Excellence</div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <h2>MISSION</h2>
+              <p>Osmeña Colleges is committed to delivering innovative and transformative polytechnic education and services that empower individuals and uplift communities through responsive, relevant, and accessible curricular programs with strong industry partnerships and a commitment to excellence for future-ready graduates.</p>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+
+      <div class="carousel-slide about-slide">
+        <div class="paper-document">
+          <div class="paper-header">
+            <h2>About Osmeña Colleges</h2>
+            <p class="est">Established 1970 • Masbate City, Philippines</p>
+          </div>
+
+          <div class="paper-content">
+            <p><strong>Osmeña Colleges</strong> stands as a beacon of educational excellence in Masbate City, having served the community for over five decades. Founded in 1970, the institution was established with a singular vision: to provide accessible, quality education that transforms lives and empowers individuals to achieve their fullest potential.</p>
+
+            <p>Our institution offers comprehensive programs in Business Administration, Teacher Education, Information Technology, and Liberal Arts. Each program is carefully designed to meet the evolving demands of the modern workforce while maintaining the timeless values of academic rigor and ethical leadership.</p>
+
+            <p>Through the years, Osmeña Colleges has produced thousands of graduates who have become successful professionals, entrepreneurs, educators, and public servants. Our alumni network extends across the Philippines and beyond, testament to the quality education and character formation our students receive.</p>
+
+            <p><strong>The LIFE philosophy</strong>—Leadership, Integrity, Fortitude, and Excellence—guides every aspect of our educational mission, ensuring that our graduates are not only academically competent but also morally upright and socially responsible citizens.</p>
+          </div>
+
+          <div class="seal">OSMEÑA COLLEGES OFFICIAL SEAL</div>
+        </div>
+      </div>
+
+      <div class="carousel-slide contact-slide">
+        <div class="contact-container">
+          <div class="contact-header">
+            <h2>Get In Touch</h2>
+            <p>We're here to answer your questions and assist you</p>
+          </div>
+
+          <div class="contact-grid">
+            <div class="contact-item">
+              <div class="contact-icon">📍</div>
+              <div class="contact-label">Address</div>
+              <div class="contact-detail">Masbate City, Masbate<br>Philippines 5400</div>
+            </div>
+
+            <div class="contact-item">
+              <div class="contact-icon">📞</div>
+              <div class="contact-label">Telephone</div>
+              <div class="contact-detail">(056) 333-4444</div>
+            </div>
+
+            <div class="contact-item">
+              <div class="contact-icon">📧</div>
+              <div class="contact-label">Email</div>
+              <div class="contact-detail">osmenacolleges@yahoo.com.ph</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button class="carousel-nav prev" onclick="prevSlide()">‹</button>
+  <button class="carousel-nav next" onclick="nextSlide()">›</button>
+
+  <div class="carousel-indicators">
+    <span class="indicator active" onclick="goToSlide(0)"></span>
+    <span class="indicator" onclick="goToSlide(1)"></span>
+    <span class="indicator" onclick="goToSlide(2)"></span>
+  </div>
+
+  <script src="{% static 'assets/scripts/home.js' %}"></script>
+
+  <script>
+    let currentSlide = 0;
+    const totalSlides = 3;
+    const track = document.querySelector('.carousel-track');
+    const indicators = document.querySelectorAll('.indicator');
+
+    function updateCarousel() {
+      track.style.transform = `translateX(-${currentSlide * 100}%)`;
+      
+      indicators.forEach((ind, idx) => {
+        ind.classList.toggle('active', idx === currentSlide);
+      });
+    }
+
+    function nextSlide() {
+      currentSlide = (currentSlide + 1) % totalSlides;
+      updateCarousel();
+    }
+
+    function prevSlide() {
+      currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+      updateCarousel();
+    }
+
+    function goToSlide(index) {
+      currentSlide = index;
+      updateCarousel();
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') prevSlide();
+      if (e.key === 'ArrowRight') nextSlide();
+    });
+  </script>
+</body>
+</html>

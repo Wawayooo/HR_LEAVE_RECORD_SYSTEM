@@ -41,7 +41,22 @@
           <div class="dropdown-item" id="toggleDeanFormBtn">
             👨‍🎓 Create Dean Account
           </div>
+          <div class="dropdown-item" onclick="toggleChangeKeyModal()">🔑 Change Secret Key</div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="change-key-Modal" class="hidden_DIV" style="display: none;">
+    <div class="key-modal-DIV">
+      <h2>Change Secret Key</h2>
+      <p>Please enter a new secret key. It must be at least 8 characters long and include uppercase, lowercase, numbers, and special characters.</p>
+      
+      <input type="password" id="secretKeyInput" placeholder="Enter new secret key" />
+      
+      <div class="modal-actions-DIV">
+        <button onclick="submitSecretKey()">Update Key</button>
+        <button onclick="toggleChangeKeyModal()">Cancel</button>
       </div>
     </div>
   </div>
@@ -261,7 +276,7 @@
       <div class="action-bar">
         <button class="btn-primary">+ Add Employee</button>
         <button class="btn-secondary">Update Employee</button>
-        <button class="btn-secondary" id="dept_postion">Manage Positions</button>
+        <button class="btn-secondary" id="dept_position" >Manage Positions</button>
         <button class="more-btn" onclick="showAlert('More Options')" style="display: none;">⋮</button>
       </div>
 
@@ -269,6 +284,16 @@
 
       <div class="org-chart" id="orgChartContainer"></div>
 
+    </div>
+
+    <div id="hiddenDiv">
+      <div class="hiddenDiv-content">
+        <span class="hiddenDiv-close" onclick="closeHiddenDiv()">&times;</span>
+        <h2>Manage Positions</h2>
+        <input type="text" id="positionSearch" placeholder="Search positions...">
+
+        <div id="positions_list"></div>
+      </div>  
     </div>
 
     <div id="facultySection" class="faculty-section" style="display: none;">
@@ -283,6 +308,13 @@
       <div class="breadcrumb">📁 Dashboard / Leave Requests</div>
       <h1 class="section-title">Pending Leave Requests</h1>
 
+      <div class="leave-search" style="margin-bottom:20px; text-align:left;">
+        <input type="text" id="leaveSearch"
+              placeholder="🔍 Search leave requests..."
+              style="padding:8px 12px; border:2px solid #8B0000; border-radius:6px;
+                      font-size:14px; width:100%; max-width:300px; outline:none;">
+      </div>
+
       <div class="leave-requests-container">
         <p style="text-align: center; padding: 40px; color: #666;">Loading leave requests...</p>
       </div>
@@ -292,6 +324,13 @@
       <div class="breadcrumb">📁 Dashboard / Leave Reports</div>
       <h1 class="page-title">Leave Reports</h1>
 
+      <div class="leave-reports" style="margin-bottom:20px; text-align:left;">
+        <input type="text" id="leave_Reports"
+              placeholder="🔍 Search leave reports..."
+              style="padding:8px 12px; border:2px solid #8B0000; border-radius:6px;
+                      font-size:14px; width:100%; max-width:300px; outline:none;">
+      </div>
+
       <div class="leave-reports-cards-container">
         <p style="text-align: center; padding: 40px; color: #666;">Loading leave reports...</p>
       </div>
@@ -299,6 +338,12 @@
     
     <div id="archiveSection" style="display: none;">
       <h2 style="color: maroon;">Archived Leave Requests</h2>
+      <div class="archive-search" style="margin-bottom:20px; text-align:left;">
+        <input type="text" id="archiveSearch" 
+              placeholder="🔍 Search archives..." 
+              style="padding:8px 12px; border:3px solid #000000; border-radius:6px;
+                      font-size:14px; width:250px; outline:none; width:100%;">
+      </div>
       <div class="archive-container">
       </div>
     </div>
@@ -437,12 +482,18 @@
         <span class="close-btn" onclick="closeUpdateModal()">&times;</span>
       </div>
       <div class="modal-body">
+        <input 
+          type="text" 
+          id="employeeSearch" 
+          placeholder="Search employees..." 
+        >
         <div class="employee-list" id="employeeList">
           <p style="text-align: center; padding: 20px;">Loading employees...</p>
         </div>
       </div>
     </div>
   </div>
+
 
   <div id="globalLoadingModal" style="
     display: none;
@@ -485,6 +536,7 @@
 
   <script src="{% static 'assets/scripts/dashboard_interface.js' %}"></script>
   <script src="{% static 'assets/scripts/dean_acc_creation.js' %}"></script>
+   <script src="{% static 'assets/scripts/otherLogic.js' %}"></script>
 
   <script>
 
