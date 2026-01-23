@@ -12,10 +12,10 @@ body {
   background-image: url(../media/bg.png);
   background-size: cover;
   background-repeat: no-repeat;
-  display: grid;
+  height: 100vh;
+  display: flex;
   justify-content: center;
   align-items: center;
-  padding: 20px;
 }
 
 #loginOverlay {
@@ -144,6 +144,7 @@ body {
   background-color: #e8e8e8;
   border: 3px solid #8B0000;
   border-radius: 5px;
+  position: absolute;
 }
 
 .header {
@@ -570,7 +571,175 @@ select:focus {
   right: 136px;
 }
 
+.back_button {
+  display: inline-block;
+  padding: 6px 12px;
+  font-size: 14px;
+  font-weight: bold;
+  color: #50a0e6;
+  text-decoration: none;
+  border: 1px solid #0056a3;
+  border-radius: 4px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  background-color: transparent;
+  position: relative;
+  right: 129px;
+  bottom: 15px;
+}
+
+.back_button:hover {
+  background-color: transparent;
+  color: #a20c0c;
+  border: 1px solid #0056a3;
+}
+
 .back-button:hover {
   background-color: #0056a3;
   color: #fff;
+}
+
+@media (max-width: 768px) {
+  .container {
+    max-width: 100%;
+    border-width: 2px;
+  }
+
+  #loginDiv {
+    background: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    animation: fadeIn 0.3s ease-in-out;
+    width: 88%;
+  }
+
+  .back_button {
+    display: inline-block;
+    padding: 6px 12px;
+    font-weight: bold;
+    color: #50a0e6;
+    text-decoration: none;
+    border: 1px solid #0056a3;
+    border-radius: 4px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    background-color: transparent;
+    position: relative;
+    right: 344px;
+    bottom: 6px;
+    font-size: 22px;
+  }
+
+  #loginDiv {
+    width: 98%;
+    padding: 10px;
+    margin: 15px 0;
+    border: 3px solid black;
+    border-radius: 18px;
+    font-size: 50px;
+    height: 130px;
+  }
+
+  #loginDiv button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 22px 89px;
+    border: solid 3px black;
+    border-radius: 38px;
+    cursor: pointer;
+    font-size: 52px;
+    filter: drop-shadow(2px 4px 6px black);
+  }
+
+  #loadingSpinner {
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite;
+  }
+
+  h3 {
+    font-size: 60px;
+  }
+
+  .header {
+    padding: 15px 10px;
+  }
+
+  .header h1 {
+    margin: 0;
+    text-align: center;
+  }
+
+  .back-button {
+    position: static;
+    transform: none;
+    margin-bottom: 10px;
+    width: fit-content;
+    align-self: flex-start;
+  }
+
+  .back-button:hover {
+    transform: translateX(-2px);
+  }
+
+  .section-title {
+    margin: 10px 10px 0 10px;
+    margin-bottom: 20px;
+  }
+
+  .form-content {
+    padding: 15px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .calendar-grid {
+    gap: 2px;
+  }
+
+  .time-slots {
+    justify-content: center;
+  }
+
+  .time-slot {
+    min-width: calc(50% - 5px);
+  }
+
+  #loginNotification {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .form-group {
+    margin-bottom: 12px;
+  }
+
+  .calendar-day {
+    font-size: 0.65rem;
+    padding: 4px;
+  }
+
+  .calendar-day-header {
+    font-size: 0.6rem;
+    padding: 3px;
+  }
+
+  .time-slot {
+    min-width: 100%;
+  }
+
+  .submit-button {
+    padding: 12px;
+    font-size: 0.95rem;
+  }
+
+  #loginDiv {
+    padding: 20px 15px;
+  }
 }

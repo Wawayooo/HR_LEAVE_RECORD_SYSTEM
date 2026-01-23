@@ -1,3 +1,109 @@
+.hidden_DIV {
+  display: none;
+}
+
+#change-key-Modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(128, 0, 0, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  transition: opacity 0.4s ease;
+}
+
+.key-modal-DIV {
+  background: #ffffff;
+  color: #4b0000;
+  border-radius: 12px;
+  padding: 30px;
+  width: 450px;
+  max-width: 90%;
+  box-shadow: 0 10px 30px rgba(75, 0, 0, 0.6);
+  transform: scale(0.95);
+  transition: transform 0.3s ease;
+}
+
+#change-key-Modal:not(.hidden_DIV) .key-modal-DIV {
+  transform: scale(1);
+}
+
+.key-modal-DIV h2 {
+  font-size: 1.8rem;
+  margin-bottom: 15px;
+  text-align: center;
+  color: #800000;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.key-modal-DIV p {
+  font-size: 0.95rem;
+  margin-bottom: 20px;
+  text-align: center;
+  color: #4b0000;
+}
+
+#secretKeyInput {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #800000;
+  border-radius: 8px;
+  font-size: 1rem;
+  margin-bottom: 20px;
+  outline: none;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+#secretKeyInput:focus {
+  border-color: #4b0000;
+  box-shadow: 0 0 8px rgba(128, 0, 0, 0.6);
+}
+
+.modal-actions-DIV {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.modal-actions-DIV button {
+  flex: 1;
+  padding: 12px;
+  font-size: 1rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.modal-actions-DIV button:first-child {
+  background: #800000;
+  color: #ffffff;
+}
+
+.modal-actions-DIV button:first-child:hover {
+  background: #4b0000;
+  transform: translateY(-2px);
+}
+
+.modal-actions-DIV button:last-child {
+  background: #f5f5f5;
+  color: #800000;
+  border: 2px solid #800000;
+}
+
+.modal-actions-DIV button:last-child:hover {
+  background: #ffffff;
+  color: #4b0000;
+  transform: translateY(-2px);
+}
+
+
 .create-dean-div {
   max-width: 400px;
   margin: 20px auto;
@@ -626,7 +732,448 @@
   font-size: 1rem;
 }
 
+#hiddenDiv {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+  animation: fadeIn 0.4s ease;
+}
+
+#hiddenDiv .hiddenDiv-content {
+  background: white;
+  color: #222;
+  padding: 30px;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 820px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+  position: relative;
+  animation: slideUp 0.5s ease;
+  font-family: "Segoe UI", Arial, sans-serif;
+  height: 60%;
+  display: flow;
+  overflow: auto;
+}
+
+#hiddenDiv h2 {
+  margin-top: 0;
+  font-size: 1.8em;
+  font-weight: bold;
+  color: #800000;
+  border-bottom: 2px solid #000;
+  padding-bottom: 10px;
+}
+
+#hiddenDiv .hiddenDiv-close {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  font-size: 28px;
+  font-weight: bold;
+  color: #000;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+#hiddenDiv .hiddenDiv-close:hover {
+  color: #800000;
+}
+
+.position-item {
+  background: #fff;
+  border-left: 6px solid #800000;
+  border-radius: 8px;
+  padding: 15px;
+  margin: 15px 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease;
+}
+
+.position-item:hover {
+  transform: translateY(-3px);
+}
+
+.position-item label {
+  font-weight: bold;
+  color: #000;
+  margin-top: 8px;
+  display: block;
+}
+
+.position-item input,
+.position-item textarea {
+  width: 100%;
+  padding: 8px 10px;
+  margin: 5px 0 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.95em;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.position-item input:focus,
+.position-item textarea:focus {
+  border-color: #800000;
+  box-shadow: 0 0 6px rgba(128, 0, 0, 0.4);
+  outline: none;
+}
+
+.save-btn,
+.delete-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  margin-right: 10px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.save-btn {
+  background-color: #800000;
+  color: #fff;
+}
+
+.save-btn:hover {
+  background-color: #a83232;
+  transform: scale(1.05);
+}
+
+.delete-btn {
+  background-color: #000;
+  color: #fff;
+}
+
+.delete-btn:hover {
+  background-color: #333;
+  transform: scale(1.05);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+#positionSearch {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 12px;
+  border-radius: 6px;
+  height: 65px;
+  margin-top: 17px;
+  border: solid 2px maroon;
+  box-shadow: 0px 0px 2px black;
+  font-size: 21px;
+  font-family: fantasy;
+}
+
+#employeeSearch {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 12px;
+  border-radius: 6px;
+  height: 65px;
+  margin-top: 8px;
+  border: solid 2px maroon;
+  box-shadow: 0px 0px 2px black;
+  font-size: 21px;
+  font-family: fantasy;
+}
+
 @media (max-width: 768px) {
+  .employee-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 18px;
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    font-family: "Segoe UI", Arial, sans-serif;
+  }
+
+  .dept-header {
+    font-size: 11px;
+    flex-wrap: nowrap;
+    display: flex;
+  }
+
+  .faculty-department {
+    padding: 7px;
+  }
+
+  .form-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .photo-section {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+
+  .photo-upload-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .avatar-large {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #e0e0e0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .upload-btn {
+    background-color: #800000;
+    color: #fff;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+  }
+
+  .upload-btn:hover {
+    background-color: #a83232;
+    transform: scale(1.05);
+  }
+
+  .file-chooser .file-select {
+    width: 100%;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 0.95em;
+  }
+
+  .form-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .form-group-inline,
+  .form-group-full {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .form-group-inline label,
+  .form-group-full label {
+    font-weight: bold;
+    color: #000;
+    font-size: 0.95em;
+  }
+
+  .form-group-inline input,
+  .form-group-inline select,
+  .form-group-full textarea {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 0.95em;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .form-group-inline input:focus,
+  .form-group-inline select:focus,
+  .form-group-full textarea:focus {
+    border-color: #800000;
+    box-shadow: 0 0 6px rgba(128, 0, 0, 0.4);
+    outline: none;
+  }
+
+  .error-message {
+    font-size: 0.8em;
+    color: #d32f2f;
+  }
+
+  .form-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 10px;
+  }
+
+  .btn-cancel-form,
+  .btn-register {
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+  }
+
+  .btn-cancel-form {
+    background-color: #000;
+    color: #fff;
+  }
+
+  .btn-cancel-form:hover {
+    background-color: #333;
+    transform: scale(1.05);
+  }
+
+  .btn-register {
+    background-color: #800000;
+    color: #fff;
+  }
+
+  .btn-register:hover {
+    background-color: #a83232;
+    transform: scale(1.05);
+  }
+
+  .employee-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 12px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  }
+
+  .modal-body {
+    padding: 0px;
+  }
+
+  .employee-list-item {
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    border-radius: 10px;
+    background: #fff;
+    border-left: 6px solid #800000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .employee-list-item:hover {
+    transform: scale(1.02);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+  }
+
+  .employee-info {
+    margin-bottom: 12px;
+  }
+
+  .employee-name-text {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #800000;
+    margin-bottom: 6px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+  }
+
+  .employee-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .employee-actions button {
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.95em;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+  }
+
+  .btn-edit {
+    background-color: #800000;
+    color: #fff;
+  }
+
+  .btn-edit:hover {
+    background-color: #a83232;
+    transform: scale(1.05);
+  }
+
+  .btn-activate {
+    background-color: #008000;
+    color: #fff;
+  }
+
+  .btn-activate:hover {
+    background-color: #00a000;
+    transform: scale(1.05);
+  }
+
+  .btn-delete,
+  .btn-deactivate {
+    background-color: #000;
+    color: #fff;
+  }
+
+  .btn-delete:hover,
+  .btn-deactivate:hover {
+    background-color: #333;
+    transform: scale(1.05);
+  }
+
+  .inactive {
+    opacity: 0.8;
+    background: #f5f5f5;
+    border-left-color: #999;
+  }
+
+  #positionSearch,
+  #employeeSearch {
+    height: 50px;
+    font-size: 17px;
+  }
+
   .leave-card-header {
     flex-direction: column;
     align-items: flex-start;
@@ -649,6 +1196,21 @@
 }
 
 @media (max-width: 600px) {
+  #hiddenDiv .hiddenDiv-content {
+    width: 85%;
+    padding: 20px;
+  }
+
+  #hiddenDiv h2 {
+    font-size: 1.4em;
+  }
+
+  .save-btn,
+  .delete-btn {
+    width: 100%;
+    margin: 8px 0;
+  }
+
   .leave-report-card {
     max-width: 400px;
     font-size: 0.85rem;

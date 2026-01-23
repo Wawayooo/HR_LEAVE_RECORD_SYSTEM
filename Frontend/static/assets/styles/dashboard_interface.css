@@ -1066,19 +1066,20 @@ body {
 }
 
 .edit-dept-btn {
-  background: #f0f0f0;
+  background: #4a90e2;
   border: none;
-  border-radius: 4px;
+  border-radius: 48%;
   padding: 4px 8px;
   margin-left: 8px;
   font-size: 16px;
   cursor: pointer;
   transition: all 0.2s ease;
   color: #333;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
 .edit-dept-btn:hover {
-  background: #4a90e2;
+  background: black;
   color: #fff;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
   transform: scale(1.05);

@@ -79,6 +79,131 @@
 
 
 @media (max-width: 768px) {
+
+  #archiveSection {
+    padding: 16px 14px;
+    background: #f6f7f9;
+    padding: 18px 10px;
+  }
+
+  #archiveSection h2 {
+    font-size: 19px;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 16px;
+    color: #5a0d0d;
+  }
+
+  .archive-search input {
+    width: 100%;
+    padding: 14px 16px;
+    font-size: 15px;
+    border-radius: 12px;
+    border: 2px solid #111;
+    background: #fff;
+  }
+
+  .archive-container {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin-top: 14px;
+  }
+
+  .leave-report {
+    padding: 16px;
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.1);
+  }
+
+  .report-header {
+    text-align: center;
+    padding-bottom: 12px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .report-header {
+    padding: 20px 15px;
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .employee-name {
+    font-size: 17px;
+    font-weight: 800;
+    color: #111;
+  }
+
+  .employee-id {
+    font-size: 13px;
+    font-weight: 500;
+    color: #6b7280;
+  }
+
+  .employee-position {
+    margin-top: 4px;
+    font-size: 13px;
+    color: #374151;
+  }
+
+  .report-body {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .report-section {
+    padding: 14px;
+    border-radius: 14px;
+    background: #f9fafb;
+  }
+
+  .report-section h3 {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    padding-left: 10px;
+    border-left: 4px solid #7c1d1d;
+    color: #1f2937;
+  }
+
+  .report-section p {
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: #1f2937;
+  }
+
+  .report-section.outcome {
+    background: linear-gradient(135deg, #fefefe, #f1f5f9);
+    border: 1px solid #d1d5db;
+  }
+
+  .report-section.outcome p strong {
+    color: #111827;
+  }
+
+  .leave-report>div:last-child {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .leave-report button {
+    width: 100%;
+    padding: 14px;
+    font-size: 14.5px;
+    font-weight: 700;
+    border-radius: 12px;
+    letter-spacing: 0.2px;
+  }
+
+  .leave-report button:active {
+    transform: scale(0.96);
+  }
+
   .burger {
     display: flex;
     align-items: center;
@@ -371,7 +496,584 @@
   }
 }
 
+@media (max-width: 768px) {
+  #leaveReportsSection {
+    padding: 10px !important;
+    margin-bottom: 10px !important;
+  }
 
+  .breadcrumb {
+    font-size: 10px !important;
+    padding: 6px 10px !important;
+    margin-bottom: 10px !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .page-title {
+    font-size: 12px !important;
+    margin: 10px 0 !important;
+    padding: 8px 0 !important;
+  }
+
+  .leave-reports {
+    margin-bottom: 12px !important;
+    text-align: center !important;
+  }
+
+  #leave_Reports {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 8px 10px !important;
+    font-size: 11px !important;
+    border-radius: 4px !important;
+  }
+
+  .leave-reports-cards-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .leave-reports-cards-container>p {
+    font-size: 11px !important;
+    padding: 20px 10px !important;
+  }
+
+  .leave-report-card {
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 12px;
+    background: white;
+  }
+
+  .leave-report-card>div:first-child {
+    padding: 12px 15px !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px;
+  }
+
+  .leave-report-card>div:first-child h2 {
+    font-size: 10px !important;
+    margin: 0 !important;
+    line-height: 1.4;
+  }
+
+  .leave-report-card>div:first-child span {
+    padding: 6px 12px !important;
+    font-size: 9px !important;
+    border-radius: 12px !important;
+    align-self: flex-start;
+  }
+
+  .leave-report-card>div:nth-child(2) {
+    padding: 8px 15px !important;
+    font-size: 10px !important;
+    letter-spacing: 0.5px !important;
+  }
+
+  .leave-report-card>div:nth-child(3) {
+    padding: 15px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:first-child {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:first-child label {
+    font-size: 9px !important;
+    margin-bottom: 4px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:first-child>div>div {
+    padding: 8px 10px !important;
+    font-size: 10px !important;
+    border-radius: 3px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(2) {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(2) label {
+    font-size: 9px !important;
+    margin-bottom: 4px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(2)>div>div {
+    padding: 8px 10px !important;
+    font-size: 10px !important;
+    border-radius: 3px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(3) {
+    margin: 15px -15px !important;
+    padding: 8px 15px !important;
+    font-size: 10px !important;
+    letter-spacing: 0.5px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4) {
+    padding-top: 15px !important;
+    margin-top: 8px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div {
+    grid-template-columns: 1fr !important;
+    gap: 15px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:first-child>div:first-child {
+    margin-bottom: 15px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:first-child>div:first-child label {
+    font-size: 9px !important;
+    margin-bottom: 4px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:first-child>div:first-child>div {
+    padding: 8px 10px !important;
+    font-size: 10px !important;
+    border-radius: 3px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:first-child>div:nth-child(2) {
+    padding: 15px !important;
+    border-radius: 6px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:first-child>div:nth-child(2) label {
+    font-size: 9px !important;
+    margin-bottom: 8px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:first-child>div:nth-child(2)>div>div:first-child {
+    width: 90px !important;
+    height: 90px !important;
+    border-width: 2px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:first-child>div:nth-child(2)>div>div:nth-child(2) {
+    font-size: 11px !important;
+    margin-bottom: 3px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:first-child>div:nth-child(2)>div>div:nth-child(3) {
+    font-size: 9px !important;
+    padding: 5px 10px !important;
+    border-radius: 10px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:nth-child(2)>div {
+    margin-bottom: 15px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:nth-child(2)>div label {
+    font-size: 9px !important;
+    margin-bottom: 4px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:nth-child(2)>div>div {
+    padding: 8px 10px !important;
+    font-size: 10px !important;
+    border-radius: 3px !important;
+    min-height: 50px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:nth-child(2)>div:nth-child(3)>div {
+    min-height: 40px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:nth-child(2)>div:nth-child(4) {
+    padding: 12px !important;
+    border-radius: 4px !important;
+    margin-bottom: 10px;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:nth-child(2)>div:nth-child(4) h4 {
+    font-size: 10px !important;
+    margin: 0 0 6px 0 !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:nth-child(2)>div:nth-child(4) p {
+    font-size: 10px !important;
+    margin: 3px 0 !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:nth-child(2)>div:nth-child(4)>div {
+    padding: 10px !important;
+    border-radius: 4px !important;
+    margin-top: 8px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:nth-child(2)>div:nth-child(4)>div strong {
+    font-size: 10px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:nth-child(2)>div:nth-child(4)>div p {
+    font-size: 10px !important;
+    margin: 3px 0 0 0 !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:nth-child(2)>div:nth-child(5) {
+    padding: 12px !important;
+    border-radius: 4px !important;
+    margin-top: 12px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:nth-child(2)>div:nth-child(5) h4 {
+    font-size: 10px !important;
+    margin: 0 0 6px 0 !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:nth-child(2)>div:nth-child(5) p {
+    font-size: 10px !important;
+    margin: 3px 0 !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:nth-child(2)>div:nth-child(5)>div {
+    padding: 10px !important;
+    border-radius: 4px !important;
+    margin-top: 8px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:nth-child(2)>div:nth-child(5)>div strong {
+    font-size: 10px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:nth-child(2)>div:nth-child(5)>div p {
+    font-size: 10px !important;
+    margin: 3px 0 0 0 !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:nth-child(2)>div:nth-child(6) {
+    padding: 12px !important;
+    border-radius: 4px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:nth-child(2)>div:nth-child(6) h4 {
+    font-size: 11px !important;
+    margin: 0 !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:nth-child(2)>div:last-child {
+    margin-top: 15px !important;
+    padding-top: 12px !important;
+  }
+
+  .archive-btn {
+    padding: 10px 15px !important;
+    font-size: 10px !important;
+    border-radius: 6px !important;
+    gap: 6px !important;
+  }
+
+  .archive-btn span:first-child {
+    font-size: 14px !important;
+  }
+
+  .archive-btn span:last-child {
+    font-size: 10px !important;
+  }
+
+  .leave-report-card img {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  #leaveReportsSection {
+    padding: 8px !important;
+  }
+
+  .breadcrumb {
+    font-size: 9px !important;
+    padding: 5px 8px !important;
+  }
+
+  .page-title {
+    font-size: 11px !important;
+    margin: 8px 0 !important;
+  }
+
+  #leave_Reports {
+    padding: 7px 8px !important;
+    font-size: 10px !important;
+  }
+
+  .leave-reports-cards-container {
+    gap: 10px;
+  }
+
+  .leave-report-card {
+    border-radius: 6px;
+    margin-bottom: 10px;
+  }
+
+  .leave-report-card>div:first-child {
+    padding: 10px 12px !important;
+  }
+
+  .leave-report-card>div:first-child h2 {
+    font-size: 9px !important;
+  }
+
+  .leave-report-card>div:first-child span {
+    padding: 5px 10px !important;
+    font-size: 8px !important;
+  }
+
+  .leave-report-card>div:nth-child(2) {
+    padding: 6px 12px !important;
+    font-size: 9px !important;
+  }
+
+  .leave-report-card>div:nth-child(3) {
+    padding: 12px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:first-child {
+    gap: 8px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:first-child label {
+    font-size: 8px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:first-child>div>div {
+    padding: 7px 8px !important;
+    font-size: 9px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(2) {
+    gap: 8px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(2) label {
+    font-size: 8px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(2)>div>div {
+    padding: 7px 8px !important;
+    font-size: 9px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(3) {
+    margin: 12px -12px !important;
+    padding: 6px 12px !important;
+    font-size: 9px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4) {
+    padding-top: 12px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div {
+    gap: 12px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:first-child>div:first-child {
+    margin-bottom: 12px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:first-child>div:first-child label {
+    font-size: 8px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:first-child>div:first-child>div {
+    padding: 7px 8px !important;
+    font-size: 9px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:first-child>div:nth-child(2) {
+    padding: 12px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:first-child>div:nth-child(2) label {
+    font-size: 8px !important;
+    margin-bottom: 6px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:first-child>div:nth-child(2)>div>div:first-child {
+    width: 75px !important;
+    height: 75px !important;
+    margin-bottom: 8px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:first-child>div:nth-child(2)>div>div:nth-child(2) {
+    font-size: 10px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:first-child>div:nth-child(2)>div>div:nth-child(3) {
+    font-size: 8px !important;
+    padding: 4px 8px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:nth-child(2)>div {
+    margin-bottom: 12px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:nth-child(2)>div label {
+    font-size: 8px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:nth-child(2)>div>div {
+    padding: 7px 8px !important;
+    font-size: 9px !important;
+    min-height: 40px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:nth-child(2)>div:nth-child(3)>div {
+    min-height: 35px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:nth-child(2)>div:nth-child(4),
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:nth-child(2)>div:nth-child(5) {
+    padding: 10px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:nth-child(2)>div:nth-child(4) h4,
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:nth-child(2)>div:nth-child(5) h4 {
+    font-size: 9px !important;
+    margin: 0 0 5px 0 !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:nth-child(2)>div:nth-child(4) p,
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:nth-child(2)>div:nth-child(5) p {
+    font-size: 9px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:nth-child(2)>div:nth-child(4)>div,
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:nth-child(2)>div:nth-child(5)>div {
+    padding: 8px !important;
+    margin-top: 6px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:nth-child(2)>div:nth-child(4)>div strong,
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:nth-child(2)>div:nth-child(5)>div strong {
+    font-size: 9px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:nth-child(2)>div:nth-child(4)>div p,
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:nth-child(2)>div:nth-child(5)>div p {
+    font-size: 9px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:nth-child(2)>div:nth-child(6) {
+    padding: 10px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:nth-child(2)>div:nth-child(6) h4 {
+    font-size: 10px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:nth-child(2)>div:last-child {
+    margin-top: 12px !important;
+    padding-top: 10px !important;
+  }
+
+  .archive-btn {
+    padding: 9px 12px !important;
+    font-size: 9px !important;
+    border-radius: 5px !important;
+    gap: 5px !important;
+  }
+
+  .archive-btn span:first-child {
+    font-size: 12px !important;
+  }
+
+  .archive-btn span:last-child {
+    font-size: 9px !important;
+  }
+}
+
+@media (max-width: 360px) {
+  #leaveReportsSection {
+    padding: 6px !important;
+  }
+
+  .breadcrumb {
+    font-size: 8px !important;
+    padding: 4px 6px !important;
+  }
+
+  .page-title {
+    font-size: 10px !important;
+    margin: 6px 0 !important;
+  }
+
+  #leave_Reports {
+    padding: 6px 7px !important;
+    font-size: 9px !important;
+  }
+
+  .leave-report-card>div:first-child {
+    padding: 8px 10px !important;
+  }
+
+  .leave-report-card>div:first-child h2 {
+    font-size: 8px !important;
+  }
+
+  .leave-report-card>div:first-child span {
+    padding: 4px 8px !important;
+    font-size: 8px !important;
+  }
+
+  .leave-report-card>div:nth-child(2) {
+    padding: 5px 10px !important;
+    font-size: 8px !important;
+  }
+
+  .leave-report-card>div:nth-child(3) {
+    padding: 10px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(3) {
+    margin: 10px -10px !important;
+    padding: 5px 10px !important;
+    font-size: 8px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:first-child>div:nth-child(2) {
+    padding: 10px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:first-child>div:nth-child(2)>div>div:first-child {
+    width: 65px !important;
+    height: 65px !important;
+  }
+
+  .leave-report-card>div:nth-child(3)>div:nth-child(4)>div>div:first-child>div:nth-child(2)>div>div:nth-child(2) {
+    font-size: 9px !important;
+  }
+
+  .archive-btn {
+    padding: 8px 10px !important;
+    font-size: 8px !important;
+  }
+
+  .archive-btn span:first-child {
+    font-size: 11px !important;
+  }
+
+  .archive-btn span:last-child {
+    font-size: 8px !important;
+  }
+}
 
 @media (max-width: 480px) {
   .header {
