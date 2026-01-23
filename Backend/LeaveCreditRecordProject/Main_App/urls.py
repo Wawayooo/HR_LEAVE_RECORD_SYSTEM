@@ -19,7 +19,11 @@ router.register(r'leave-request-archives', LeaveRequestArchiveViewSet, basename=
 urlpatterns = [
     path('', starting_view, name='starting_page'),
     
+    path('homepage/', home_view, name='home_page'),
+    
     path('api/leave-requests/<int:pk>/approve-test/', test_approve),
+    
+    path('access-key/<int:key_id>/update/', update_access_key, name='update_access_key'),
 
     path('hr_dashboard/', HR_dash_view, name='hr-dashboard'),
     path('appointment_form/', appointment_form_view, name='appointment-form'),

@@ -66,6 +66,20 @@ class IsHROrDean(permissions.BasePermission):
 def test_approve(request, pk):
     return JsonResponse({'ok': True, 'pk': pk})
 
+@api_view(["POST"])
+@permission_classes([IsHRUser])
+def update_access_key(request, key_id):
+    new_key = request.data.get("key")
+    if not new_key:
+        return Response({"error": "New key is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+    access_key = get_object_or_404(AccessKey, id=key_id)
+    access_key.key_hash = make_password(new_key)
+    access_key.save()
+
+    return Response({"message": "Access key updated successfully"}, status=status.HTTP_200_OK)
+
+
 class LeaveRequestViewSet(viewsets.ModelViewSet):
     queryset = LeaveRequest.objects.all()
     serializer_class = LeaveRequestSerializer
@@ -973,6 +987,9 @@ def appointment_form_view(request):
 
 def starting_view(request):
     return render(request, "index.html")
+
+def home_view(request):
+    return render(request, "home.html")
 
 @api_view(['PUT', 'PATCH'])
 def update_department_name(request, pk):
