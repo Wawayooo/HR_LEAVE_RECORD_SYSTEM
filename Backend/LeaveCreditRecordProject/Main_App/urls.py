@@ -23,6 +23,8 @@ urlpatterns = [
     
     path('api/leave-requests/<int:pk>/approve-test/', test_approve),
     
+    path('api/employees/<str:employee_id>/leave-requests/', get_employee_leave_requests, name='employee-leave-requests'),
+    
     path('access-key/<int:key_id>/update/', update_access_key, name='update_access_key'),
 
     path('hr_dashboard/', HR_dash_view, name='hr-dashboard'),
