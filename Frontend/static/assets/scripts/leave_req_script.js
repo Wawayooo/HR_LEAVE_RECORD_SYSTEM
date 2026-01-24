@@ -154,6 +154,7 @@ async function verifyEmployee(employeeCode) {
 
         if (response.ok && result.success) {
             employeeVerified = true;
+            document.getElementById('text_display').style.display = 'none';
             document.getElementById('employeeId').value = result.employee_id;
             document.getElementById('remainingDays').value = result.remaining_days;
             document.getElementById('remainingDaysDisplay').innerText = result.remaining_days;
@@ -163,6 +164,8 @@ async function verifyEmployee(employeeCode) {
 
             validationMsg.style.color = 'green';
             validationMsg.innerText = `✓ Employee verified (${result.employee_code})`;
+
+            fetchEmployeeLeaveRequests(result.employee_code);
         } else {
             employeeVerified = false;
             document.getElementById('employeeId').value = '';
@@ -176,6 +179,81 @@ async function verifyEmployee(employeeCode) {
         console.error('Error verifying employee:', error);
         validationMsg.style.color = 'red';
         validationMsg.innerText = '✗ Error verifying employee';
+    }
+}
+
+async function fetchEmployeeLeaveRequests(employeeId) {
+    const container = document.getElementById('leaveRequestsContainer');
+    container.innerHTML = '<div class="loading-message">Loading leave requests...</div>';
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/employees/${employeeId}/leave-requests/`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken') || ''
+            },
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            container.innerHTML = '<div class="error-message-card">✗ Failed to load leave requests</div>';
+            return;
+        }
+
+        const requests = await response.json();
+
+        if (requests.length === 0) {
+            container.innerHTML = `
+                <div class="no-requests-message">
+                    <p>No leave requests found for this employee.</p>
+                </div>
+            `;
+            return;
+        }
+
+        let html = '<div class="leave-requests-grid">';
+
+        requests.forEach(req => {
+            const statusClass = req.status_display.toLowerCase().replace(/\s+/g, '-');
+
+            html += `
+                <div class="leave-card">
+                    <div class="leave-card-header">
+                        <div class="leave-type-badge">${req.application.leave_type}</div>
+                        <div class="status-badge ${statusClass}">${req.status_display}</div>
+                    </div>
+                    <div class="leave-card-body">
+                        <div class="leave-info-item">
+                            <div class="leave-info-label">Filed On</div>
+                            <div class="leave-info-value">${req.application.date_filed}</div>
+                        </div>
+                        <div class="leave-info-item">
+                            <div class="leave-info-label">Name of Dean</div>
+                            <div class="leave-info-value ${req.dean_reviewer_name ? '' : 'empty'}">
+                                ${req.dean_reviewer_name || 'Not assigned'}
+                            </div>
+                        </div>
+                        <div class="leave-info-item">
+                            <div class="leave-info-label">Leave Request Details</div>
+                        </div>
+                        ${req.reason ? `
+                            <div class="leave-comments">
+                                <div class="leave-comments-label">Comments</div>
+                                <div class="leave-comments-text">${req.reason}</div>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        });
+
+        html += '</div>';
+        container.innerHTML = html;
+
+    } catch (error) {
+        console.error('Error fetching leave requests:', error);
+        container.innerHTML = '<div class="error-message-card">✗ Error fetching leave requests</div>';
     }
 }
 
