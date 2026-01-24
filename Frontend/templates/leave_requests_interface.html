@@ -9,110 +9,116 @@
 </head>
 
 <body>
-  <div class="container">
+  <div class="app-container">
     <div id="loginOverlay">
-        <div id="loginDiv">
-            <a href="{% url 'home_page' %}" class="back_button">← Back</a>
-            <h3>Enter Secret Key</h3>
-            <input type="password" id="secretKeyInput" placeholder="Secret Key" autocomplete="off">
-            <button onclick="checkKey()">Login</button>
-            <div id="loadingSpinner" style="display:none;"></div>
-            <p id="loginMessage" style="color:red;"></p>
+      <div id="loginDiv">
+
+        <a href="{% url 'home_page' %}" class="back_button">← Back</a>
+        
+        <h3>Enter Secret Key</h3>
+        <input type="password" id="secretKeyInput" placeholder="Secret Key" autocomplete="off">
+        <button onclick="checkKey()">Login</button>
+        <div id="loadingSpinner" style="display:none;"></div>
+        <p id="loginMessage"></p>
+      </div>
+    </div>
+
+    <div id="formDiv">
+      <div id="loginNotification">✅ Login successful!</div>
+      
+      <div class="form-card">
+        <div class="header">
+          <div class="header-content">
+            <a href="{% url 'home_page' %}" class="back-button">← Back</a>
+            <h1>Leave Application Form</h1>
+            <p>Fill out the information below to request leave</p>
+          </div>
         </div>
-    </div>
-  </div>
 
-  <div class="container" id="formDiv" style="display:none;">
-    <div id="loginNotification">✅ Login successful!</div>
-    <div class="header">
-        <a href="{% url 'home_page' %}" class="back-button">← Back</a>
-        <h1>Leave Application Form</h1>
-        <p>Fill out the information below to request leave</p>
-    </div>
+        <div id="loadingScreen" class="loading-screen">
+          <div class="spinner"></div>
+          <p class="loading-text">Submitting your application...</p>
+        </div>
 
-    <div id="loadingScreen" class="loading-screen" style="display:none;">
-      <div class="spinner"></div>
-      <p class="loading-text">Submitting your application...</p>
-    </div>
-
-    <div class="form-content">
-        <div class="success-message" id="successMessage">
+        <div class="form-content">
+          <div class="success-message" id="successMessage">
             Leave application submitted successfully!
-        </div>
+          </div>
 
-        <div class="section-title">APPLICATION FOR LEAVE</div>
-        <div class="required-note">Required fields</div>
+          <div class="section-title">Application for Leave</div>
+          <div class="required-note">Required fields</div>
 
-        <form id="leaveApplicationForm">
-            {% csrf_token %}
-
+          <form id="leaveApplicationForm">
             <div class="form-group">
-                <label>Employee ID <span style="color:red;">*</span></label>
-                <input type="text" id="employeeCode" name="employee_id" 
-                    placeholder="Enter your employee ID" required autocomplete="off" maxlength="20">
-                <small id="employeeValidationMsg" style="display:block; margin-top:5px; color:#666;"></small>
+              <label>Employee ID <span>*</span></label>
+              <input type="text" id="employeeCode" name="employee_id" 
+                placeholder="Enter your employee ID" required autocomplete="off" maxlength="20">
+              <small id="employeeValidationMsg"></small>
             </div>
 
             <div class="form-group" id="fullNameGroup" style="display:none;">
-                <label>Full Name</label>
-                <input type="text" id="employeeName" name="full_name" readonly>
+              <label>Full Name</label>
+              <input type="text" id="employeeName" name="full_name" readonly>
             </div>
 
             <input type="hidden" id="remainingDays" value="0">
             <input type="hidden" id="employeeId" name="employee" value="">
 
-
-            <div class="section-title">DETAILS OF LEAVE</div>
+            <div class="section-title">Details of Leave</div>
 
             <div class="form-group">
-                <label>Type of Leave <span style="color:red;">*</span></label>
-                <select id="leaveType" name="leave_type" required>
-                    <option value="">Select leave type</option>
-                    <option value="vacation">Vacation</option>
-                    <option value="sick">Sick Leave</option>
-                    <option value="maternity">Maternity Leave</option>
-                    <option value="paternity">Paternity Leave</option>
-                    <option value="emergency">Emergency Leave</option>
-                </select>
-                <div class="error-message">Leave type is required</div>
+              <label>Type of Leave <span>*</span></label>
+              <select id="leaveType" name="leave_type" required>
+                <option value="">Select leave type</option>
+                <option value="vacation">Vacation</option>
+                <option value="sick">Sick Leave</option>
+                <option value="maternity">Maternity Leave</option>
+                <option value="paternity">Paternity Leave</option>
+                <option value="emergency">Emergency Leave</option>
+              </select>
+              <div class="error-message">Leave type is required</div>
             </div>
 
             <div class="form-group" id="vacationLocationGroup" style="display: none;">
-                <label>Where will the leave be spent? <span style="color:red;">*</span></label>
-                <select id="vacationLocation" name="vacation_location">
-                    <option value="">Select location</option>
-                    <option value="philippines">Within the Philippines</option>
-                    <option value="abroad">Abroad</option>
-                </select>
-                <div class="error-message">Vacation location is required</div>
+              <label>Where will the leave be spent? <span>*</span></label>
+              <select id="vacationLocation" name="vacation_location">
+                <option value="">Select location</option>
+                <option value="philippines">Within the Philippines</option>
+                <option value="abroad">Abroad</option>
+              </select>
+              <div class="error-message">Vacation location is required</div>
             </div>
 
             <div class="form-group" id="sickLocationGroup" style="display: none;">
-                <label>Where will the leave be spent? <span style="color:red;">*</span></label>
-                <select id="sickLocation" name="sick_location">
-                    <option value="">Select location</option>
-                    <option value="hospital">In Hospital</option>
-                    <option value="home">At Home</option>
-                </select>
-                <div class="error-message">Sick location is required</div>
+              <label>Where will the leave be spent? <span>*</span></label>
+              <select id="sickLocation" name="sick_location">
+                <option value="">Select location</option>
+                <option value="hospital">In Hospital</option>
+                <option value="home">At Home</option>
+              </select>
+              <div class="error-message">Sick location is required</div>
             </div>
 
             <div class="form-group">
-                <label>Number of Days to Leave <span style="color:red;">*</span></label>
-                <input type="number" id="numberOfDays" name="number_of_days" value="1" min="1" required>
-                <div class="error-message">Number of days must be at least 1 and within remaining leave days</div>
-                <small style="display:block; margin-top:5px; color:#666;">
-                    Remaining leave days: <strong id="remainingDaysDisplay">{{ remaining_days }}</strong>
-                </small>
+              <label>Number of Days to Leave <span>*</span></label>
+              <input type="number" id="numberOfDays" name="number_of_days" value="1" min="1" required>
+              <div class="error-message">Number of days must be at least 1 and within remaining leave days</div>
+              <small>Remaining leave days: <strong id="remainingDaysDisplay">0</strong></small>
             </div>
 
             <div class="form-group">
-                <label>Reason/Message (Optional)</label>
-                <textarea id="reason" name="reason" rows="4" placeholder="Please provide a short message/reason for your leave request"></textarea>
+              <label>Reason/Message (Optional)</label>
+              <textarea id="reason" name="reason" placeholder="Please provide a short message/reason for your leave request"></textarea>
             </div>
 
-            <button type="submit" class="submit-button" id="submitButton">SUBMIT APPLICATION</button>
-        </form>
+            <button type="submit" class="submit-button" id="submitButton">Submit Application</button>
+          </form>
+
+          <div class="section-title" style="background: transparent; border: 2px solid black; filter: drop-shadow(2px 4px 6px black); color: black; display: flex; justify-content: center;">Leave Request History</div>
+          <div id="leaveRequestsContainer"></div>
+          <p id="text_display">“After entering your Employee ID, your requests will be displayed here.”</p>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -135,3 +141,4 @@
 
 </body>
 </html>
+
