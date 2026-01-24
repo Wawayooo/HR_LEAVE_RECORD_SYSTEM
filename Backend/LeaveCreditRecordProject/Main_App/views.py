@@ -985,6 +985,25 @@ def delete_leave_request_if_denied(request, pk):
 def appointment_form_view(request):
     return render(request, 'leave_requests_interface.html')
 
+@api_view(['GET'])
+@permission_classes([AllowAny]) 
+def get_employee_leave_requests(request, employee_id):
+    """
+    Retrieve all leave requests for a given employee based on employee_id.
+    """
+    try:
+        employee = Employee.objects.get(employee_id=employee_id)
+    except Employee.DoesNotExist:
+        return Response(
+            {"error": "Employee not found."},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    leave_requests = LeaveRequest.objects.filter(application__employee=employee)
+
+    serializer = LeaveRequestSerializer(leave_requests, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
 def starting_view(request):
     return render(request, "index.html")
 
