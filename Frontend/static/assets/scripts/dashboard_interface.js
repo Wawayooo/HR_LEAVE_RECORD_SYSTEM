@@ -383,7 +383,7 @@ function updateHRProfileUI(hrData) {
     }
   }
 
-  const photoUrl = hrData.photo_url || '/static/assets/media/examplePIC.jpg';
+  const photoUrl = hrData.photo_url || 'https://keithcrts11.pythonanywhere.com/static/assets/media/examplePIC.jpg';
   const avatarElements = [
     document.getElementById('hrAvatar'),
     document.getElementById('hrProfilePic')
@@ -393,7 +393,7 @@ function updateHRProfileUI(hrData) {
     if (el) {
       el.src = photoUrl;
       el.onerror = function() {
-        this.src = '/static/assets/media/examplePIC.jpg';
+        this.src = 'https://keithcrts11.pythonanywhere.com/static/assets/media/examplePIC.jpg';
       };
     }
   });
@@ -1913,7 +1913,7 @@ function renderHRs(container, hrs) {
   level.classList.add("org-level");
 
   validHRs.forEach(hr => {
-    const photo = hr.photo || "/static/assets/media/examplePIC.jpg";
+    const photo = hr.photo || "https://keithcrts11.pythonanywhere.com/static/assets/media/examplePIC.jpg";
     const card = document.createElement("div");
     card.classList.add("org-card");
 
@@ -1949,7 +1949,7 @@ function renderDeans(container, deans) {
     level.classList.add("org-level-two");
 
     deans.slice(i, i + 3).forEach(dean => {
-      const photo = dean.photo || "/static/assets/media/examplePIC.jpg";
+      const photo = dean.photo || "https://keithcrts11.pythonanywhere.com/static/assets/media/examplePIC.jpg";
 
       const card = document.createElement("div");
       card.classList.add("org-card");
