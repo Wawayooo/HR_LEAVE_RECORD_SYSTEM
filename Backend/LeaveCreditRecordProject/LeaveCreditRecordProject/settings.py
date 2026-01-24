@@ -90,15 +90,12 @@ WSGI_APPLICATION = "LeaveCreditRecordProject.wsgi.application"
 # DATABASE (PostgreSQL)
 # ------------------------------------------------------------------------------
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ["DB_NAME"],
-        "USER": os.environ["DB_USER"],
-        "PASSWORD": os.environ["DB_PASSWORD"],
-        "HOST": os.environ.get("DB_HOST", "127.0.0.1"),
-        "PORT": os.environ.get("DB_PORT", "5432"),
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',  # this file will be created automatically
     }
 }
+
 
 
 # ------------------------------------------------------------------------------
