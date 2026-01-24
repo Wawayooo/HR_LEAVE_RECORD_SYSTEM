@@ -1,12 +1,10 @@
 const CONFIG = {
-  //DEV_URL: "https://kt2980zx-8000.asse.devtunnels.ms",
-  //DEV_URL: "http://127.0.0.1:8000",
-  PROD_URL: "https://keithcrts11.pythonanywhere.com/",
+  PROD_URL: "https://keithcrts11.pythonanywhere.com",
   
   get API_BASE() {
-    return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-      ? this.DEV_URL 
-      : this.PROD_URL || this.DEV_URL;
+    return window.location.hostname === 'keithcrts11.pythonanywhere.com'
+      ? this.PROD_URL
+      : "http://127.0.0.1:8000"; // fallback for dev
   }
 };
 
