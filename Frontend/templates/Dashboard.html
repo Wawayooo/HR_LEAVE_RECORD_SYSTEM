@@ -24,7 +24,7 @@
     <div class="header-actions">
       <div class="admin-profile" id="adminProfile">
         <div class="admin-avatar">
-          <img id="hrAvatar" src="{% static 'assets/media/examplePIC.jpg' %}" alt="HR Avatar" onerror="this.src='{% static 'assets/media/examplePIC.jpg' %}'" />
+          <img id="hrAvatar" src="{% static 'assets/media/examplePIC.jpg' %}" alt="HR Avatar" onerror="this.src='{{ 'https://keithcrts11.pythonanywhere.com/static/assets/media/examplePIC.jpg' }}'" />
         </div>
         <span>Admin ▾</span>
 
@@ -97,7 +97,7 @@
       
       <div class="modal-body">
         <div class="profile-section">
-          <img id="hrProfilePic" src="" alt="HR Profile Picture" onerror="this.src='{% static 'assets/media/examplePIC.jpg' %}'" />
+          <img id="hrProfilePic" src="" alt="HR Profile Picture" onerror="this.src='{{ 'https://keithcrts11.pythonanywhere.com/static/assets/media/examplePIC.jpg' }}'" />
           <p><strong>Professional ID:</strong> <span id="hrProfessionalId">Loading...</span></p>
         </div>
 
