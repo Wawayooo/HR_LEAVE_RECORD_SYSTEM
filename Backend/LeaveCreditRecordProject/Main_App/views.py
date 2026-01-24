@@ -1100,7 +1100,7 @@ def org_chart_api(request):
             {
                 "id": hr.id,
                 "full_name": hr.full_name,
-                "photo": hr.photo.url if hr.photo else "/static/assets/media/examplePIC.jpg",
+                "photo": hr.photo.url if hr.photo else "https://keithcrts11.pythonanywhere.com/static/assets/media/examplePIC.jpg",
                 "position": hr.position,
             }
             for hr in hrs
@@ -1111,7 +1111,7 @@ def org_chart_api(request):
                 "username": dean.user.username,
                 "full_name": dean.full_name,
                 "department": dean.department.name,
-                "photo": dean.photo.url if dean.photo else "/static/assets/media/examplePIC.jpg",
+                "photo": dean.photo.url if dean.photo else "https://keithcrts11.pythonanywhere.com/static/assets/media/examplePIC.jpg",
                 "position": dean.position,
                 "gender": dean.gender,
                 "age": dean.age,
