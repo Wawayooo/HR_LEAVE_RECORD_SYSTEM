@@ -1,7 +1,7 @@
 const CONFIG = {
   //DEV_URL: "https://kt2980zx-8000.asse.devtunnels.ms",
-  DEV_URL: "http://127.0.0.1:8000",
-  PROD_URL: "",
+  //DEV_URL: "http://127.0.0.1:8000",
+  PROD_URL: "https://keithcrts11.pythonanywhere.com/",
   
   get API_BASE() {
     return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
