@@ -71,7 +71,7 @@ def create_dean(request):
     except Exception as e:
         return JsonResponse({'success': False, 'message': f'Error: {str(e)}'}, status=500)
 
-@method_decorator(csrf_exempt, name='dispatch')
+csrf_exempt
 def dean_login(request):
     if request.method != "POST":
         return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
