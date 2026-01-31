@@ -27,18 +27,18 @@ MAX_ANNUAL_LEAVE_DAYS = 15
 class IsHRUser(permissions.BasePermission):
     def has_permission(self, request, view):
         return (
-            request.user.is_authenticated and 
-            hasattr(request.user, 'hruser') and 
+            request.user.is_authenticated and
+            hasattr(request.user, 'hruser') and
             request.user.hruser.is_hr
         )
 
 
 class IsDean(permissions.BasePermission):
     def has_permission(self, request, view):
-            
+
         return (
-            request.user.is_authenticated and 
-            hasattr(request.user, 'dean_profile') and 
+            request.user.is_authenticated and
+            hasattr(request.user, 'dean_profile') and
             request.user.dean_profile.is_dean
         )
 
@@ -47,21 +47,21 @@ class IsHROrDean(permissions.BasePermission):
         user = request.user
         if not user.is_authenticated:
             return False
-        
+
         is_hr = (
-            hasattr(user, 'hruser') and 
+            hasattr(user, 'hruser') and
             getattr(user.hruser, 'is_hr', False)
         )
-        
+
         is_dean = (
-            hasattr(user, 'dean_profile') and 
+            hasattr(user, 'dean_profile') and
             getattr(user.dean_profile, 'is_dean', False)
         )
-        
+
         in_hr_group = user.groups.filter(name='HR').exists()
-        
+
         return is_hr or is_dean or in_hr_group
-    
+
 
 def test_approve(request, pk):
     return JsonResponse({'ok': True, 'pk': pk})
@@ -120,7 +120,7 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
 
         return queryset
 
-    
+
     def hr_dash_queryset(self):
         return LeaveRequest.objects.filter(
             status='dean_approved'
@@ -141,9 +141,9 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
     def pending_hr(self, request):
         if not (hasattr(request.user, 'hruser') or request.user.groups.filter(name='HR').exists()):
             return Response({'success': False, 'message': 'HR only'}, status=403)
-        
+
         requests = LeaveRequest.objects.filter(status='dean_approved')
-        
+
         serializer = self.get_serializer(requests, many=True)
         return Response({'success': True, 'data': serializer.data})
 
@@ -240,23 +240,23 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
     def hr_approve(self, request, pk=None):
         if not (hasattr(request.user, 'hruser') or request.user.groups.filter(name='HR').exists()):
             return Response({'success': False, 'message': 'HR only'}, status=403)
-        
+
         leave_request = self.get_object()
-        
+
         if leave_request.status != 'dean_approved':
             return Response({
                 'success': False,
                 'message': 'Request must be dean-approved first'
             }, status=400)
-        
+
         comments = request.data.get('comments', '')
-        
+
         try:
             leave_request.hr_approve(request.user)
             if comments:
                 leave_request.hr_comments = comments
                 leave_request.save()
-            
+
             return Response({
                 'success': True,
                 'message': 'Leave request approved by HR',
@@ -272,22 +272,22 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
     def hr_deny(self, request, pk=None):
         if not (hasattr(request.user, 'hruser') or request.user.groups.filter(name='HR').exists()):
             return Response({'success': False, 'message': 'HR only'}, status=403)
-        
+
         leave_request = self.get_object()
-        
+
         if leave_request.status != 'dean_approved':
             return Response({
                 'success': False,
                 'message': 'Request must be dean-approved first'
             }, status=400)
-        
+
         comments = request.data.get('comments', '')
         if not comments:
             return Response({
                 'success': False,
                 'message': 'Comments required for denial'
             }, status=400)
-        
+
         try:
             current_year = timezone.now().year
             balance, _ = EmployeeLeaveBalance.objects.get_or_create(
@@ -298,9 +298,9 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
             days = leave_request.application.number_of_days
             balance.remaining_days = min(balance.remaining_days + days, MAX_ANNUAL_LEAVE_DAYS)
             balance.save()
-            
+
             leave_request.hr_deny(request.user, comments)
-            
+
             return Response({
                 'success': True,
                 'message': f'Leave request denied by HR. {days} days restored to employee balance.',
@@ -311,16 +311,16 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
                 'success': False,
                 'message': f'Error: {str(e)}'
             }, status=400)
-            
+
     @action(detail=False, methods=['get'])
     def dean_approved(self, request):
-        if not (hasattr(request.user, 'dean_profile') or 
-                hasattr(request.user, 'hruser') or 
+        if not (hasattr(request.user, 'dean_profile') or
+                hasattr(request.user, 'hruser') or
                 request.user.groups.filter(name='HR').exists()):
             return Response({'success': False, 'message': 'Dean or HR only'}, status=403)
 
         queryset = LeaveRequest.objects.filter(status='dean_approved')
-        
+
         if hasattr(request.user, 'dean_profile'):
             dean = request.user.dean_profile
             queryset = queryset.filter(application__employee__department=dean.department)
@@ -349,18 +349,18 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
     def archive(self, request, pk=None):
         if not (hasattr(request.user, 'hruser') or request.user.groups.filter(name='HR').exists()):
             return Response({
-                'success': False, 
+                'success': False,
                 'message': 'Only HR users can archive leave requests'
             }, status=403)
-        
+
         leave_request = self.get_object()
-        
+
         if leave_request.status not in ['approved', 'denied']:
             return Response({
                 'success': False,
                 'message': f'Cannot archive request with status \"{leave_request.status}\". Only approved or denied requests can be archived.'
             }, status=400)
-            
+
         try:
             archive = LeaveRequestArchive.archive_leave_request(leave_request)
 
@@ -390,40 +390,40 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
     def archive_all_processed(self, request):
         if not (hasattr(request.user, 'hruser') or request.user.groups.filter(name='HR').exists()):
             return Response({
-                'success': False, 
+                'success': False,
                 'message': 'Only HR can perform batch archiving'
             }, status=403)
-        
+
         processed_requests = LeaveRequest.objects.filter(status__in=['approved', 'denied'])
-        
+
         if hasattr(request.user, 'dean_profile'):
             dean = request.user.dean_profile
             processed_requests = processed_requests.filter(
                 application__employee__department=dean.department
             )
-        
+
         if not processed_requests.exists():
             return Response({
                 'success': False,
                 'message': 'No processed leave requests found to archive'
             }, status=404)
-        
+
         try:
             from .models import LeaveRequestArchive
             archived_count = 0
             failed_count = 0
             archived_ids = []
-            
+
             for leave_request in processed_requests:
                 try:
                     archive = LeaveRequestArchive.archive_leave_request(leave_request)
                     archived_ids.append(archive.id)
                     archived_count += 1
-                    
+
                 except Exception as e:
                     failed_count += 1
                     print(f"Failed to archive LeaveRequest {leave_request.id}: {str(e)}")
-            
+
             return Response({
                 'success': True,
                 'message': f'Successfully archived {archived_count} leave request(s). {failed_count} failed.',
@@ -449,19 +449,19 @@ class DepartmentViewSet(viewsets.ModelViewSet):
         department = self.get_object()
         employee_count = department.employees.count()
         dean_count = Dean.objects.filter(department=department).count()
-        
+
         if employee_count > 0:
             return Response({
                 'success': False,
                 'message': f'Cannot delete department. {employee_count} employee(s) are assigned to this department.'
             }, status=status.HTTP_400_BAD_REQUEST)
-        
+
         if dean_count > 0:
             return Response({
                 'success': False,
                 'message': f'Cannot delete department. {dean_count} dean(s) are assigned to this department.'
             }, status=status.HTTP_400_BAD_REQUEST)
-        
+
         department.delete()
         return Response({
             'success': True,
@@ -474,7 +474,7 @@ class DepartmentViewSet(viewsets.ModelViewSet):
         employees = department.employees.filter(is_active=True)
         serializer = EmployeeSerializer(employees, many=True, context={'request': request})
         return Response(serializer.data)
-    
+
     @action(detail=True, methods=['get'])
     def dean(self, request, pk=None):
         department = self.get_object()
@@ -493,13 +493,13 @@ class PositionViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         position = self.get_object()
         employee_count = position.employees.count()
-        
+
         if employee_count > 0:
             return Response({
                 'success': False,
                 'message': f'Cannot delete position. {employee_count} employee(s) hold this position.'
             }, status=status.HTTP_400_BAD_REQUEST)
-        
+
         position.delete()
         return Response({
             'success': True,
@@ -524,7 +524,7 @@ class DeanViewSet(viewsets.ModelViewSet):
     queryset = Dean.objects.all()
     serializer_class = DeanSerializer
     permission_classes = [permissions.IsAuthenticated]
-    
+
     @action(detail=True, methods=['get'])
     def profile(self, request, pk=None):
         dean = self.get_object()
@@ -579,7 +579,7 @@ class DeanViewSet(viewsets.ModelViewSet):
         dean = serializer.save()
         dean.is_active = True
         dean.save()
-        
+
         return Response({
             'success': True,
             'message': 'Dean updated successfully',
@@ -589,7 +589,7 @@ class DeanViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         dean = self.get_object()
         user = dean.user
-        
+
         try:
             with transaction.atomic():
                 dean.delete()
@@ -670,7 +670,7 @@ class EmployeeViewSet(viewsets.ModelViewSet):
     #        'message': 'Employee deactivated',
     #        'data': EmployeeSerializer(employee, context={'request': request}).data
     #    }, status=status.HTTP_200_OK)
-        
+
     def destroy(self, request, *args, **kwargs):
         employee = self.get_object()
         employee.delete()
@@ -750,11 +750,11 @@ class LeaveApplicationViewSet(viewsets.ModelViewSet):
     queryset = LeaveApplication.objects.all()
     serializer_class = LeaveApplicationSerializer
     permission_classes = [permissions.AllowAny]
-    
+
     def create(self, request, *args, **kwargs):
         employee_id = request.data.get('employee')
         number_of_days = request.data.get('number_of_days')
-        
+
         try:
             employee = Employee.objects.get(id=employee_id, is_active=True)
         except Employee.DoesNotExist:
@@ -762,7 +762,7 @@ class LeaveApplicationViewSet(viewsets.ModelViewSet):
                 'success': False,
                 'message': 'Employee not found in records. Please verify your name.'
             }, status=status.HTTP_400_BAD_REQUEST)
-        
+
         current_year = timezone.now().year
         try:
             balance = EmployeeLeaveBalance.objects.get(
@@ -775,7 +775,7 @@ class LeaveApplicationViewSet(viewsets.ModelViewSet):
                 year=current_year,
                 remaining_days=15
             )
-        
+
         try:
             days = int(number_of_days)
         except (ValueError, TypeError):
@@ -783,34 +783,34 @@ class LeaveApplicationViewSet(viewsets.ModelViewSet):
                 'success': False,
                 'message': 'Invalid number of days'
             }, status=status.HTTP_400_BAD_REQUEST)
-        
+
         if days > 15:
             return Response({
                 'success': False,
                 'message': 'Maximum leave application is 15 days per request'
             }, status=status.HTTP_400_BAD_REQUEST)
-        
+
         if days > balance.remaining_days:
             return Response({
                 'success': False,
                 'message': f'Insufficient leave balance. You only have {balance.remaining_days} days remaining for {current_year}.'
             }, status=status.HTTP_400_BAD_REQUEST)
-        
+
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             application = serializer.save()
-            
+
             balance.deduct_days(days)
-            
+
             LeaveRequest.objects.create(application=application, status='pending')
-            
+
             return Response({
                 'success': True,
                 'message': f'Leave application submitted successfully! Pending dean approval. {balance.remaining_days} days remaining.',
                 'data': serializer.data,
                 'remaining_days': balance.remaining_days
             }, status=status.HTTP_201_CREATED)
-        
+
         return Response({
             'success': False,
             'message': 'Validation failed',
@@ -819,24 +819,24 @@ class LeaveApplicationViewSet(viewsets.ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
-        
+
         if instance.status != 'pending':
             return Response({
                 'success': False,
                 'message': f'Cannot update {instance.status} leave application'
             }, status=status.HTTP_400_BAD_REQUEST)
-        
+
         return super().update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
         application = self.get_object()
-        
+
         if application.status != 'pending':
             return Response({
                 'success': False,
                 'message': f'Cannot delete {application.status} leave application'
             }, status=status.HTTP_400_BAD_REQUEST)
-        
+
         try:
             current_year = timezone.now().year
             balance = EmployeeLeaveBalance.objects.get(
@@ -847,7 +847,7 @@ class LeaveApplicationViewSet(viewsets.ModelViewSet):
             balance.save()
         except EmployeeLeaveBalance.DoesNotExist:
             pass
-        
+
         application.delete()
         return Response({
             'success': True,
@@ -903,6 +903,58 @@ class HRUserViewSet(viewsets.ModelViewSet):
         username = self.kwargs.get(self.lookup_field)
         return HRUser.objects.get(user__username=username)
 
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+
+        password_changed = False
+
+        password = request.data.get('password')
+        if password:
+            instance.user.set_password(password)
+            instance.user.save()
+            password_changed = True
+
+        username = request.data.get('username')
+        if username and username != instance.user.username:
+            if User.objects.filter(username=username).exclude(id=instance.user.id).exists():
+                return Response({
+                    'success': False,
+                    'message': 'Username already exists'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            instance.user.username = username
+            instance.user.save()
+
+        data = request.data.copy()
+        data.pop('is_active', None)
+
+        for field in ['username', 'password', 'department_name', 'department_code',
+                    'photo_url', 'created_at', 'updated_at', 'is_dean']:
+            data.pop(field, None)
+
+        for num_field in ['age', 'height', 'weight']:
+            if data.get(num_field) == '':
+                data.pop(num_field)
+
+        serializer = self.get_serializer(instance, data=data, partial=partial)
+
+        if not serializer.is_valid():
+            return Response({
+                'success': False,
+                'errors': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        dean = serializer.save()
+        dean.is_active = True
+        dean.save()
+
+        return Response({
+            'success': True,
+            'message': 'Dean updated successfully',
+            'passwordChanged': password_changed,  # 👈 include this
+            'data': DeanSerializer(dean, context={'request': request}).data
+        })
+
 
 @csrf_exempt
 def verify_key(request):
@@ -929,7 +981,7 @@ def dashboard_stats(request):
     pending_leaves = LeaveRequest.objects.filter(status='pending').count()
     approved_leaves = LeaveRequest.objects.filter(status='approved').count()
     denied_leaves = LeaveRequest.objects.filter(status='denied').count()
-    
+
     departments = Department.objects.all()
     dept_stats = []
     for dept in departments:
@@ -986,7 +1038,7 @@ def appointment_form_view(request):
     return render(request, 'leave_requests_interface.html')
 
 @api_view(['GET'])
-@permission_classes([AllowAny]) 
+@permission_classes([AllowAny])
 def get_employee_leave_requests(request, employee_id):
     """
     Retrieve all leave requests for a given employee based on employee_id.
@@ -1072,7 +1124,7 @@ def logout_view(request):
 
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         return JsonResponse({"success": True, "message": "Logged out successfully", "redirect_url": "/"})
-    
+
     return redirect('/')
 
 @ensure_csrf_cookie
@@ -1202,7 +1254,13 @@ def update_dean_department(request, dean_id):
 def delete_dean(request, dean_id):
     if request.method == "POST":
         dean = get_object_or_404(Dean, id=dean_id)
+
+        user = dean.user
+
         dean.delete()
-        return JsonResponse({"message": "Dean deleted successfully"})
-    
+
+        user.delete()
+
+        return JsonResponse({"message": "Dean and associated user deleted successfully"})
+
     return JsonResponse({"error": "Invalid request method"}, status=405)
