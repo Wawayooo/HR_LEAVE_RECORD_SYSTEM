@@ -51,9 +51,9 @@
     <div class="key-modal-DIV">
       <h2>Change Secret Key</h2>
       <p>Please enter a new secret key. It must be at least 8 characters long and include uppercase, lowercase, numbers, and special characters.</p>
-      
+
       <input type="password" id="secretKeyInput" placeholder="Enter new secret key" />
-      
+
       <div class="modal-actions-DIV">
         <button onclick="submitSecretKey()">Update Key</button>
         <button onclick="toggleChangeKeyModal()">Cancel</button>
@@ -94,10 +94,13 @@
         <h2>HR Profile</h2>
         <span class="close-btn" onclick="toggleHRModal()">&times;</span>
       </div>
-      
+
       <div class="modal-body">
         <div class="profile-section">
-          <img id="hrProfilePic" src="" alt="HR Profile Picture" onerror="this.src='{{ 'https://keithcrts11.pythonanywhere.com/static/assets/media/examplePIC.jpg' }}'" />
+          <img id="hrProfilePic"
+             src="{{ employee.profile_pic.url }}"
+             alt="HR Profile Picture"
+             onerror="this.src='{% static 'assets/media/examplePIC.jpg' %}'" />
           <p><strong>Professional ID:</strong> <span id="hrProfessionalId">Loading...</span></p>
         </div>
 
@@ -145,7 +148,7 @@
           </div>
 
           <div class="form-group">
-            <label for="hrPhoto" 
+            <label for="hrPhoto"
                   style="border: 2px solid black; padding: 6px; cursor: pointer; border-radius: 8px; background: maroon; color: white;">
               Upload New Photo
             </label>
@@ -154,7 +157,7 @@
 
 
             <div style="margin-top:10px;">
-              <img id="photoPreview" src="" alt="Selected photo preview" 
+              <img id="photoPreview" src="" alt="Selected photo preview"
                   style="max-width:150px; border:1px solid #ccc; border-radius:8px; display:none;" />
             </div>
           </div>
@@ -293,7 +296,7 @@
         <input type="text" id="positionSearch" placeholder="Search positions...">
 
         <div id="positions_list"></div>
-      </div>  
+      </div>
     </div>
 
     <div id="facultySection" class="faculty-section" style="display: none;">
@@ -335,12 +338,12 @@
         <p style="text-align: center; padding: 40px; color: #666;">Loading leave reports...</p>
       </div>
     </div>
-    
+
     <div id="archiveSection" style="display: none;">
       <h2 style="color: maroon;">Archived Leave Requests</h2>
       <div class="archive-search" style="margin-bottom:20px; text-align:left;">
-        <input type="text" id="archiveSearch" 
-              placeholder="🔍 Search archives..." 
+        <input type="text" id="archiveSearch"
+              placeholder="🔍 Search archives..."
               style="padding:8px 12px; border:3px solid #000000; border-radius:6px;
                       font-size:14px; width:250px; outline:none; width:100%;">
       </div>
@@ -482,10 +485,10 @@
         <span class="close-btn" onclick="closeUpdateModal()">&times;</span>
       </div>
       <div class="modal-body">
-        <input 
-          type="text" 
-          id="employeeSearch" 
-          placeholder="Search employees..." 
+        <input
+          type="text"
+          id="employeeSearch"
+          placeholder="Search employees..."
         >
         <div class="employee-list" id="employeeList">
           <p style="text-align: center; padding: 20px;">Loading employees...</p>
@@ -544,7 +547,7 @@
         sidebar.classList.toggle('open');
         burgerBtn.classList.toggle('active');
     });
-    
+
   </script>
 </body>
 </html>

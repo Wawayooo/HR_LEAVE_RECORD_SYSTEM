@@ -14,7 +14,7 @@
       <div id="loginDiv">
 
         <a href="{% url 'home_page' %}" class="back_button">← Back</a>
-        
+
         <h3>Enter Secret Key</h3>
         <input type="password" id="secretKeyInput" placeholder="Secret Key" autocomplete="off">
         <button onclick="checkKey()">Login</button>
@@ -25,7 +25,7 @@
 
     <div id="formDiv">
       <div id="loginNotification">✅ Login successful!</div>
-      
+
       <div class="form-card">
         <div class="header">
           <div class="header-content">
@@ -51,7 +51,7 @@
           <form id="leaveApplicationForm">
             <div class="form-group">
               <label>Employee ID <span>*</span></label>
-              <input type="text" id="employeeCode" name="employee_id" 
+              <input type="text" id="employeeCode" name="employee_id"
                 placeholder="Enter your employee ID" required autocomplete="off" maxlength="20">
               <small id="employeeValidationMsg"></small>
             </div>
@@ -123,21 +123,6 @@
   </div>
 
   <script src="{% static 'assets/scripts/leave_req_script.js' %}"></script>
-  <script>
-    async function initCSRF() {
-    try {
-        await fetch(`${API_BASE_URL}/csrf/`, {
-        method: 'GET',
-        credentials: 'include'
-        });
-        console.log("CSRF cookie initialized");
-    } catch (err) {
-        console.error("Failed to initialize CSRF cookie:", err);
-    }
-    }
-
-    document.addEventListener("DOMContentLoaded", initCSRF);
-</script>
 
 </body>
 </html>
