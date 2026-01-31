@@ -24,6 +24,7 @@ DEBUG = False
 
 ALLOWED_HOSTS = [
     "KeithCrts11.pythonanywhere.com",
+    "https://osmena-colleges-hris.web.app/",
 ]
 
 
@@ -130,6 +131,9 @@ STATICFILES_DIRS = [
 
 STATIC_ROOT = BASE_DIR.parent.parent / "static"
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 
 # ------------------------------------------------------------------------------
 # DEFAULT PRIMARY KEY
@@ -160,10 +164,12 @@ CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOWED_ORIGINS = [
     "https://KeithCrts11.pythonanywhere.com",
+    "https://osmena-colleges-hris.web.app/",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     "https://KeithCrts11.pythonanywhere.com",
+    "https://osmena-colleges-hris.web.app/",
 ]
 
 
