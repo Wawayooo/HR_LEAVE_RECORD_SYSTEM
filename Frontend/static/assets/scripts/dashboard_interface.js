@@ -1,6 +1,6 @@
 const CONFIG = {
   PROD_URL: "https://keithcrts11.pythonanywhere.com",
-  
+
   get API_BASE() {
     return window.location.hostname === 'keithcrts11.pythonanywhere.com'
       ? this.PROD_URL
@@ -282,11 +282,11 @@ function setupEventListeners() {
   const addEmployeeBtn = document.querySelector('.btn-primary');
   const updateEmployeeBtn = document.querySelector('.btn-secondary');
   const employeeForm = document.getElementById('employeeForm');
-  
+
   if (addEmployeeBtn) addEmployeeBtn.addEventListener('click', openAddEmployeeModal);
   if (updateEmployeeBtn) updateEmployeeBtn.addEventListener('click', openUpdateModal);
   if (employeeForm) employeeForm.addEventListener('submit', handleEmployeeSubmit);
-  
+
   const adminProfile = document.getElementById('adminProfile');
   if (adminProfile) {
     adminProfile.addEventListener('click', function(e) {
@@ -302,11 +302,11 @@ function setupEventListeners() {
       dropdown.classList.add('hidden');
     }
   });
-  
+
   const deptForm = document.getElementById('departmentForm');
   const posForm = document.getElementById('positionForm');
   const hrForm = document.getElementById('hrForm');
-  
+
   if (deptForm) deptForm.addEventListener('submit', handleDepartmentSubmit);
   if (posForm) posForm.addEventListener('submit', handlePositionSubmit);
   if (hrForm) hrForm.addEventListener('submit', handleHRProfileSubmit);
@@ -335,7 +335,7 @@ function showSuccess(message) {
 async function loadHRProfile() {
   try {
     const hrUsername = sessionStorage.getItem('hrUsername') || "@OsmeñaVerified_HR";
-    
+
     const response = await fetch(`${API_BASE}/api/hruser/${encodeURIComponent(hrUsername)}/`, {
       method: 'GET',
       headers: {
@@ -354,7 +354,7 @@ async function loadHRProfile() {
     const hrData = await response.json();
     currentHRUser = hrData;
     updateHRProfileUI(hrData);
-    
+
   } catch (error) {
     console.error('Error loading HR profile:', error);
     showError('Failed to load HR profile');
@@ -388,7 +388,7 @@ function updateHRProfileUI(hrData) {
     document.getElementById('hrAvatar'),
     document.getElementById('hrProfilePic')
   ];
-  
+
   avatarElements.forEach(el => {
     if (el) {
       el.src = photoUrl;
@@ -402,7 +402,7 @@ function updateHRProfileUI(hrData) {
 function toggleHRModal() {
   const modal = document.getElementById('hrModal');
   if (!modal) return;
-  
+
   if (modal.style.display === 'flex') {
     modal.style.display = 'none';
   } else {
@@ -448,8 +448,16 @@ async function handleHRProfileSubmit(e) {
     });
 
     const result = await response.json();
-    
+
     if (response.ok) {
+      if (result.passwordChanged) {
+        alert("Your password has been updated. You will be logged out for security.");
+        sessionStorage.clear();
+        localStorage.clear();
+        window.location.href = "/homepage/";
+        return;
+      }
+
       showSuccess('HR profile updated successfully!');
       toggleHRModal();
       updateHRProfileUI(result);
@@ -525,7 +533,7 @@ async function loadLeaveData() {
   try {
     const response = await fetch(`${API_BASE}/api/leave-requests/`);
     if (!response.ok) throw new Error('Failed to load leave data');
-    
+
     const result = await response.json();
 
     const allRequests = Array.isArray(result) ? result : (result.data || []);
@@ -545,7 +553,7 @@ async function loadLeaveData() {
 function populateDepartmentSelect() {
   const select = document.getElementById('employeeDepartment');
   if (!select) return;
-  
+
   select.innerHTML = '<option value="">Select Department</option>';
   allDepartments.forEach(dept => {
     select.innerHTML += `<option value="${dept.id}">${dept.name}</option>`;
@@ -575,13 +583,13 @@ function populateOrgChart() {
 
   if (!academicSection || !adminSection || !itSection) return;
 
-  const academicDepts = allDepartments.filter(d => 
+  const academicDepts = allDepartments.filter(d =>
     ['basic-ed', 'grad-school', 'cite', 'caba', 'chm'].includes(d.code)
   );
-  const adminDepts = allDepartments.filter(d => 
+  const adminDepts = allDepartments.filter(d =>
     ['hr', 'finance', 'admissions'].includes(d.code)
   );
-  const itDepts = allDepartments.filter(d => 
+  const itDepts = allDepartments.filter(d =>
     ['it', 'support'].includes(d.code)
   );
 
@@ -596,11 +604,11 @@ function createDepartmentCards(departments) {
   }
 
   return departments.map(dept => {
-    const employees = allEmployees.filter(e => 
+    const employees = allEmployees.filter(e =>
       e.department === dept.id && e.is_active
     );
     const count = employees.length;
-    
+
     return `
       <div class="dept-card" onclick="filterEmployeesByDepartment(${dept.id})">
         <div class="dept-icon">📚</div>
@@ -618,9 +626,9 @@ function filterEmployeesByDepartment(deptId) {
 function populateFacultyChart() {
   const container = document.getElementById('facultyChartContainer');
   if (!container) return;
-  
+
   const activeEmployees = allEmployees.filter(emp => emp.is_active);
-  
+
   if (activeEmployees.length === 0) {
     container.innerHTML = '<p style="text-align: center; padding: 40px; color: #666;">No active employees found</p>';
     return;
@@ -650,8 +658,8 @@ function populateFacultyChart() {
           ${deptData.employees.map(emp => `
             <div class="faculty-card">
               <div class="faculty-photo">
-                ${emp.photo_url 
-                  ? `<img src="${emp.photo_url}" alt="${emp.full_name}" onerror="this.parentElement.innerHTML='<div class=\\'no-photo\\'>👤</div>'">` 
+                ${emp.photo_url
+                  ? `<img src="${emp.photo_url}" alt="${emp.full_name}" onerror="this.parentElement.innerHTML='<div class=\\'no-photo\\'>👤</div>'">`
                   : '<div class="no-photo">👤</div>'}
               </div>
               <div class="faculty-info">
@@ -660,16 +668,16 @@ function populateFacultyChart() {
                 <div class="faculty-id">${emp.employee_id}</div>
                 <p>
                   <strong style="color: ${
-                    emp.remaining_days !== null 
-                      ? (emp.remaining_days > 7 
-                          ? 'green' 
-                          : emp.remaining_days >= 3 
-                            ? 'orange' 
+                    emp.remaining_days !== null
+                      ? (emp.remaining_days > 7
+                          ? 'green'
+                          : emp.remaining_days >= 3
+                            ? 'orange'
                             : 'red')
                       : 'green'
                   }">
                     ${emp.remaining_days !== null ? emp.remaining_days : 15}
-                  </strong> 
+                  </strong>
                   Days Leave Credits Remaining
                 </p>
               </div>
@@ -828,10 +836,10 @@ function displayLeaveRequests(reports) {
 function displayLeaveReports(reports) {
   const container = document.querySelector('.leave-reports-cards-container');
   const searchInput = document.getElementById('leave_Reports');
-  
+
   if (!container) return;
 
-  const allReports = (reports || []).filter(r => 
+  const allReports = (reports || []).filter(r =>
     r.status === 'denied' || r.status === 'approved'
   );
 
@@ -905,7 +913,7 @@ function displayLeaveReports(reports) {
       const statusBorder = status === 'approved' ? '#4CAF50' : '#2196F3';
 
       let approvalSection = '';
-      
+
       if (status === 'approved') {
         approvalSection = `
           <div style="background-color: ${statusBg}; padding: 15px; border-radius: 6px; border-left: 4px solid ${statusBorder};">
@@ -1086,17 +1094,17 @@ function displayLeaveReports(reports) {
 
                   <!-- Approval Status Sections -->
                   ${approvalSection}
-                  
+
                   <!-- Archive Button (only for approved status and not archived) -->
                   ${status === 'approved' ? `
                     <div style="margin-top: 20px; padding-top: 15px; border-top: 2px solid #e0e0e0;">
-                      <button class="archive-btn" data-id="${req.id}" 
+                      <button class="archive-btn" data-id="${req.id}"
                               ${req.is_archived ? 'disabled' : ''}
-                              style="width: 100%; padding: 12px 20px; 
-                                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                                    color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; 
-                                    cursor: ${req.is_archived ? 'not-allowed' : 'pointer'}; 
-                                    opacity: ${req.is_archived ? '0.6' : '1'}; 
+                              style="width: 100%; padding: 12px 20px;
+                                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                    color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600;
+                                    cursor: ${req.is_archived ? 'not-allowed' : 'pointer'};
+                                    opacity: ${req.is_archived ? '0.6' : '1'};
                                     display: flex; align-items: center; justify-content: center; gap: 8px;
                                     transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);">
                         <span style="font-size: 18px;">📦</span>
@@ -1123,7 +1131,7 @@ function displayLeaveReports(reports) {
         </div>
       `;
     }).join('');
-    
+
     container.querySelectorAll('.archive-btn').forEach(btn => {
       btn.addEventListener('mouseenter', (e) => {
         if (!e.target.disabled) {
@@ -1152,7 +1160,7 @@ function displayLeaveReports(reports) {
   if (searchInput) {
     searchInput.addEventListener('input', (e) => {
       const searchTerm = e.target.value.toLowerCase().trim();
-      
+
       if (!searchTerm) {
         renderReports(allReports);
         return;
@@ -1226,15 +1234,15 @@ async function archiveLeaveRequest(requestId) {
     alert('⚠️ Access Denied\n\nOnly HR users can archive leave requests.');
     return;
   }
-  
+
   const confirmed = confirm(
     '📦 Archive Leave Request\n\n' +
     'This will permanently archive this leave request to the archive database.\n\n' +
     'Are you sure you want to continue?'
   );
-  
+
   if (!confirmed) return;
-  
+
   try {
     const response = await fetch(`/api/leave-requests/${requestId}/archive/`, {
       method: 'POST',
@@ -1274,12 +1282,12 @@ async function archiveLeaveRequest(requestId) {
         </div>
       `;
       document.body.appendChild(notification);
-      
+
       setTimeout(() => {
         notification.style.animation = 'slideOut 0.3s ease';
         setTimeout(() => notification.remove(), 300);
       }, 3000);
-      
+
       setTimeout(() => {
         window.location.reload();
       }, 1000);
@@ -1300,7 +1308,7 @@ async function approveLeaveRequest(id) {
     showLoader();
     const response = await fetch(`${API_BASE}/api/leave-requests/${id}/hr_approve/`, {
       method: 'POST',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
         'X-CSRFToken': csrftoken
       },
@@ -1333,7 +1341,7 @@ async function rejectLeaveRequest(id) {
     showLoader();
     const response = await fetch(`${API_BASE}/api/leave-requests/${id}/hr_deny/`, {
       method: 'POST',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
         'X-CSRFToken': csrftoken
       },
@@ -1358,13 +1366,13 @@ async function rejectLeaveRequest(id) {
 function openAddEmployeeModal() {
   const form = document.getElementById('employeeForm');
   if (form) form.reset();
-  
+
   const modalTitle = document.getElementById('modalTitle');
   if (modalTitle) modalTitle.textContent = 'Add Employee';
-  
+
   const modal = document.getElementById('employeeModal');
   if (modal) modal.style.display = 'flex';
-  
+
   const avatarPreview = document.getElementById('avatarPreview');
   if (avatarPreview) {
     avatarPreview.innerHTML = `
@@ -1375,7 +1383,7 @@ function openAddEmployeeModal() {
       </svg>
     `;
   }
-  
+
   updateEmployeeId();
   currentPhotoFile = null;
   if (form) delete form.dataset.employeeId;
@@ -1421,7 +1429,7 @@ function displayEmployeeList(filteredEmployees = null) {
       </div>
       <div class="employee-actions">
         <button onclick="editEmployee(${emp.id})" class="btn-edit">Edit</button>
-        ${emp.is_active 
+        ${emp.is_active
           ? `<button class="btn-deactivate" style="background: transparent;">✅</button>`
           : `<button onclick="activateEmployee(${emp.id})" class="btn-activate">Activate</button>`
         }
@@ -1443,7 +1451,7 @@ document.getElementById("employeeSearch").addEventListener("input", (e) => {
 
 async function activateEmployee(employeeId) {
   if (!confirm('Are you sure you want to activate this employee?')) return;
-  
+
   try {
     showLoader();
     const response = await fetch(`${API_BASE}/api/employees/${employeeId}/activate/`, {
@@ -1504,7 +1512,7 @@ async function editEmployee(id) {
   if (!employee) return;
 
   closeUpdateModal();
-  
+
   document.getElementById('modalTitle').textContent = 'Update Employee';
   document.getElementById('employeeId').value = employee.employee_id;
   document.getElementById('employeeEmail').value = employee.email;
@@ -1515,19 +1523,19 @@ async function editEmployee(id) {
   document.getElementById('employeeHeight').value = employee.height;
   document.getElementById('employeePosition').value = employee.position;
   document.getElementById('employeeDepartment').value = employee.department;
-  
+
   const mottoField = document.getElementById('employeeMotto');
   if (mottoField) mottoField.value = employee.motto_in_life || '';
-  
+
   if (employee.photo_url) {
-    document.getElementById('avatarPreview').innerHTML = 
+    document.getElementById('avatarPreview').innerHTML =
       `<img src="${employee.photo_url}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
   }
-  
+
   currentPhotoFile = null;
   document.getElementById('employeeForm').dataset.employeeId = id;
   document.getElementById('employeeModal').style.display = 'flex';
-  
+
   await loadPositions();
 }
 
@@ -1545,7 +1553,7 @@ async function handleEmployeeSubmit(e) {
   formData.append('height', document.getElementById('employeeHeight').value);
   formData.append('position', document.getElementById('employeePosition').value);
   formData.append('department', document.getElementById('employeeDepartment').value);
-  
+
   const mottoField = document.getElementById('employeeMotto');
   if (mottoField) formData.append('motto_in_life', mottoField.value);
 
@@ -1556,7 +1564,7 @@ async function handleEmployeeSubmit(e) {
   try {
     showLoader();
     let url, method;
-    
+
     if (employeeId) {
       url = `${API_BASE}/api/employees/${employeeId}/`;
       method = 'PUT';
@@ -1614,23 +1622,23 @@ async function handleEmployeeSubmit(e) {
 function handlePhotoUpload(event) {
   const file = event.target.files[0];
   if (!file) return;
-  
+
   if (file.size > 5 * 1024 * 1024) {
     showError('File size must be less than 5MB');
     event.target.value = '';
     return;
   }
-  
+
   if (!file.type.startsWith('image/')) {
     showError('Please upload an image file');
     event.target.value = '';
     return;
   }
-  
+
   currentPhotoFile = file;
   const reader = new FileReader();
   reader.onload = function(e) {
-    document.getElementById('avatarPreview').innerHTML = 
+    document.getElementById('avatarPreview').innerHTML =
       `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
   };
   reader.readAsDataURL(file);
@@ -1641,10 +1649,10 @@ async function updateEmployeeId() {
     const year = new Date().getFullYear();
     const response = await fetch(`${API_BASE}/api/employees/`);
     const employees = await response.json();
-    
+
     const thisYearEmployees = employees.filter(e => e.employee_id.startsWith(`OC-${year}`));
     const nextNumber = thisYearEmployees.length + 1;
-    
+
     document.getElementById('employeeId').value = `OC-${year}${String(nextNumber).padStart(4, '0')}`;
   } catch (error) {
     console.error('Error updating employee ID:', error);
@@ -1656,10 +1664,10 @@ async function updateEmployeeId() {
 function openDepartmentModal() {
   const form = document.getElementById('departmentForm');
   if (form) form.reset();
-  
+
   const modalTitle = document.getElementById('departmentModalTitle');
   if (modalTitle) modalTitle.textContent = 'Add Department';
-  
+
   const modal = document.getElementById('departmentModal');
   if (modal) modal.style.display = 'flex';
 }
@@ -1682,7 +1690,7 @@ async function handleDepartmentSubmit(e) {
     showLoader();
     const response = await fetch(`${API_BASE}/api/departments/`, {
       method: 'POST',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
         'X-CSRFToken': csrftoken
       },
@@ -1711,10 +1719,10 @@ async function handleDepartmentSubmit(e) {
 function openPositionModal() {
   const form = document.getElementById('positionForm');
   if (form) form.reset();
-  
+
   const modalTitle = document.getElementById('positionModalTitle');
   if (modalTitle) modalTitle.textContent = 'Add Position';
-  
+
   const modal = document.getElementById('positionModal');
   if (modal) modal.style.display = 'flex';
 }
@@ -1737,7 +1745,7 @@ async function handlePositionSubmit(e) {
     showLoader();
     const response = await fetch(`${API_BASE}/api/positions/`, {
       method: 'POST',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
         'X-CSRFToken': csrftoken
       },
@@ -1766,7 +1774,7 @@ function switchSection(section, menuItem) {
   document.querySelectorAll('.menu-item').forEach(item => {
     item.classList.remove('active');
   });
-  
+
   if (menuItem) {
     menuItem.classList.add('active');
   }
@@ -1776,7 +1784,7 @@ function switchSection(section, menuItem) {
     document.getElementById('facultySection'),
     document.getElementById('LeaveRequestsSection'),
     document.getElementById('leaveReportsSection'),
-    document.getElementById('archiveSection') 
+    document.getElementById('archiveSection')
   ];
 
   sections.forEach(sec => {
@@ -1795,9 +1803,9 @@ function switchSection(section, menuItem) {
 function toggleSection(section) {
   const sectionElement = document.getElementById(`${section}-section`);
   const toggleIcon = document.getElementById(`${section}-toggle`);
-  
+
   if (!sectionElement || !toggleIcon) return;
-  
+
   if (sectionElement.classList.contains('hidden')) {
     sectionElement.classList.remove('hidden');
     toggleIcon.textContent = '🔽';
@@ -1936,7 +1944,7 @@ function renderDeans(container, deans) {
   if (!deans || deans.length === 0) {
     container.innerHTML += `
       <div class="empty-state">
-        <p>No Deans yet. <strong onclick="alert('Add Dean form goes here')">Create One Now</strong></p>
+        <p>No Deans yet. Create One Now</p>
       </div>
     `;
     return;
@@ -1977,11 +1985,11 @@ function renderDeans(container, deans) {
         <div class="org-subtitle">Dean of ${dean.department}</div>
         ${detailsHTML}
         <div style="margin-top:18px; display:flex; justify-content:space-between; gap:12px;">
-          <button onclick="updateDean(${dean.id})" 
+          <button onclick="updateDean(${dean.id})"
             style="flex:1; padding:10px; border:none; border-radius:8px; background:#800000; color:#fff; font-weight:600; cursor:pointer; transition:all 0.3s ease;">
             Update
           </button>
-          <button onclick="deleteDean(${dean.id})" 
+          <button onclick="deleteDean(${dean.id})"
             style="flex:1; padding:10px; border:none; border-radius:8px; background:#d32f2f; color:#fff; font-weight:600; cursor:pointer; transition:all 0.3s ease;">
             Delete
           </button>
@@ -2016,11 +2024,13 @@ function deleteDean(deanId) {
 
   showLoader();
 
-  fetch(`${API_BASE}/dean/${deanId}/delete/`, {
+  fetch(`${API_BASE}/api/dean/${deanId}/delete/`, {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${csrftoken}`
-    }
+      "Content-Type": "application/json",
+      "X-CSRFToken": getCookie("csrftoken") // only if not csrf_exempt
+    },
+    credentials: "include" // ensures cookies/session are sent if needed
   })
   .then(res => res.json())
   .then(resp => {
@@ -2030,6 +2040,7 @@ function deleteDean(deanId) {
   .catch(() => alert("Error deleting dean"))
   .finally(() => hideLoader());
 }
+
 
 function updateDean(deanId) {
   const overlay = document.createElement("div");
