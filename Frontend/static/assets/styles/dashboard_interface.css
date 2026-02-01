@@ -1105,6 +1105,7 @@ body {
     justify-content: flex-start;
     padding: 12px 20px;
     background: transparent;
+    position: absolute;
   }
 
   .mobile-logo {

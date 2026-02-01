@@ -1201,8 +1201,18 @@ body {
     display: none;
   }
 
-  .main-content {
+  .main-content,
+  .leave-requests-section,
+  .faculty-section {
     padding: 20px;
+    position: relative;
+    top: 43px;
+  }
+
+  #archiveSection,
+  #leaveReportsSection {
+    position: relative;
+    top: 43px;
   }
 
   .page-title {

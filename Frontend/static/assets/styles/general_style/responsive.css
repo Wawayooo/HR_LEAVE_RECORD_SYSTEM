@@ -76,7 +76,11 @@
   transition: var(--transition-base);
 }
 
-
+@media (max-width: 1080px) {
+  .sidebar {
+    position: fixed;
+  }
+}
 
 @media (max-width: 768px) {
 
@@ -1082,7 +1086,7 @@
   }
 
   .sidebar {
-    top: 60px;
+    top: 72px;
     height: calc(100vh - 60px);
     width: 240px;
     left: -240px;
