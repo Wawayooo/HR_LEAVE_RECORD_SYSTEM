@@ -620,7 +620,8 @@ function createDepartmentCards(departments) {
 }
 
 function filterEmployeesByDepartment(deptId) {
-  switchSection('facultySection');
+  const facultyMenuItem = document.querySelector('[data-section="facultySection"]');
+  switchSection('facultySection', facultyMenuItem);
 }
 
 function populateFacultyChart() {
@@ -1786,7 +1787,6 @@ function switchSection(section, menuItem) {
     document.getElementById('leaveReportsSection'),
     document.getElementById('archiveSection')
   ];
-
   sections.forEach(sec => {
     if (sec) sec.style.display = 'none';
   });
@@ -1798,7 +1798,13 @@ function switchSection(section, menuItem) {
     const sectionElement = document.getElementById(section);
     if (sectionElement) sectionElement.style.display = 'block';
   }
+
+  const sidebar = document.getElementById('sidebar');
+  if (sidebar) {
+    sidebar.classList.remove('open');
+  }
 }
+
 
 function toggleSection(section) {
   const sectionElement = document.getElementById(`${section}-section`);

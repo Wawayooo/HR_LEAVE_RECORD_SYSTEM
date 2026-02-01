@@ -212,6 +212,11 @@ function switchSection(sectionId, menuItem) {
     });
     if (menuItem) menuItem.classList.add('active');
 
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) {
+        sidebar.classList.remove('open');
+    }
+
     const sectionName = menuItem ? menuItem.textContent.trim().split(' ').slice(1).join(' ') : 'Dashboard';
     document.getElementById('breadcrumb').textContent = `📁 ${sectionName}`;
 }
@@ -762,7 +767,6 @@ async function deleteLeaveReport(reportId) {
             alert(errorMessage);
         }
     } catch (err) {
-        //console.error("Fetch error:", err); ..pang debug lng
         alert("Error deleting report. Please try again.");
     } finally {
         hideModal(logoutModal);
