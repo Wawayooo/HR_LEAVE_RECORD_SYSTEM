@@ -548,6 +548,17 @@
         burgerBtn.classList.toggle('active');
     });
 
+    document.querySelectorAll('.menu-item').forEach(item => {
+      item.addEventListener('click', function() {
+        const section = this.getAttribute('data-section');
+        if (section) {
+          switchSection(section, this);
+        }
+        sidebar.classList.remove('open');  
+        burgerBtn.classList.remove('active');
+      });
+    });
+
   </script>
 </body>
 </html>
