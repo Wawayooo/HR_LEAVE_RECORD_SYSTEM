@@ -1,8 +1,8 @@
 const CONFIG = {
-  PROD_URL: "https://keithcrts11.pythonanywhere.com",
+  PROD_URL: "https://ochrlcr.pythonanywhere.com/",
   
   get API_BASE() {
-    return window.location.hostname === 'keithcrts11.pythonanywhere.com'
+    return window.location.hostname === 'ochrlcr.pythonanywhere.com'
       ? this.PROD_URL
       : "http://127.0.0.1:8000"; // fallback for dev
   }
@@ -383,7 +383,7 @@ function updateHRProfileUI(hrData) {
     }
   }
 
-  const photoUrl = hrData.photo_url || 'https://keithcrts11.pythonanywhere.com/static/assets/media/examplePIC.jpg';
+  const photoUrl = hrData.photo_url || 'https://ochrlcr.pythonanywhere.com//static/assets/media/examplePIC.jpg';
   const avatarElements = [
     document.getElementById('hrAvatar'),
     document.getElementById('hrProfilePic')
@@ -393,7 +393,7 @@ function updateHRProfileUI(hrData) {
     if (el) {
       el.src = photoUrl;
       el.onerror = function() {
-        this.src = 'https://keithcrts11.pythonanywhere.com/static/assets/media/examplePIC.jpg';
+        this.src = 'https://ochrlcr.pythonanywhere.com//static/assets/media/examplePIC.jpg';
       };
     }
   });
@@ -450,6 +450,14 @@ async function handleHRProfileSubmit(e) {
     const result = await response.json();
     
     if (response.ok) {
+      if (result.passwordChanged) {
+        alert("Your password has been updated. You will be logged out for security.");
+        sessionStorage.clear();
+        localStorage.clear();
+        window.location.href = "/homepage/"; 
+        return; 
+      }
+
       showSuccess('HR profile updated successfully!');
       toggleHRModal();
       updateHRProfileUI(result);
@@ -498,7 +506,7 @@ async function loadDepartments() {
 
 async function loadPositions() {
   try {
-    const response = await fetch(`${API_BASE}/api/positions/`);
+    const response = await fetch(`${API_BASE}/posi_tions/`);
     if (!response.ok) throw new Error('Failed to load positions');
     allPositions = await response.json();
     populatePositionSelect();
@@ -1913,7 +1921,7 @@ function renderHRs(container, hrs) {
   level.classList.add("org-level");
 
   validHRs.forEach(hr => {
-    const photo = hr.photo || "https://keithcrts11.pythonanywhere.com/static/assets/media/examplePIC.jpg";
+    const photo = hr.photo || "https://ochrlcr.pythonanywhere.com//static/assets/media/examplePIC.jpg";
     const card = document.createElement("div");
     card.classList.add("org-card");
 
@@ -1936,7 +1944,7 @@ function renderDeans(container, deans) {
   if (!deans || deans.length === 0) {
     container.innerHTML += `
       <div class="empty-state">
-        <p>No Deans yet. <strong onclick="alert('Add Dean form goes here')">Create One Now</strong></p>
+        <p>No Deans yet. <strong onclick="toggleChangeKeyModal()">Create One Now</strong></p>
       </div>
     `;
     return;
@@ -1949,7 +1957,7 @@ function renderDeans(container, deans) {
     level.classList.add("org-level-two");
 
     deans.slice(i, i + 3).forEach(dean => {
-      const photo = dean.photo || "https://keithcrts11.pythonanywhere.com/static/assets/media/examplePIC.jpg";
+      const photo = dean.photo || "https://ochrlcr.pythonanywhere.com//static/assets/media/examplePIC.jpg";
 
       const card = document.createElement("div");
       card.classList.add("org-card");
@@ -2019,8 +2027,10 @@ function deleteDean(deanId) {
   fetch(`${API_BASE}/dean/${deanId}/delete/`, {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${csrftoken}`
-    }
+      "Content-Type": "application/json",
+      "X-CSRFToken": getCookie("csrftoken")
+    },
+    credentials: "include"
   })
   .then(res => res.json())
   .then(resp => {
