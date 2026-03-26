@@ -1,4 +1,4 @@
-const API_BASE_URL = "https://keithcrts11.pythonanywhere.com";
+const API_BASE_URL = "https://ochrlcr.pythonanywhere.com";
 
 let failedAttempts = 0;
 let lockUntil = null;
