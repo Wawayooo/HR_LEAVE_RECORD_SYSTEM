@@ -12,11 +12,15 @@
   <div class="app-container">
     <div id="loginOverlay">
       <div id="loginDiv">
-
-        <a href="{% url 'home_page' %}" class="back_button">← Back</a>
-        
+        <a href="{% url 'starting_page' %}" class="back_button">← Back</a>
         <h3>Enter Secret Key</h3>
-        <input type="password" id="secretKeyInput" placeholder="Secret Key" autocomplete="off">
+        <div class="password-input-wrap">
+          <input type="password" id="secretKeyInput" placeholder="Secret Key" autocomplete="off">
+          <label class="show-pw-label">
+            <input type="checkbox" id="showPasswordToggle">
+            <span>Show</span>
+          </label>
+        </div>
         <button onclick="checkKey()">Login</button>
         <div id="loadingSpinner" style="display:none;"></div>
         <p id="loginMessage"></p>
@@ -25,7 +29,7 @@
 
     <div id="formDiv">
       <div id="loginNotification">✅ Login successful!</div>
-      
+
       <div class="form-card">
         <div class="header">
           <div class="header-content">
@@ -40,18 +44,49 @@
           <p class="loading-text">Submitting your application...</p>
         </div>
 
-        <div class="form-content">
-          <div class="success-message" id="successMessage">
-            Leave application submitted successfully!
-          </div>
+        <div id="successModal" class="success-modal-overlay" style="display:none;">
+          <div class="success-modal-box">
+            <div class="success-modal-icon-wrap">
+              <span class="success-dot dot-tl"></span>
+              <span class="success-dot dot-tr"></span>
+              <span class="success-dot dot-bl"></span>
+              <span class="success-dot dot-br"></span>
+              <span class="success-dot dot-t"></span>
+              <span class="success-dot dot-r"></span>
+              <div class="success-checkmark">
+                <svg viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="26" cy="26" r="26" fill="#22c55e"/>
+                  <path d="M14 26l9 9 15-17" fill="none" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+            <h2 class="success-modal-title">Leave Request Submitted Successfully!</h2>
+            <p class="success-modal-subtitle">An email will be sent if your request is being approved.</p>
 
+            <div class="success-modal-field">
+              <input type="number" id="successDaysDisplay" value="1" min="1" readonly>
+              <div class="success-field-label">Remaining leave days <span class="red-dot"></span></div>
+            </div>
+
+            <div class="success-modal-field">
+              <textarea id="successReasonDisplay" readonly placeholder=""></textarea>
+            </div>
+
+            <button class="success-btn-primary" id="successOkBtn">OK, GOT IT</button>
+            <button class="success-btn-secondary" id="successAnotherBtn">SUBMIT ANOTHER APPLICATION</button>
+            <a href="#leaveRequestsContainer" class="success-back-link" id="successBackLink">← Back to Leave Request History</a>
+            <p class="success-note">*After entering your Employee ID, your requests will be displayed here.*</p>
+          </div>
+        </div>
+
+        <div class="form-content">
           <div class="section-title">Application for Leave</div>
           <div class="required-note">Required fields</div>
 
           <form id="leaveApplicationForm">
             <div class="form-group">
               <label>Employee ID <span>*</span></label>
-              <input type="text" id="employeeCode" name="employee_id" 
+              <input type="text" id="employeeCode" name="employee_id"
                 placeholder="Enter your employee ID" required autocomplete="off" maxlength="20">
               <small id="employeeValidationMsg"></small>
             </div>
@@ -116,7 +151,7 @@
 
           <div class="section-title" style="background: transparent; border: 2px solid black; filter: drop-shadow(2px 4px 6px black); color: black; display: flex; justify-content: center;">Leave Request History</div>
           <div id="leaveRequestsContainer"></div>
-          <p id="text_display">“After entering your Employee ID, your requests will be displayed here.”</p>
+          <p id="text_display">"After entering your Employee ID, your requests will be displayed here."</p>
         </div>
       </div>
     </div>
@@ -125,20 +160,16 @@
   <script src="{% static 'assets/scripts/leave_req_script.js' %}"></script>
   <script>
     async function initCSRF() {
-    try {
+      try {
         await fetch(`${API_BASE_URL}/csrf/`, {
-        method: 'GET',
-        credentials: 'include'
+          method: 'GET',
+          credentials: 'include'
         });
-        console.log("CSRF cookie initialized");
-    } catch (err) {
+      } catch (err) {
         console.error("Failed to initialize CSRF cookie:", err);
+      }
     }
-    }
-
     document.addEventListener("DOMContentLoaded", initCSRF);
-</script>
-
+  </script>
 </body>
 </html>
-

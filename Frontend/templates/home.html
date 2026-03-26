@@ -38,7 +38,10 @@
       </div>
       <div class="form-group">
         <label>Password</label>
-        <input type="password" id="passwordHR" placeholder="Enter password">
+        <div class="password-wrapper">
+          <input type="password" id="passwordHR" placeholder="Enter password">
+          <span class="eye-icon" onclick="togglePasswordHR()"></span>
+        </div>
       </div>
       <div class="form-actions">
         <button class="btn-cancel" onclick="closeHRLogin()">Cancel</button>
@@ -57,7 +60,10 @@
       </div>
       <div class="form-group">
         <label>Password</label>
-        <input type="password" id="passwordDean" placeholder="Enter password">
+        <div class="password-wrapper">
+          <input type="password" id="passwordDean" placeholder="Enter password">
+          <span class="eye-icon" onclick="togglePassword()"></span>
+        </div>
       </div>
       <div class="form-actions">
         <button class="btn-cancel" onclick="closeDeanLogin()">Cancel</button>
@@ -208,6 +214,32 @@
       if (e.key === 'ArrowLeft') prevSlide();
       if (e.key === 'ArrowRight') nextSlide();
     });
+
+    function togglePassword() {
+      const field = document.getElementById("passwordDean");
+      const eye = document.querySelector(".eye-icon");
+      if (field.type === "password") {
+        field.type = "text";
+        eye.classList.add("open");
+      } else {
+        field.type = "password";
+        eye.classList.remove("open");
+      }
+    }
+
+    function togglePasswordHR() {
+      const field = document.getElementById("passwordHR");
+      const eye = document.querySelector(".eye-icon");
+      if (field.type === "password") {
+        field.type = "text";
+        eye.classList.add("open");
+      } else {
+        field.type = "password";
+        eye.classList.remove("open");
+      }
+    }
   </script>
 </body>
 </html>
+
+
