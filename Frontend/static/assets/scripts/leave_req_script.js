@@ -1,5 +1,4 @@
 const API_BASE_URL = "https://keithcrts11.pythonanywhere.com";
-//const API_BASE_URL = "https://kt2980zx-8000.asse.devtunnels.ms";
 
 let failedAttempts = 0;
 let lockUntil = null;
@@ -10,7 +9,7 @@ function checkKey() {
     if (lockUntil && now < lockUntil) return;
 
     const inputKey = document.getElementById("secretKeyInput").value;
-    
+
     if (!inputKey.trim()) {
         document.getElementById("loginMessage").innerText = "Please enter a key";
         return;
@@ -69,7 +68,7 @@ function startCountdown(seconds) {
     const inputEl = document.getElementById("secretKeyInput");
     const buttonEl = document.querySelector("#loginDiv button");
     let remaining = seconds;
-    
+
     inputEl.disabled = true;
     buttonEl.disabled = true;
     messageEl.style.color = "red";
@@ -89,19 +88,48 @@ function startCountdown(seconds) {
     }, 1000);
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const secretKeyInput = document.getElementById('secretKeyInput');
     if (secretKeyInput) {
-        secretKeyInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                checkKey();
-            }
+        secretKeyInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') checkKey();
         });
     }
+
+    const pwToggle = document.getElementById('showPasswordToggle');
+    if (pwToggle) {
+        pwToggle.addEventListener('change', function () {
+            const input = document.getElementById('secretKeyInput');
+            input.type = this.checked ? 'text' : 'password';
+        });
+    }
+
+    document.getElementById('successOkBtn').addEventListener('click', function () {
+        document.getElementById('successModal').style.display = 'none';
+    });
+
+    document.getElementById('successAnotherBtn').addEventListener('click', function () {
+        document.getElementById('successModal').style.display = 'none';
+        document.getElementById('leaveApplicationForm').reset();
+        employeeVerified = false;
+        document.getElementById('employeeId').value = '';
+        document.getElementById('remainingDays').value = '0';
+        document.getElementById('remainingDaysDisplay').innerText = '0';
+        document.getElementById('employeeValidationMsg').innerText = '';
+        document.getElementById('fullNameGroup').style.display = 'none';
+        document.getElementById('vacationLocationGroup').style.display = 'none';
+        document.getElementById('sickLocationGroup').style.display = 'none';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
 });
 
+function showSuccessModal(remainingDays, reason) {
+    document.getElementById('successDaysDisplay').value = remainingDays ?? 0;
+    document.getElementById('successReasonDisplay').value = reason ?? '';
+    document.getElementById('successModal').style.display = 'flex';
+}
+
 let employeeVerified = false;
-let verificationTimeout = null;
 
 document.getElementById('employeeCode').addEventListener('input', debounce(async function (e) {
     const employeeCode = e.target.value.trim();
@@ -158,20 +186,16 @@ async function verifyEmployee(employeeCode) {
             document.getElementById('employeeId').value = result.employee_id;
             document.getElementById('remainingDays').value = result.remaining_days;
             document.getElementById('remainingDaysDisplay').innerText = result.remaining_days;
-
             document.getElementById('employeeName').value = result.full_name;
             document.getElementById('fullNameGroup').style.display = 'block';
-
             validationMsg.style.color = 'green';
             validationMsg.innerText = `✓ Employee verified (${result.employee_code})`;
-
             fetchEmployeeLeaveRequests(result.employee_code);
         } else {
             employeeVerified = false;
             document.getElementById('employeeId').value = '';
             document.getElementById('remainingDays').value = '0';
             document.getElementById('remainingDaysDisplay').innerText = 'Not verified';
-
             validationMsg.style.color = 'red';
             validationMsg.innerText = result.message || '✗ Employee not found in records';
         }
@@ -213,10 +237,8 @@ async function fetchEmployeeLeaveRequests(employeeId) {
         }
 
         let html = '<div class="leave-requests-grid">';
-
         requests.forEach(req => {
             const statusClass = req.status_display.toLowerCase().replace(/\s+/g, '-');
-
             html += `
                 <div class="leave-card">
                     <div class="leave-card-header">
@@ -247,7 +269,6 @@ async function fetchEmployeeLeaveRequests(employeeId) {
                 </div>
             `;
         });
-
         html += '</div>';
         container.innerHTML = html;
 
@@ -257,8 +278,7 @@ async function fetchEmployeeLeaveRequests(employeeId) {
     }
 }
 
-
-document.getElementById('leaveType').addEventListener('change', function() {
+document.getElementById('leaveType').addEventListener('change', function () {
     const vacationGroup = document.getElementById('vacationLocationGroup');
     const sickGroup = document.getElementById('sickLocationGroup');
     const vacationSelect = document.getElementById('vacationLocation');
@@ -288,36 +308,27 @@ formFields.forEach(field => {
     });
 });
 
-document.getElementById('numberOfDays').addEventListener('input', function() {
+document.getElementById('numberOfDays').addEventListener('input', function () {
     const numberOfDays = parseInt(this.value, 10) || 0;
     const remainingDays = parseInt(document.getElementById('remainingDays').value, 10) || 0;
     const errorMsg = this.parentElement.querySelector('.error-message');
-    
+
     if (numberOfDays > 15) {
         this.classList.add('error');
-        if (errorMsg) {
-            errorMsg.innerText = 'Maximum 15 days per leave application';
-            errorMsg.classList.add('show');
-        }
+        if (errorMsg) { errorMsg.innerText = 'Maximum 15 days per leave application'; errorMsg.classList.add('show'); }
     } else if (numberOfDays > remainingDays && employeeVerified) {
         this.classList.add('error');
-        if (errorMsg) {
-            errorMsg.innerText = `You only have ${remainingDays} days remaining`;
-            errorMsg.classList.add('show');
-        }
+        if (errorMsg) { errorMsg.innerText = `You only have ${remainingDays} days remaining`; errorMsg.classList.add('show'); }
     } else if (numberOfDays < 1) {
         this.classList.add('error');
-        if (errorMsg) {
-            errorMsg.innerText = 'Number of days must be at least 1';
-            errorMsg.classList.add('show');
-        }
+        if (errorMsg) { errorMsg.innerText = 'Number of days must be at least 1'; errorMsg.classList.add('show'); }
     } else {
         this.classList.remove('error');
         if (errorMsg) errorMsg.classList.remove('show');
     }
 });
 
-document.getElementById('leaveApplicationForm').addEventListener('submit', async function(e) {
+document.getElementById('leaveApplicationForm').addEventListener('submit', async function (e) {
     e.preventDefault();
 
     if (!employeeVerified) {
@@ -327,49 +338,28 @@ document.getElementById('leaveApplicationForm').addEventListener('submit', async
     }
 
     let isValid = true;
-    formFields.forEach(field => {
-        if (!validateField(field)) isValid = false;
-    });
+    formFields.forEach(field => { if (!validateField(field)) isValid = false; });
 
     const numberOfDays = parseInt(document.getElementById('numberOfDays').value, 10);
     const remainingDays = parseInt(document.getElementById('remainingDays').value, 10);
 
-    if (numberOfDays > 15) {
-        alert('Maximum leave application is 15 days per request.');
-        isValid = false;
-    }
+    if (numberOfDays > 15) { alert('Maximum leave application is 15 days per request.'); isValid = false; }
+    if (numberOfDays > remainingDays) { alert(`You only have ${remainingDays} remaining leave days this year. Please adjust your request.`); isValid = false; }
+    if (numberOfDays < 1) { alert('Number of days must be at least 1.'); isValid = false; }
 
-    if (numberOfDays > remainingDays) {
-        alert(`You only have ${remainingDays} remaining leave days this year. Please adjust your request.`);
-        isValid = false;
-    }
-
-    if (numberOfDays < 1) {
-        alert('Number of days must be at least 1.');
-        isValid = false;
-    }
-
-    if (!isValid) {
-        alert('Please fill in all required fields correctly.');
-        return;
-    }
+    if (!isValid) { alert('Please fill in all required fields correctly.'); return; }
 
     const formData = new FormData(this);
     const data = {};
-    
     formData.forEach((value, key) => {
-        if (value !== '' && value !== null && key !== 'full_name') {
-            data[key] = value;
-        }
+        if (value !== '' && value !== null && key !== 'full_name') data[key] = value;
     });
 
     const employeeId = document.getElementById('employeeId').value;
-    if (!employeeId) {
-        alert('Employee verification failed. Please re-enter your name.');
-        return;
-    }
+    if (!employeeId) { alert('Employee verification failed. Please re-enter your name.'); return; }
     data['employee'] = employeeId;
 
+    const reasonValue = document.getElementById('reason').value;
     const submitButton = document.getElementById('submitButton');
     const loadingScreen = document.getElementById('loadingScreen');
 
@@ -391,26 +381,22 @@ document.getElementById('leaveApplicationForm').addEventListener('submit', async
         const result = await response.json();
 
         if (response.ok && result.success) {
-            const successMsg = document.getElementById('successMessage');
-            successMsg.classList.add('show');
-            
+            const updatedRemaining = parseInt(document.getElementById('remainingDays').value, 10) - numberOfDays;
+
             this.reset();
             employeeVerified = false;
             document.getElementById('employeeId').value = '';
             document.getElementById('remainingDays').value = '0';
             document.getElementById('remainingDaysDisplay').innerText = 'Not verified';
             document.getElementById('employeeValidationMsg').innerText = '';
-            
+            document.getElementById('fullNameGroup').style.display = 'none';
             document.getElementById('vacationLocationGroup').style.display = 'none';
             document.getElementById('sickLocationGroup').style.display = 'none';
-            
-            setTimeout(() => {
-                successMsg.classList.remove('show');
-            }, 5000);
-            
+
+            showSuccessModal(updatedRemaining >= 0 ? updatedRemaining : 0, reasonValue);
+
         } else {
             const errorMessage = result.message || result.errors || 'Failed to submit application';
-            
             if (typeof errorMessage === 'string' && errorMessage.includes('not found')) {
                 alert('Error: Employee not found in our records. Please verify your name.');
             } else if (typeof errorMessage === 'string' && errorMessage.includes('remaining days')) {
@@ -431,11 +417,7 @@ document.getElementById('leaveApplicationForm').addEventListener('submit', async
 
 function validateField(field) {
     const errorMessage = field.parentElement.querySelector('.error-message');
-
-    if (field.offsetParent === null) {
-        return true;
-    }
-
+    if (field.offsetParent === null) return true;
     if (field.hasAttribute('required') && !field.value.trim()) {
         field.classList.add('error');
         if (errorMessage) errorMessage.classList.add('show');
@@ -452,9 +434,7 @@ function getCookie(name) {
     if (document.cookie && document.cookie !== '') {
         document.cookie.split(';').forEach(cookie => {
             const c = cookie.trim();
-            if (c.startsWith(name + '=')) {
-                cookieValue = decodeURIComponent(c.substring(name.length + 1));
-            }
+            if (c.startsWith(name + '=')) cookieValue = decodeURIComponent(c.substring(name.length + 1));
         });
     }
     return cookieValue;
